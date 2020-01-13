@@ -2,3 +2,5 @@
 .nuget
 */bin
 */obj
+/packages
+/.vs
