@@ -1,61 +1,34 @@
-// Copyright 2018-2019 Fabulous contributors. See LICENSE.md for license.
 namespace AllerRetour
 
-open System.Diagnostics
 open Fabulous
 open Fabulous.XamarinForms
 open Fabulous.XamarinForms.LiveUpdate
 open Xamarin.Forms
 
 module App = 
-    type Model = 
-      { Count : int
-        Step : int
-        TimerOn: bool }
+    type Model = {
+      SignInPageModel: SignInPage.Model
+    }
 
-    type Msg = 
-        | Increment 
-        | Decrement 
-        | Reset
-        | SetStep of int
-        | TimerToggled of bool
-        | TimedTick
+    type Msg =
+      | SignInPageMsg of SignInPage.Msg
 
-    let initModel = { Count = 0; Step = 1; TimerOn=false }
+    let initModel = {
+      SignInPageModel = SignInPage.initModel ()
+    }
 
     let init () = initModel, Cmd.none
 
-    let timerCmd =
-        async { do! Async.Sleep 200
-                return TimedTick }
-        |> Cmd.ofAsyncMsg
-
     let update msg model =
-        match msg with
-        | Increment -> { model with Count = model.Count + model.Step }, Cmd.none
-        | Decrement -> { model with Count = model.Count - model.Step }, Cmd.none
-        | Reset -> init ()
-        | SetStep n -> { model with Step = n }, Cmd.none
-        | TimerToggled on -> { model with TimerOn = on }, (if on then timerCmd else Cmd.none)
-        | TimedTick -> 
-            if model.TimerOn then 
-                { model with Count = model.Count + model.Step }, timerCmd
-            else 
-                model, Cmd.none
+      match msg with
+      | SignInPageMsg m ->
+        let n = SignInPage.update m model.SignInPageModel
+        { model with SignInPageModel = n }, Cmd.none
 
-    let view (model: Model) dispatch =
+    let view model dispatch =
         View.ContentPage(
-          content = View.StackLayout(padding = Thickness 20.0, verticalOptions = LayoutOptions.Center,
-            children = [ 
-                View.Label(text = sprintf "%d" model.Count, horizontalOptions = LayoutOptions.Center, width=200.0, horizontalTextAlignment=TextAlignment.Center)
-                View.Button(text = "Increment", command = (fun () -> dispatch Increment), horizontalOptions = LayoutOptions.Center)
-                View.Button(text = "Decrement", command = (fun () -> dispatch Decrement), horizontalOptions = LayoutOptions.Center)
-                View.Label(text = "Timer", horizontalOptions = LayoutOptions.Center)
-                View.Switch(isToggled = model.TimerOn, toggled = (fun on -> dispatch (TimerToggled on.Value)), horizontalOptions = LayoutOptions.Center)
-                View.Slider(minimumMaximum = (0.0, 10.0), value = double model.Step, valueChanged = (fun args -> dispatch (SetStep (int (args.NewValue + 0.5)))), horizontalOptions = LayoutOptions.FillAndExpand)
-                View.Label(text = sprintf "Step size: %d" model.Step, horizontalOptions = LayoutOptions.Center) 
-                View.Button(text = "Reset", horizontalOptions = LayoutOptions.Center, command = (fun () -> dispatch Reset), commandCanExecute = (model <> initModel))
-            ]))
+          content = SignInPage.view model.SignInPageModel (fun m -> dispatch (SignInPageMsg m) )
+        )
 
     // Note, this declaration is needed if you enable LiveUpdate
     let program = Program.mkProgram init update view

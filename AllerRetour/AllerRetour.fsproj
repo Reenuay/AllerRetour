@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <Compile Include="Json.fs" />
+    <Compile Include="SignInPage.fs" />
     <Compile Include="AllerRetour.fs" />
   </ItemGroup>
   <ItemGroup>

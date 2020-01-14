@@ -147,6 +147,9 @@
     </ImageAsset>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.FSharpLu.Json">
+      <HintPath>..\packages\Microsoft.FSharpLu.Json.0.11.6\lib\netstandard2.0\Microsoft.FSharpLu.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
