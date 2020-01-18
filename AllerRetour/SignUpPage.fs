@@ -26,7 +26,7 @@ type ExternalMsg =
   | SignUp
   | GoToSignIn
 
-let initModel () = {
+let initModel = {
   FirstName = ""
   LastName = ""
   Email = ""
@@ -34,7 +34,7 @@ let initModel () = {
   RepeatPassword = ""
 }
 
-let update msg model =
+let update msg (model: Model) =
   match msg with
   | SetFirstName f -> { model with FirstName = f }, NoOp
   | SetLastName l -> { model with LastName = l }, NoOp
@@ -53,21 +53,24 @@ let view model dispatch =
         View.Label(text = "Aller Retour")
         View.Entry(
           text = model.FirstName,
-          placeholder = model.FirstName,
+          placeholder = "First name",
           textChanged = (fun args -> dispatch (SetFirstName args.NewTextValue)))
         View.Entry(
           text = model.LastName,
-          placeholder = model.LastName,
+          placeholder = "Last name",
           textChanged = (fun args -> dispatch (SetLastName args.NewTextValue)))
         View.Entry(
           text = model.Email,
+          placeholder = "Email",
           textChanged = (fun args -> dispatch (SetEmail args.NewTextValue)))
         View.Entry(
           text = model.Password,
+          placeholder = "Password",
           isPassword = true,
           textChanged = (fun args -> dispatch (SetPassword args.NewTextValue)))
         View.Entry(
           text = model.RepeatPassword,
+          placeholder = "Repeat password",
           isPassword = true,
           textChanged = (fun args -> dispatch (SetRepeatPassword args.NewTextValue)))
         View.Button(

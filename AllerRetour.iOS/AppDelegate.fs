@@ -1,4 +1,3 @@
-﻿// Copyright 2018 Fabulous contributors. See LICENSE.md for license.
 namespace AllerRetour.iOS
 
 open System

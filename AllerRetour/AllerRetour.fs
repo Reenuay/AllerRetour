@@ -7,11 +7,10 @@ open Fabulous.XamarinForms.LiveUpdate
 open Xamarin.Forms
 
 module App =
-  type Gender = Male | Female | Undefined
-
   type PageModel =
     | SignInPageModel of SignInPage.Model
     | SignUpPageModel of SignUpPage.Model
+    | MainPageModel of MainPage.Model
 
   type Model = {
     PageModel: PageModel
@@ -20,57 +19,71 @@ module App =
   type PageMsg =
     | SignInPageMsg of SignInPage.Msg
     | SignUpPageMsg of SignUpPage.Msg
+    | MainPageMsg of MainPage.Msg
 
   type Msg =
     | PageMsg of PageMsg
     | NavigateTo of PageModel
     | SignIn
     | SignUp
+    | SignOut
 
   let initModel = {
-    PageModel = SignInPageModel (SignInPage.initModel ())
+    PageModel = SignInPageModel SignInPage.initModel
   }
 
   let init () = initModel, Cmd.none
 
-  let handleSignInExternalMsg msg model =
+  let handleSignInMsg msg model =
     let newModel, eMsg = SignInPage.update msg model
     let cmd =
       match eMsg with
       | SignInPage.NoOp -> Cmd.none
       | SignInPage.SignIn -> Cmd.ofMsg SignIn
       | SignInPage.GoToSignUp ->
-        SignUpPage.initModel ()
+        SignUpPage.initModel
         |> SignUpPageModel
         |> NavigateTo
         |> Cmd.ofMsg
     newModel, cmd
 
-  let handleSignUpExternalMsg msg model =
+  let handleSignUpMsg msg model =
     let newModel, eMsg = SignUpPage.update msg model
     let cmd =
       match eMsg with
       | SignUpPage.NoOp -> Cmd.none
       | SignUpPage.SignUp -> Cmd.ofMsg SignUp
       | SignUpPage.GoToSignIn ->
-        SignInPage.initModel ()
+        SignInPage.initModel
         |> SignInPageModel
         |> NavigateTo
         |> Cmd.ofMsg
     newModel, cmd
 
+  let handleMainMsg msg model  =
+    let newModel, eMsg = MainPage.update msg model
+    let cmd =
+      match eMsg with
+      | MainPage.NoOp -> Cmd.none
+      | MainPage.SIgnOut -> Cmd.ofMsg SignOut
+    newModel, cmd
+
   let handlePageMsg pMsg aModel =
     match pMsg, aModel.PageModel with
     | SignInPageMsg msg, SignInPageModel model ->
-      let newModel, cmd = handleSignInExternalMsg msg model
+      let newModel, cmd = handleSignInMsg msg model
       { aModel with PageModel = SignInPageModel newModel }, cmd
 
     | SignUpPageMsg msg, SignUpPageModel model ->
-      let newModel, cmd = handleSignUpExternalMsg msg model
+      let newModel, cmd = handleSignUpMsg msg model
       { aModel with PageModel = SignUpPageModel newModel }, cmd
 
-    | _, _ -> aModel, Cmd.none
+    | MainPageMsg msg, MainPageModel model ->
+      let newModel, cmd = handleMainMsg msg model
+      { aModel with PageModel = MainPageModel newModel }, cmd
 
+    | _, _ -> aModel, Cmd.none
+      
   let update aMsg aModel =
     match aMsg with
     | PageMsg pMsg ->
@@ -80,10 +93,13 @@ module App =
       match pModel with
       | SignInPageModel sModel -> { aModel with PageModel = SignInPageModel sModel }, Cmd.none
       | SignUpPageModel sModel -> { aModel with PageModel = SignUpPageModel sModel }, Cmd.none
+      | MainPageModel mModel -> { aModel with PageModel = MainPageModel mModel }, Cmd.none
 
     | SignIn -> aModel, Cmd.none // TODO: Create real sign in logic
 
     | SignUp -> aModel, Cmd.none // TODO: Create real sign up logic
+
+    | SignOut -> aModel, Cmd.none // TODO: Create real sign out logic
 
   let view appModel dispatch =
     let pageDispatch = PageMsg >> dispatch
@@ -91,6 +107,7 @@ module App =
     match appModel.PageModel with
     | SignInPageModel model -> SignInPage.view model (SignInPageMsg >> pageDispatch)
     | SignUpPageModel model -> SignUpPage.view model (SignUpPageMsg >> pageDispatch)
+    | MainPageModel model -> MainPage.view model (MainPageMsg >> pageDispatch)
 
   // Note, this declaration is needed if you enable LiveUpdate
   let program = Program.mkProgram init update view
@@ -108,7 +125,6 @@ type App () as app =
 #if DEBUG
   // Uncomment this line to enable live update in debug mode. 
   // See https://fsprojects.github.io/Fabulous/Fabulous.XamarinForms/tools.html#live-update for further  instructions.
-  //
   do runner.EnableLiveUpdate()
 #endif    
 

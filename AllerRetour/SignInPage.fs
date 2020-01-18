@@ -20,7 +20,7 @@ type ExternalMsg =
   | SignIn
   | GoToSignUp
 
-let initModel () = {
+let initModel = {
   Email = ""
   Password = ""
 }
@@ -41,9 +41,11 @@ let view model dispatch =
         View.Label(text = "Aller Retour")
         View.Entry(
           text = model.Email,
+          placeholder = "Email",
           textChanged = (fun args -> dispatch (SetEmail args.NewTextValue)))
         View.Entry(
           text = model.Password,
+          placeholder = "Password",
           isPassword = true,
           textChanged = (fun args -> dispatch (SetPassword args.NewTextValue)))
         View.Button(

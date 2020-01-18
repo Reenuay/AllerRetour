@@ -6,9 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Controls\OptionalDatePicker.fs" />
     <Compile Include="Json.fs" />
+    <Compile Include="PrimitiveTypes.fs" />
     <Compile Include="SignInPage.fs" />
     <Compile Include="SignUpPage.fs" />
+    <Compile Include="EditProfilePage.fs" />
+    <Compile Include="MainPage.fs" />
     <Compile Include="AllerRetour.fs" />
   </ItemGroup>
   <ItemGroup>
