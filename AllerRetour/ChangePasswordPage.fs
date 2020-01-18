@@ -26,7 +26,7 @@ let initModel = {
   OldPassword = ""
 }
 
-let update msg model =
+let update msg (model: Model) =
   match msg with
   | SetNewPassword p -> { model with NewPassword = p }, NoOp
   | SetRepeatNewPassword p -> { model with RepeatNewPassword = p }, NoOp

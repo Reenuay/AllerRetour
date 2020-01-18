@@ -4,6 +4,22 @@ open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 
+type Msg =
+  | ClickEditProfile
+  | ClickChangeEmail
+  | ClickChangePassword
+  | ClickSignOut
+  | EditProfilePageMsg of EditProfilePage.Msg
+  | ChangeEmailPageMsg of ChangeEmailPage.Msg
+  | ChangePasswordPageMsg of ChangePasswordPage.Msg
+
+type ExternalMsg =
+  | NoOp
+  | SignOut
+  | UpdateProfile of Profile
+  | ChangeEmail of ChangeEmailRequest
+  | ChangePassword of ChangePasswordRequest
+
 type MainPageModel = {
   CardId: string
   Email: string
@@ -24,22 +40,6 @@ type Pages = {
   ChangePasswordPage: ViewElement option
 }
 
-type Msg =
-  | ClickEditProfile
-  | ClickChangeEmail
-  | ClickChangePassword
-  | ClickSignOut
-  | EditProfilePageMsg of EditProfilePage.Msg
-  | ChangeEmailPageMsg of ChangeEmailPage.Msg
-  | ChangePasswordPageMsg of ChangePasswordPage.Msg
-
-type ExternalMsg =
-  | NoOp
-  | SignOut
-  | UpdateProfile of Profile
-  | ChangeEmail of ChangeEmailRequest
-  | ChangePassword of ChangePasswordRequest
-
 let initMainPageModel = {
   CardId = ""
   Email = ""
@@ -52,6 +52,21 @@ let initModel = {
   ChangeEmailPageModel = None
   ChangePasswordPageModel = None
 }
+
+let navigationMapper (model : Model) =
+    let editPageModel = model.EditProfilePageModel
+    let changeEmailModel = model.ChangeEmailPageModel
+    let changePasswordModel = model.ChangePasswordPageModel
+
+    match editPageModel, changeEmailModel, changePasswordModel with
+    | None, None, None ->
+        model
+    | Some _, None, None ->
+        { model with EditProfilePageModel = None }
+    | _, Some _, None ->
+        { model with ChangeEmailPageModel = None }
+    | _, _, Some _ ->
+        { model with ChangePasswordPageModel = None }
 
 let update mMsg mModel =
   match mMsg with
@@ -78,15 +93,17 @@ let update mMsg mModel =
     match mModel.EditProfilePageModel with
     | Some model ->
       let newModel, eMsg = EditProfilePage.update msg model
-      let newModel2, eMsg2 =
+      let newModelOption, eMsg2, profile =
         match eMsg with
-        | EditProfilePage.NoOp -> mModel.MainPageModel.Profile, NoOp
-        | EditProfilePage.UpdateProfile -> newModel.Profile, UpdateProfile newModel.Profile
+        | EditProfilePage.NoOp ->
+          Some newModel, NoOp, mModel.MainPageModel.Profile
+        | EditProfilePage.UpdateProfile ->
+          None, UpdateProfile newModel.Profile, newModel.Profile
 
       { mModel
         with
-          EditProfilePageModel = None
-          MainPageModel = { mModel.MainPageModel with Profile = newModel2 }
+          EditProfilePageModel = newModelOption
+          MainPageModel = { mModel.MainPageModel with Profile = profile }
       }, eMsg2
     | None -> mModel, NoOp
 
@@ -94,34 +111,37 @@ let update mMsg mModel =
     match mModel.ChangeEmailPageModel with
     | Some model ->
       let newModel, eMsg = ChangeEmailPage.update msg model
-      let newModel2, eMsg2 =
+      let newModelOption, eMsg2, email =
         match eMsg with
-        | ChangeEmailPage.NoOp -> mModel.MainPageModel.Email, NoOp
+        | ChangeEmailPage.NoOp -> Some newModel, NoOp, mModel.MainPageModel.Email
         | ChangeEmailPage.ChangeEmail ->
-          newModel.Email, ChangeEmail {
+          None,
+          ChangeEmail {
             Email = newModel.Email
             Password = newModel.Password
-          }
+          },
+          newModel.Email
       { mModel
         with
-          ChangeEmailPageModel = None
-          MainPageModel = { mModel.MainPageModel with Email = newModel2 }
+          ChangeEmailPageModel = newModelOption
+          MainPageModel = { mModel.MainPageModel with Email = email }
       }, eMsg2
     | None -> mModel, NoOp
 
   | ChangePasswordPageMsg msg ->
     match mModel.ChangePasswordPageModel with
     | Some model ->
-      let newModel, eMsg = ChangePasswordPage.update msg model
-      let eMsg2 =
-        match eMsg with
-        | ChangePasswordPage.NoOp -> NoOp
+      let newModel, peMsg = ChangePasswordPage.update msg model
+      let newModelOption, eMsg =
+        match peMsg with
+        | ChangePasswordPage.NoOp -> Some newModel, NoOp
         | ChangePasswordPage.ChangePassword ->
+          None,
           ChangePassword {
             NewPassword = newModel.NewPassword
             OldPassword = newModel.OldPassword
           }
-      { mModel with ChangeEmailPageModel = None }, eMsg2
+      { mModel with ChangePasswordPageModel = newModelOption }, eMsg
     | None -> mModel, NoOp
 
 let mainPageView mModel dispatch =
@@ -154,10 +174,10 @@ let getPages allPages =
   let changePasswordPage = allPages.ChangePasswordPage
 
   match editProfilePage, changeEmailPage, changePasswordPage with
-  | None, None, None -> [mainPage]
-  | Some editProfile, _, _ -> [mainPage; editProfile]
-  | _, Some changeEmail, _ -> [mainPage; changeEmail]
-  | _, _, Some changePassword -> [mainPage; changePassword]
+  | None, None, None             -> [ mainPage ]
+  | Some editProfile, None, None -> [ mainPage; editProfile ]
+  | _, Some changeEmail, None    -> [ mainPage; changeEmail ]
+  | _, _, Some changePassword    -> [ mainPage; changePassword ]
 
 let view model dispatch =
   let mainPage = mainPageView model.MainPageModel dispatch
