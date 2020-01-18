@@ -74,11 +74,7 @@ let update mMsg mModel =
     { mModel
       with
         EditProfilePageModel
-          = Some {
-            EditProfilePage.initModel
-              with
-              Profile = mModel.MainPageModel.Profile
-          }
+          = Some (EditProfilePage.initModel mModel.MainPageModel.Profile)
     }, NoOp
 
   | ClickChangeEmail ->

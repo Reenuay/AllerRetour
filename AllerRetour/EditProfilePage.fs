@@ -7,7 +7,6 @@ open Xamarin.Forms
 open AllerRetour.Controls
 
 type Model = {
-  GenderList: string list
   Profile: Profile
   SelectedGenderIndex: int
 }
@@ -23,14 +22,7 @@ type ExternalMsg =
   | NoOp
   | UpdateProfile
 
-let initModel = {
-  GenderList = ["Male"; "Female"]
-  Profile = Profile.Empty
-  SelectedGenderIndex = -1
-}
-
-let setProfile model profile =
-  { model with Profile = profile }
+let genderList = ["Male"; "Female"]
 
 let toGenderOption = function
 | Some x ->
@@ -39,6 +31,21 @@ let toGenderOption = function
   | "Female" -> Some Female
   | _ -> None
 | None -> None
+
+let fromGenderOption = function
+| Some x ->
+  match x with
+  | Male -> List.findIndex (fun x -> x = "Male") genderList
+  | Female -> List.findIndex (fun x -> x = "Female") genderList
+| None -> -1
+
+let initModel profile = {
+  Profile = profile
+  SelectedGenderIndex = fromGenderOption profile.Gender
+}
+
+let setProfile model profile =
+  { model with Profile = profile }
 
 let update msg model =
   match msg with
@@ -73,7 +80,7 @@ let view model dispatch =
         View.Picker(
           title = "Gender",
           selectedIndex = model.SelectedGenderIndex,
-          items = model.GenderList,
+          items = genderList,
           selectedIndexChanged = (fun (i, item) -> dispatch (SetGender (i, item)))
         )
         View.Button(
