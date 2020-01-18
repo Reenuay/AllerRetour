@@ -17,3 +17,13 @@ type Profile = {
       Birthday = None
       Gender = None
     }
+
+type ChangeEmailRequest = {
+  Email: string
+  Password: string
+}
+
+type ChangePasswordRequest = {
+  NewPassword: string
+  OldPassword: string
+}

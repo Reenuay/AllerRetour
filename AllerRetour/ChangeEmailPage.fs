@@ -23,7 +23,7 @@ let initModel = {
   Password = ""
 }
 
-let update msg model =
+let update msg (model: Model) =
   match msg with
   | SetEmail e -> { model with Email = e }, NoOp
   | SetPassword e -> { model with Password = e }, NoOp

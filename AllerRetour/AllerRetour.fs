@@ -65,7 +65,10 @@ module App =
     let cmd =
       match eMsg with
       | MainPage.NoOp -> Cmd.none
-      | MainPage.SIgnOut -> Cmd.ofMsg SignOut
+      | MainPage.SignOut -> Cmd.ofMsg SignOut
+      | MainPage.UpdateProfile _ -> Cmd.none // Create real profile update logic
+      | MainPage.ChangeEmail _ -> Cmd.none // Create real email change logic
+      | MainPage.ChangePassword _ -> Cmd.none // Create real password change logic
     newModel, cmd
 
   let handlePageMsg pMsg aModel =
@@ -95,11 +98,14 @@ module App =
       | SignUpPageModel sModel -> { aModel with PageModel = SignUpPageModel sModel }, Cmd.none
       | MainPageModel mModel -> { aModel with PageModel = MainPageModel mModel }, Cmd.none
 
-    | SignIn -> aModel, Cmd.none // TODO: Create real sign in logic
+    | SignIn ->
+      aModel, Cmd.ofMsg (NavigateTo (MainPageModel MainPage.initModel)) // TODO: Create real sign in logic
 
-    | SignUp -> aModel, Cmd.none // TODO: Create real sign up logic
+    | SignUp ->
+      aModel, Cmd.none // TODO: Create real sign up logic
 
-    | SignOut -> aModel, Cmd.none // TODO: Create real sign out logic
+    | SignOut ->
+      aModel, Cmd.ofMsg (NavigateTo (SignInPageModel SignInPage.initModel)) // TODO: Create real sign out logic
 
   let view appModel dispatch =
     let pageDispatch = PageMsg >> dispatch
