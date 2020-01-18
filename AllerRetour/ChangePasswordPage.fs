@@ -46,7 +46,7 @@ let view model dispatch =
           text = model.RepeatNewPassword,
           placeholder = "Repeat new password",
           isPassword = true,
-          textChanged = (fun args -> dispatch (SetNewPassword args.NewTextValue)))
+          textChanged = (fun args -> dispatch (SetRepeatNewPassword args.NewTextValue)))
         View.Entry(
           text = model.OldPassword,
           placeholder = "Old password",
