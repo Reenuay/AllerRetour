@@ -66,9 +66,9 @@ module App =
       match eMsg with
       | MainPage.NoOp -> Cmd.none
       | MainPage.SignOut -> Cmd.ofMsg SignOut
-      | MainPage.UpdateProfile _ -> Cmd.none // Create real profile update logic
-      | MainPage.ChangeEmail _ -> Cmd.none // Create real email change logic
-      | MainPage.ChangePassword _ -> Cmd.none // Create real password change logic
+      | MainPage.UpdateProfile _ -> Cmd.none // TODO: Create real profile update logic
+      | MainPage.ChangeEmail _ -> Cmd.none // TODO: Create real email change logic
+      | MainPage.ChangePassword _ -> Cmd.none // TODO: Create real password change logic
     newModel, cmd
 
   let handlePageMsg pMsg aModel =

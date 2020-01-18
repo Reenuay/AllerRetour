@@ -56,7 +56,15 @@ let initModel = {
 let update mMsg mModel =
   match mMsg with
   | ClickEditProfile ->
-    { mModel with EditProfilePageModel = Some EditProfilePage.initModel }, NoOp
+    { mModel
+      with
+        EditProfilePageModel
+          = Some {
+            EditProfilePage.initModel
+              with
+              Profile = mModel.MainPageModel.Profile
+          }
+    }, NoOp
 
   | ClickChangeEmail ->
     { mModel with ChangeEmailPageModel = Some ChangeEmailPage.initModel }, NoOp
