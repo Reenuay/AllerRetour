@@ -28,7 +28,7 @@ type OptionalDatePicker() =
         this.Date <- d
     | None ->
       _format <- this.Format
-      this.Format <- "Pick a date..."
+      this.Format <- "..."
 
   override this.OnBindingContextChanged() =
     base.OnBindingContextChanged()
