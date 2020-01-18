@@ -12,6 +12,7 @@
     <Compile Include="SignInPage.fs" />
     <Compile Include="SignUpPage.fs" />
     <Compile Include="EditProfilePage.fs" />
+    <Compile Include="ChangeEmailPage.fs" />
     <Compile Include="MainPage.fs" />
     <Compile Include="AllerRetour.fs" />
   </ItemGroup>

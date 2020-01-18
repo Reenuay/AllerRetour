@@ -13,11 +13,13 @@ type MainPageModel = {
 type Model = {
   MainPageModel: MainPageModel
   EditProfilePageModel: EditProfilePage.Model option
+  ChangeEmailPageModel: ChangeEmailPage.Model option
 }
 
 type Pages = {
   MainPage: ViewElement
   EditProfilePage: ViewElement option
+  ChangeEmailPage: ViewElement option
 }
 
 type Msg =
@@ -27,6 +29,7 @@ type Msg =
   | ClickSignOut
   | UpdateProfile of Profile
   | EditProfilePageMsg of EditProfilePage.Msg
+  | ChangeEmailPageMsg of ChangeEmailPage.Msg
 
 type ExternalMsg =
   | NoOp
@@ -41,6 +44,7 @@ let initMainPageModel = {
 let initModel = {
   MainPageModel = initMainPageModel
   EditProfilePageModel = None
+  ChangeEmailPageModel = None
 }
 
 let handleEditProfileMsg mModel pModel eMsg =
@@ -57,18 +61,38 @@ let handleEditProfileMsg mModel pModel eMsg =
       }
   }
 
+let handleChangeEmailMsg mModel eModel eMsg =
+  { mModel
+    with
+      ChangeEmailPageModel = Some eModel
+      MainPageModel = {
+        mModel.MainPageModel
+        with
+          Email =
+            match eMsg with
+            | ChangeEmailPage.NoOp -> mModel.MainPageModel.Email
+            | ChangeEmailPage.ChangeEmail -> eModel.Email
+      }
+  }
+
 let update mMsg mModel =
   match mMsg with
   | ClickEditProfile -> { mModel with EditProfilePageModel = Some EditProfilePage.initModel }, NoOp
+  | ClickSignOut -> mModel, SIgnOut
   | EditProfilePageMsg msg ->
     match mModel.EditProfilePageModel with
-    | Some m ->
-      let newModel, eMsg = EditProfilePage.update msg m
+    | Some model ->
+      let newModel, eMsg = EditProfilePage.update msg model
       handleEditProfileMsg mModel newModel eMsg, NoOp // Create real profile update logic
 
     | None -> mModel, NoOp
-  | ClickSignOut -> mModel, SIgnOut
-  | _ -> mModel, NoOp // Remove this for better type inference
+  | ChangeEmailPageMsg msg ->
+    match mModel.ChangeEmailPageModel with
+    | Some model ->
+      let newModel, eMsg = ChangeEmailPage.update msg model
+      handleChangeEmailMsg mModel newModel eMsg, NoOp // Create real email change logic
+    | None -> mModel, NoOp
+
 
 let mainPageView mModel dispatch =
   View.ContentPage(
@@ -105,12 +129,17 @@ let view model dispatch =
   let mainPage = mainPageView model.MainPageModel dispatch
 
   let editProfilePage
-    = model.EditProfilePageModel
+    =  model.EditProfilePageModel
     |> Option.map(fun pModel -> EditProfilePage.view pModel (EditProfilePageMsg >> dispatch))
+
+  let changeEmailPage
+    =  model.ChangeEmailPageModel
+    |> Option.map(fun eModel -> ChangeEmailPage.view eModel (ChangeEmailPageMsg >> dispatch))
 
   let allPages = {
     MainPage = mainPage
     EditProfilePage = editProfilePage
+    ChangeEmailPage = changeEmailPage
   }
 
   View.NavigationPage(
