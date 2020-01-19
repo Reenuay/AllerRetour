@@ -18,7 +18,14 @@ type Profile = {
       Gender = None
     }
 
-type ChangeEmailRequest = {
+type EmailAndPassword = {
+  Email: string
+  Password: string
+}
+
+type SignUpRequest = {
+  FirstName: string
+  LastName: string
   Email: string
   Password: string
 }

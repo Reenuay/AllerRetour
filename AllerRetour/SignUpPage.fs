@@ -11,6 +11,13 @@ type Model = {
   Password: string
   RepeatPassword: string
 }
+  with
+    member this.ToRequest() = {
+      FirstName = this.FirstName
+      LastName = this.LastName
+      Email = this.Email
+      Password = this.Password
+    }
 
 type Msg =
   | SetFirstName of string
@@ -23,7 +30,7 @@ type Msg =
 
 type ExternalMsg =
   | NoOp
-  | SignUp of string
+  | SignUp of SignUpRequest
   | GoToSignIn
 
 let initModel = {
@@ -41,7 +48,7 @@ let update msg (model: Model) =
   | SetEmail e -> { model with Email = e }, NoOp
   | SetPassword p -> { model with Password = p }, NoOp
   | SetRepeatPassword p -> { model with RepeatPassword = p }, NoOp
-  | ClickSignUp -> model, SignUp model.Email
+  | ClickSignUp -> model, SignUp (model.ToRequest())
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view model dispatch =

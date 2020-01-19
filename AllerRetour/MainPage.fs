@@ -4,6 +4,19 @@ open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 
+type MainPageModel = {
+  CardId: string
+  Email: string
+  Profile: Profile
+}
+
+type Model = {
+  MainPageModel: MainPageModel
+  EditProfilePageModel: EditProfilePage.Model option
+  ChangeEmailPageModel: ChangeEmailPage.Model option
+  ChangePasswordPageModel: ChangePasswordPage.Model option
+}
+
 type Msg =
   | ClickEditProfile
   | ClickChangeEmail
@@ -17,21 +30,8 @@ type ExternalMsg =
   | NoOp
   | SignOut
   | UpdateProfile of Profile
-  | ChangeEmail of ChangeEmailRequest
+  | ChangeEmail of EmailAndPassword
   | ChangePassword of ChangePasswordRequest
-
-type MainPageModel = {
-  CardId: string
-  Email: string
-  Profile: Profile
-}
-
-type Model = {
-  MainPageModel: MainPageModel
-  EditProfilePageModel: EditProfilePage.Model option
-  ChangeEmailPageModel: ChangeEmailPage.Model option
-  ChangePasswordPageModel: ChangePasswordPage.Model option
-}
 
 type Pages = {
   MainPage: ViewElement

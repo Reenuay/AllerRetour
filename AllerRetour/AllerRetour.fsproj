@@ -13,6 +13,7 @@
     <Compile Include="SignUpPage.fs" />
     <Compile Include="ForgotPasswordPage.fs" />
     <Compile Include="SignUpSuccessPage.fs" />
+    <Compile Include="ResendEmailPage.fs" />
     <Compile Include="EditProfilePage.fs" />
     <Compile Include="ChangeEmailPage.fs" />
     <Compile Include="ChangePasswordPage.fs" />

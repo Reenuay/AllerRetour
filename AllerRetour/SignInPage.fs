@@ -4,10 +4,7 @@ open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 
-type Model = {
-  Email: string
-  Password: string
-}
+type Model = EmailAndPassword
 
 type Msg =
   | SetEmail of string
@@ -18,7 +15,7 @@ type Msg =
 
 type ExternalMsg =
   | NoOp
-  | SignIn
+  | SignIn of EmailAndPassword
   | GoToSignUp
   | GoToForgotPassword
 
@@ -31,11 +28,11 @@ let update msg (model: Model) =
   match msg with
   | SetEmail e -> { model with Email = e }, NoOp
   | SetPassword e -> { model with Password = e }, NoOp
-  | ClickSignIn -> model, SignIn
+  | ClickSignIn -> model, SignIn model
   | ClickGoToSignUp -> model, GoToSignUp
   | ClickToForgotPassword -> model, GoToForgotPassword
 
-let view model dispatch =
+let view (model: Model) dispatch =
   View.ContentPage(
     content = View.StackLayout(
       padding = Thickness 20.0,

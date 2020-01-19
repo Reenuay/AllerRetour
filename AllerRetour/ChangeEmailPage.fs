@@ -4,10 +4,7 @@ open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 
-type Model = {
-  Email: string
-  Password: string
-}
+type Model = EmailAndPassword
 
 type Msg =
   | SetEmail of string
@@ -29,7 +26,7 @@ let update msg (model: Model) =
   | SetPassword e -> { model with Password = e }, NoOp
   | ClickChange -> model, ChangeEmail
 
-let view model dispatch =
+let view (model: Model) dispatch =
   View.ContentPage(
     content = View.StackLayout(
       children = [

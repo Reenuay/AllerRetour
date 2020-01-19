@@ -4,9 +4,7 @@ open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 
-type Model = {
-  Email: string
-}
+type Model = string
 
 type Msg = ClickGoToSignIn
 
@@ -19,12 +17,11 @@ let update msg (model: Model) =
 let view model dispatch =
   View.ContentPage(
     content = View.StackLayout(
-      padding = Thickness 20.0,
       verticalOptions = LayoutOptions.Center,
       children = [
         View.Label(
           text = "Success! We sent you an email.\n"
-            + sprintf "Please check you email address %s for confirmation.\n" model.Email
+            + sprintf "Please check you email address %s for confirmation.\n" model
             + "If there is no email check spam folder.")
         View.Button(
           text = "Return to sign in page",
