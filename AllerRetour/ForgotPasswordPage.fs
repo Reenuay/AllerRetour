@@ -1,6 +1,5 @@
 module AllerRetour.ForgotPasswordPage
 
-
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms

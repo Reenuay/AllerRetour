@@ -23,7 +23,7 @@ type Msg =
 
 type ExternalMsg =
   | NoOp
-  | SignUp
+  | SignUp of string
   | GoToSignIn
 
 let initModel = {
@@ -41,7 +41,7 @@ let update msg (model: Model) =
   | SetEmail e -> { model with Email = e }, NoOp
   | SetPassword p -> { model with Password = p }, NoOp
   | SetRepeatPassword p -> { model with RepeatPassword = p }, NoOp
-  | ClickSignUp -> model, SignUp
+  | ClickSignUp -> model, SignUp model.Email
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view model dispatch =
