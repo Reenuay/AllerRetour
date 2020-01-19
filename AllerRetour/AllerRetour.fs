@@ -32,6 +32,9 @@ module App =
     | SignUp of string
     | SignOut
     | SendPasswordResetEmail
+    | UpdateProfile of Profile
+    | ChangeEmail of ChangeEmailRequest
+    | ChangePassword of ChangePasswordRequest
 
   let initModel = {
     PageModel = SignInPageModel SignInPage.initModel
@@ -100,9 +103,9 @@ module App =
       match eMsg with
       | MainPage.NoOp -> Cmd.none
       | MainPage.SignOut -> Cmd.ofMsg SignOut
-      | MainPage.UpdateProfile _ -> Cmd.none // TODO: Create real profile update logic
-      | MainPage.ChangeEmail _ -> Cmd.none // TODO: Create real email change logic
-      | MainPage.ChangePassword _ -> Cmd.none // TODO: Create real password change logic
+      | MainPage.UpdateProfile p -> Cmd.ofMsg (UpdateProfile p)
+      | MainPage.ChangeEmail r -> Cmd.ofMsg (ChangeEmail r)
+      | MainPage.ChangePassword r -> Cmd.ofMsg (ChangePassword r)
     newModel, cmd
 
   let handlePageMsg pMsg aModel =
@@ -148,6 +151,15 @@ module App =
 
     | SendPasswordResetEmail ->
       aModel, Cmd.ofMsg (NavigateTo (SignInPageModel SignInPage.initModel)) // TODO: Create real email send logic
+
+    | UpdateProfile _ ->
+      aModel, Cmd.none // TODO: Create real profile update logic
+
+    | ChangeEmail _ ->
+      aModel, Cmd.none // TODO: Create real email change logic
+
+    | ChangePassword _ ->
+      aModel, Cmd.none // TODO: Create real password change logic
 
   let view appModel dispatch =
     let pageDispatch = PageMsg >> dispatch
