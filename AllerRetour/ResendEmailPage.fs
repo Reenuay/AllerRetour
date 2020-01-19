@@ -8,15 +8,18 @@ type Model = string
 
 type Msg =
   | ClickResendEmail
+  | ClickGoToChangeEmail
   | ClickGoToSignIn
 
 type ExternalMsg =
   | ResendEmail of string
+  | GoToChangeEmail
   | GoToSignIn
 
 let update msg (model: Model) =
   match msg with
   | ClickResendEmail -> model, ResendEmail model
+  | ClickGoToChangeEmail -> model, GoToChangeEmail
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view model dispatch =
@@ -32,6 +35,9 @@ let view model dispatch =
         View.Button(
           text = "Resend email",
           command = (fun () -> dispatch ClickResendEmail))
+        View.Button(
+          text = "Change email",
+          command = (fun () -> dispatch ClickGoToChangeEmail))
         View.Button(
           text = "Return to sign in page",
           command = (fun () -> dispatch ClickGoToSignIn))

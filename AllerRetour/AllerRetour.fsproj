@@ -14,6 +14,7 @@
     <Compile Include="ForgotPasswordPage.fs" />
     <Compile Include="SignUpSuccessPage.fs" />
     <Compile Include="ResendEmailPage.fs" />
+    <Compile Include="ChangeEmailPage.fs" />
     <Compile Include="EditProfileSubPage.fs" />
     <Compile Include="ChangeEmailSubPage.fs" />
     <Compile Include="ChangePasswordSubPage.fs" />

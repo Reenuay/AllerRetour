@@ -112,10 +112,7 @@ let update mMsg mModel =
         | ChangeEmailSubPage.NoOp -> Some newModel, NoOp, mModel.MainPageModel.Email
         | ChangeEmailSubPage.ChangeEmail ->
           None,
-          ChangeEmail {
-            Email = newModel.Email
-            Password = newModel.Password
-          },
+          ChangeEmail newModel,
           newModel.Email
       { mModel
         with
