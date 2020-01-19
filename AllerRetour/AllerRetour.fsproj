@@ -11,6 +11,7 @@
     <Compile Include="PrimitiveTypes.fs" />
     <Compile Include="SignInPage.fs" />
     <Compile Include="SignUpPage.fs" />
+    <Compile Include="ForgotPasswordPage.fs" />
     <Compile Include="EditProfilePage.fs" />
     <Compile Include="ChangeEmailPage.fs" />
     <Compile Include="ChangePasswordPage.fs" />

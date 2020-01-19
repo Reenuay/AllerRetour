@@ -14,11 +14,13 @@ type Msg =
   | SetPassword of string
   | ClickSignIn
   | ClickGoToSignUp
+  | ClickToForgotPassword
 
 type ExternalMsg =
   | NoOp
   | SignIn
   | GoToSignUp
+  | GoToForgotPassword
 
 let initModel = {
   Email = ""
@@ -31,6 +33,7 @@ let update msg (model: Model) =
   | SetPassword e -> { model with Password = e }, NoOp
   | ClickSignIn -> model, SignIn
   | ClickGoToSignUp -> model, GoToSignUp
+  | ClickToForgotPassword -> model, GoToForgotPassword
 
 let view model dispatch =
   View.ContentPage(
@@ -54,6 +57,9 @@ let view model dispatch =
         View.Button(
           text = "Not registered?",
           command = (fun () -> dispatch ClickGoToSignUp))
+        View.Button(
+          text = "Forgot password?",
+          command = (fun () -> dispatch ClickToForgotPassword))
       ]
     )
   )

@@ -10,6 +10,7 @@ module App =
   type PageModel =
     | SignInPageModel of SignInPage.Model
     | SignUpPageModel of SignUpPage.Model
+    | ForgotPasswordPageModel of ForgotPasswordPage.Model
     | MainPageModel of MainPage.Model
 
   type Model = {
@@ -19,6 +20,7 @@ module App =
   type PageMsg =
     | SignInPageMsg of SignInPage.Msg
     | SignUpPageMsg of SignUpPage.Msg
+    | ForgotPasswordPageMsg of  ForgotPasswordPage.Msg
     | MainPageMsg of MainPage.Msg
 
   type Msg =
@@ -27,6 +29,7 @@ module App =
     | SignIn
     | SignUp
     | SignOut
+    | SendPasswordResetEmail
 
   let initModel = {
     PageModel = SignInPageModel SignInPage.initModel
@@ -38,13 +41,24 @@ module App =
     let newModel, eMsg = SignInPage.update msg model
     let cmd =
       match eMsg with
-      | SignInPage.NoOp -> Cmd.none
-      | SignInPage.SignIn -> Cmd.ofMsg SignIn
+      | SignInPage.NoOp ->
+        Cmd.none
+
+      | SignInPage.SignIn ->
+        Cmd.ofMsg SignIn
+
       | SignInPage.GoToSignUp ->
         SignUpPage.initModel
         |> SignUpPageModel
         |> NavigateTo
         |> Cmd.ofMsg
+
+      | SignInPage.GoToForgotPassword ->
+        ForgotPasswordPage.initModel
+        |> ForgotPasswordPageModel
+        |> NavigateTo
+        |> Cmd.ofMsg
+
     newModel, cmd
 
   let handleSignUpMsg msg model =
@@ -54,6 +68,19 @@ module App =
       | SignUpPage.NoOp -> Cmd.none
       | SignUpPage.SignUp -> Cmd.ofMsg SignUp
       | SignUpPage.GoToSignIn ->
+        SignInPage.initModel
+        |> SignInPageModel
+        |> NavigateTo
+        |> Cmd.ofMsg
+    newModel, cmd
+
+  let handleForgotPasswordMsg msg model =
+    let newModel, eMsg = ForgotPasswordPage.update msg model
+    let cmd =
+      match eMsg with
+      | ForgotPasswordPage.NoOp -> Cmd.none
+      | ForgotPasswordPage.Send -> Cmd.ofMsg SendPasswordResetEmail
+      | ForgotPasswordPage.GoToSignIn ->
         SignInPage.initModel
         |> SignInPageModel
         |> NavigateTo
@@ -81,6 +108,10 @@ module App =
       let newModel, cmd = handleSignUpMsg msg model
       { aModel with PageModel = SignUpPageModel newModel }, cmd
 
+    | ForgotPasswordPageMsg msg, ForgotPasswordPageModel model ->
+      let newModel, cmd = handleForgotPasswordMsg msg model
+      { aModel with PageModel = ForgotPasswordPageModel newModel }, cmd
+
     | MainPageMsg msg, MainPageModel model ->
       let newModel, cmd = handleMainMsg msg model
       { aModel with PageModel = MainPageModel newModel }, cmd
@@ -93,10 +124,7 @@ module App =
       handlePageMsg pMsg aModel
 
     | NavigateTo pModel ->
-      match pModel with
-      | SignInPageModel sModel -> { aModel with PageModel = SignInPageModel sModel }, Cmd.none
-      | SignUpPageModel sModel -> { aModel with PageModel = SignUpPageModel sModel }, Cmd.none
-      | MainPageModel mModel -> { aModel with PageModel = MainPageModel mModel }, Cmd.none
+      { aModel with PageModel = pModel }, Cmd.none
 
     | SignIn ->
       aModel, Cmd.ofMsg (NavigateTo (MainPageModel MainPage.initModel)) // TODO: Create real sign in logic
@@ -107,12 +135,16 @@ module App =
     | SignOut ->
       aModel, Cmd.ofMsg (NavigateTo (SignInPageModel SignInPage.initModel)) // TODO: Create real sign out logic
 
+    | SendPasswordResetEmail ->
+      aModel, Cmd.ofMsg (NavigateTo (SignInPageModel SignInPage.initModel)) // TODO: Create real email send logic
+
   let view appModel dispatch =
     let pageDispatch = PageMsg >> dispatch
 
     match appModel.PageModel with
     | SignInPageModel model -> SignInPage.view model (SignInPageMsg >> pageDispatch)
     | SignUpPageModel model -> SignUpPage.view model (SignUpPageMsg >> pageDispatch)
+    | ForgotPasswordPageModel model -> ForgotPasswordPage.view model (ForgotPasswordPageMsg >> pageDispatch)
     | MainPageModel model -> MainPage.view model (MainPageMsg >> pageDispatch)
 
   // Note, this declaration is needed if you enable LiveUpdate
