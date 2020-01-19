@@ -1,4 +1,4 @@
-module AllerRetour.ChangePasswordPage
+module AllerRetour.ChangePasswordSubPage
 
 open Fabulous
 open Fabulous.XamarinForms

@@ -196,7 +196,7 @@ module App =
 type App () as app =
   inherit Application ()
 
-  let runner = 
+  let runner =
       App.program
 #if DEBUG
       |> Program.withConsoleTrace

@@ -1,4 +1,4 @@
-module AllerRetour.EditProfilePage
+module AllerRetour.EditProfileSubPage
 
 open System
 open Fabulous

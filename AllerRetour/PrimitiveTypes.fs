@@ -22,6 +22,11 @@ type EmailAndPassword = {
   Email: string
   Password: string
 }
+  with
+  static member Empty = {
+    Email = ""
+    Password = ""
+  }
 
 type SignUpRequest = {
   FirstName: string

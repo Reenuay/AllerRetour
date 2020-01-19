@@ -1,4 +1,4 @@
-module AllerRetour.ChangeEmailPage
+module AllerRetour.ChangeEmailSubPage
 
 open Fabulous
 open Fabulous.XamarinForms
@@ -14,11 +14,6 @@ type Msg =
 type ExternalMsg =
   | NoOp
   | ChangeEmail
-
-let initModel = {
-  Email = ""
-  Password = ""
-}
 
 let update msg (model: Model) =
   match msg with

@@ -12,9 +12,9 @@ type MainPageModel = {
 
 type Model = {
   MainPageModel: MainPageModel
-  EditProfilePageModel: EditProfilePage.Model option
-  ChangeEmailPageModel: ChangeEmailPage.Model option
-  ChangePasswordPageModel: ChangePasswordPage.Model option
+  EditProfilePageModel: EditProfileSubPage.Model option
+  ChangeEmailPageModel: ChangeEmailSubPage.Model option
+  ChangePasswordPageModel: ChangePasswordSubPage.Model option
 }
 
 type Msg =
@@ -22,9 +22,9 @@ type Msg =
   | ClickChangeEmail
   | ClickChangePassword
   | ClickSignOut
-  | EditProfilePageMsg of EditProfilePage.Msg
-  | ChangeEmailPageMsg of ChangeEmailPage.Msg
-  | ChangePasswordPageMsg of ChangePasswordPage.Msg
+  | EditProfilePageMsg of EditProfileSubPage.Msg
+  | ChangeEmailPageMsg of ChangeEmailSubPage.Msg
+  | ChangePasswordPageMsg of ChangePasswordSubPage.Msg
 
 type ExternalMsg =
   | NoOp
@@ -74,26 +74,26 @@ let update mMsg mModel =
     { mModel
       with
         EditProfilePageModel
-          = Some (EditProfilePage.initModel mModel.MainPageModel.Profile)
+          = Some (EditProfileSubPage.initModel mModel.MainPageModel.Profile)
     }, NoOp
 
   | ClickChangeEmail ->
-    { mModel with ChangeEmailPageModel = Some ChangeEmailPage.initModel }, NoOp
+    { mModel with ChangeEmailPageModel = Some EmailAndPassword.Empty }, NoOp
 
   | ClickChangePassword ->
-    { mModel with ChangePasswordPageModel = Some ChangePasswordPage.initModel }, NoOp
+    { mModel with ChangePasswordPageModel = Some ChangePasswordSubPage.initModel }, NoOp
 
   | ClickSignOut -> mModel, SignOut
 
   | EditProfilePageMsg msg ->
     match mModel.EditProfilePageModel with
     | Some model ->
-      let newModel, eMsg = EditProfilePage.update msg model
+      let newModel, eMsg = EditProfileSubPage.update msg model
       let newModelOption, eMsg2, profile =
         match eMsg with
-        | EditProfilePage.NoOp ->
+        | EditProfileSubPage.NoOp ->
           Some newModel, NoOp, mModel.MainPageModel.Profile
-        | EditProfilePage.UpdateProfile ->
+        | EditProfileSubPage.UpdateProfile ->
           None, UpdateProfile newModel.Profile, newModel.Profile
 
       { mModel
@@ -106,11 +106,11 @@ let update mMsg mModel =
   | ChangeEmailPageMsg msg ->
     match mModel.ChangeEmailPageModel with
     | Some model ->
-      let newModel, eMsg = ChangeEmailPage.update msg model
+      let newModel, eMsg = ChangeEmailSubPage.update msg model
       let newModelOption, eMsg2, email =
         match eMsg with
-        | ChangeEmailPage.NoOp -> Some newModel, NoOp, mModel.MainPageModel.Email
-        | ChangeEmailPage.ChangeEmail ->
+        | ChangeEmailSubPage.NoOp -> Some newModel, NoOp, mModel.MainPageModel.Email
+        | ChangeEmailSubPage.ChangeEmail ->
           None,
           ChangeEmail {
             Email = newModel.Email
@@ -127,11 +127,11 @@ let update mMsg mModel =
   | ChangePasswordPageMsg msg ->
     match mModel.ChangePasswordPageModel with
     | Some model ->
-      let newModel, peMsg = ChangePasswordPage.update msg model
+      let newModel, peMsg = ChangePasswordSubPage.update msg model
       let newModelOption, eMsg =
         match peMsg with
-        | ChangePasswordPage.NoOp -> Some newModel, NoOp
-        | ChangePasswordPage.ChangePassword ->
+        | ChangePasswordSubPage.NoOp -> Some newModel, NoOp
+        | ChangePasswordSubPage.ChangePassword ->
           None,
           ChangePassword {
             NewPassword = newModel.NewPassword
@@ -180,15 +180,15 @@ let view model dispatch =
 
   let editProfilePage
     =  model.EditProfilePageModel
-    |> Option.map(fun pModel -> EditProfilePage.view pModel (EditProfilePageMsg >> dispatch))
+    |> Option.map(fun pModel -> EditProfileSubPage.view pModel (EditProfilePageMsg >> dispatch))
 
   let changeEmailPage
     =  model.ChangeEmailPageModel
-    |> Option.map(fun eModel -> ChangeEmailPage.view eModel (ChangeEmailPageMsg >> dispatch))
+    |> Option.map(fun eModel -> ChangeEmailSubPage.view eModel (ChangeEmailPageMsg >> dispatch))
 
   let changePasswordPage
     =  model.ChangePasswordPageModel
-    |> Option.map(fun pModel -> ChangePasswordPage.view pModel (ChangePasswordPageMsg >> dispatch))
+    |> Option.map(fun pModel -> ChangePasswordSubPage.view pModel (ChangePasswordPageMsg >> dispatch))
 
   let allPages = {
     MainPage = mainPage
