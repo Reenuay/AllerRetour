@@ -5,19 +5,45 @@ open Fabulous.XamarinForms
 open Xamarin.Forms
 
 type Model = {
-  FirstName: string
-  LastName: string
-  Email: string
-  Password: string
-  RepeatPassword: string
+  FirstName: Validatable<NameString, string>
+  LastName: Validatable<NameString, string>
+  Email: Validatable<EmailAddress, string>
+  Password: Validatable<Password, string>
+  RepeatPassword: Validatable<string, string>
 }
-  with
-    member this.ToRequest() = {
-      FirstName = this.FirstName
-      LastName = this.LastName
-      Email = this.Email
-      Password = this.Password
-    }
+with
+  member this.checkRepeatPassword r =
+    match this.Password with
+    | Success p when Password.value p <> r ->
+      Failure ["Passwords must be the same"]
+    | _ ->
+      Success r
+
+  member this.ToDto() : SignUpRequest option =
+    match this.FirstName, this.LastName, this.Email, this.Password, this.RepeatPassword with
+    | Success f, Success l, Success e, Success p, Success _ ->
+      Some {
+        FirstName = NameString.value f
+        LastName = NameString.value l
+        Email = EmailAddress.value e
+        Password = Password.value p
+      }
+    | _ ->
+      None
+
+  member this.IsValid() =
+    match this.FirstName, this.LastName, this.Email, this.Password, this.RepeatPassword with
+    | Success _, Success _, Success _, Success _, Success _ -> true
+    | _ -> false
+
+  member this.Revalidate() = {
+    this with
+      FirstName = adaptV NameString.create (under NameString.value this.FirstName)
+      LastName = adaptV (NameString.create) (under NameString.value this.LastName)
+      Email = adaptV EmailAddress.create (under EmailAddress.value this.Email)
+      Password = adaptV Password.create (under Password.value this.Password)
+      RepeatPassword = adaptV (this.checkRepeatPassword) (under id this.RepeatPassword)
+  }
 
 type Msg =
   | SetFirstName of string
@@ -34,22 +60,37 @@ type ExternalMsg =
   | GoToSignIn
 
 let initModel = {
-  FirstName = ""
-  LastName = ""
-  Email = ""
-  Password = ""
-  RepeatPassword = ""
+  FirstName = emptyString
+  LastName = emptyString
+  Email = emptyString
+  Password = emptyString
+  RepeatPassword = emptyString
 }
 
 let update msg (model: Model) =
   match msg with
-  | SetFirstName f -> { model with FirstName = f }, NoOp
-  | SetLastName l -> { model with LastName = l }, NoOp
-  | SetEmail e -> { model with Email = e }, NoOp
-  | SetPassword p -> { model with Password = p }, NoOp
-  | SetRepeatPassword p -> { model with RepeatPassword = p }, NoOp
-  | ClickSignUp -> model, SignUp (model.ToRequest())
-  | ClickGoToSignIn -> model, GoToSignIn
+  | SetFirstName f ->
+    { model with FirstName = adaptV NameString.create f }, NoOp
+
+  | SetLastName l ->
+    { model with LastName = adaptV NameString.create l }, NoOp
+
+  | SetEmail e ->
+    { model with Email = adaptV EmailAddress.create e }, NoOp
+
+  | SetPassword p ->
+    { model with Password = adaptV Password.create p }, NoOp
+
+  | SetRepeatPassword r ->
+    { model with RepeatPassword = adaptV model.checkRepeatPassword r }, NoOp
+
+  | ClickSignUp ->
+    match model.ToDto() with
+    | Some d -> model, SignUp d
+    | None -> model.Revalidate(), NoOp
+
+  | ClickGoToSignIn ->
+    model, GoToSignIn
 
 let view model dispatch =
   View.ContentPage(
@@ -57,33 +98,47 @@ let view model dispatch =
       padding = Thickness 20.0,
       verticalOptions = LayoutOptions.Center,
       children = [
-        View.Label(text = "Aller Retour")
-        View.Entry(
-          text = model.FirstName,
-          placeholder = "First name",
-          textChanged = (fun args -> dispatch (SetFirstName args.NewTextValue)))
-        View.Entry(
-          text = model.LastName,
-          placeholder = "Last name",
-          textChanged = (fun args -> dispatch (SetLastName args.NewTextValue)))
-        View.Entry(
-          text = model.Email,
-          placeholder = "Email",
-          textChanged = (fun args -> dispatch (SetEmail args.NewTextValue)))
-        View.Entry(
-          text = model.Password,
-          placeholder = "Password",
-          isPassword = true,
-          textChanged = (fun args -> dispatch (SetPassword args.NewTextValue)))
-        View.Entry(
-          text = model.RepeatPassword,
-          placeholder = "Repeat password",
-          isPassword = true,
-          textChanged = (fun args -> dispatch (SetRepeatPassword args.NewTextValue)))
-        View.Button(
+        yield View.Label(text = "Aller Retour")
+        yield!
+          makeEntry
+            false
+            "First name"
+            NameString.value
+            (fun args -> dispatch (SetFirstName args.NewTextValue))
+            model.FirstName
+        yield!
+          makeEntry
+            false
+            "Last name"
+            NameString.value
+            (fun args -> dispatch (SetLastName args.NewTextValue))
+            model.LastName
+        yield!
+          makeEntry
+            false
+            "Email"
+            EmailAddress.value
+            (fun args -> dispatch (SetEmail args.NewTextValue))
+            model.Email
+        yield!
+          makeEntry
+            true
+            "Password"
+            Password.value
+            (fun args -> dispatch (SetPassword args.NewTextValue))
+            model.Password
+        yield!
+          makeEntry
+            true
+            "Repeat password"
+            id
+            (fun args -> dispatch (SetRepeatPassword args.NewTextValue))
+            model.RepeatPassword
+        yield View.Button(
           text = "Sign Up",
+          isEnabled = model.IsValid(),
           command = (fun () -> dispatch ClickSignUp))
-        View.Button(
+        yield View.Button(
           text = "Already registered?",
           command = (fun () -> dispatch ClickGoToSignIn))
       ]

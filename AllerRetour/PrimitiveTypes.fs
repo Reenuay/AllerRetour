@@ -1,4 +1,5 @@
-namespace AllerRetour
+[<AutoOpen>]
+module AllerRetour.PrimitiveTypes
 
 open TwoTrackResult
 open ValidationPredicates
@@ -6,6 +7,8 @@ open ValidationPredicates
 type EmailAddress = private EmailAddress of string
 
 type Password = private Password of string
+
+type NameString = private NameString of string
 
 module EmailAddress =
   let maxLength = 100
@@ -29,3 +32,14 @@ module Password =
     >> map Password
 
   let value (Password s) = s
+
+module NameString =
+  let minLength = 1
+  let maxLength = 100
+  
+  let create
+    =  chain (hasMinLengthOf minLength) [sprintf "Minimum length is %i" minLength]
+    ++ chain (hasMaxLengthOf maxLength) [sprintf "Maximum length is %i" maxLength]
+    >> map NameString
+  
+  let value (NameString s) = s

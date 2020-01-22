@@ -12,6 +12,7 @@
     <Compile Include="TwoTrackResult.fs" />
     <Compile Include="ValidationPredicates.fs" />
     <Compile Include="ValidationHelpers.fs" />
+    <Compile Include="ViewHelpers.fs" />
     <Compile Include="PrimitiveTypes.fs" />
     <Compile Include="Dtos.fs" />
     <Compile Include="SignInPage.fs" />

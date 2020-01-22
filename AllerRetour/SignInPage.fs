@@ -4,20 +4,30 @@ open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 
+open TwoTrackResult
+
 type Model = {
-  Email: TwoTrackResult<EmailAddress, string * string list>
-  Password: TwoTrackResult<Password, string * string list>
+  Email: Validatable<EmailAddress, string>
+  Password: Validatable<Password, string>
 }
 with
   member this.ToDto() : EmailAndPassword option =
     match this.Email, this.Password with
-    | Success e, Success p -> Some { Email = EmailAddress.value e; Password = Password.value p }
+    | Success e, Success p ->
+      Some { Email = EmailAddress.value e; Password = Password.value p }
     | _ ->
       None
-  member this.IsValid =
+
+  member this.IsValid() =
     match this.Email, this.Password with
     | Success _, Success _ -> true
     | _ -> false
+
+  member this.Revalidate() = {
+    this with
+      Email = adaptV EmailAddress.create (under EmailAddress.value this.Email)
+      Password = adaptV Password.create (under Password.value this.Password)
+  }
 
 type Msg =
   | SetEmail of string
@@ -44,30 +54,13 @@ let update msg (model: Model) =
   | SetPassword p ->
     { model with Password = adaptV Password.create p }, NoOp
   | ClickSignIn ->
-    model, match model.ToDto() with Some r -> SignIn r | None -> NoOp
+    match model.ToDto() with
+    | Some d -> model, SignIn d
+    | None -> model.Revalidate(), NoOp
   | ClickGoToSignUp ->
     model, GoToSignUp
   | ClickToForgotPassword ->
     model, GoToForgotPassword
-
-let makeEntry fSuccess placeholder dispatch = function
-| Success x ->
-  [
-    View.Entry(
-      text = fSuccess x,
-      placeholder = placeholder,
-      textChanged = (fun args -> dispatch args))
-  ]
-| Failure (v, l) ->
-  [
-    View.Entry(
-      text = v,
-      placeholder = placeholder,
-      textChanged = (fun args -> dispatch args))
-    View.Label(
-      text = foldErrors l,
-      fontSize = FontSize 10.0)
-  ]
 
 let view (model: Model) dispatch =    
   View.ContentPage(
@@ -78,19 +71,21 @@ let view (model: Model) dispatch =
         yield View.Label(text = "Aller Retour")
         yield!
           makeEntry
-            EmailAddress.value
+            false
             "Email"
+            EmailAddress.value
             (fun args -> dispatch (SetEmail args.NewTextValue))
             model.Email
         yield!
           makeEntry
-            Password.value
+            true
             "Password"
+            Password.value
             (fun args -> dispatch (SetPassword args.NewTextValue))
             model.Password
         yield View.Button(
           text = "Sign In",
-          isEnabled = model.IsValid,
+          isEnabled = model.IsValid(),
           command = (fun () -> dispatch ClickSignIn))
         yield View.Button(
           text = "Not registered?",

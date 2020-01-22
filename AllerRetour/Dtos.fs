@@ -10,19 +10,19 @@ type Profile = {
   Birthday: DateTime option
   Gender: Gender option
 }
-  with
-    static member Empty = {
-      FirstName = ""
-      LastName = ""
-      Birthday = None
-      Gender = None
-    }
+with
+  static member Empty = {
+    FirstName = ""
+    LastName = ""
+    Birthday = None
+    Gender = None
+  }
 
 type EmailAndPassword = {
   Email: string
   Password: string
 }
-  with
+with
   static member Empty = {
     Email = ""
     Password = ""
