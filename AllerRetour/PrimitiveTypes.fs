@@ -1,41 +1,31 @@
 namespace AllerRetour
 
-open System
+open TwoTrackResult
+open ValidationPredicates
 
-type Gender = Male | Female
+type EmailAddress = private EmailAddress of string
 
-type Profile = {
-  FirstName: string
-  LastName: string
-  Birthday: DateTime option
-  Gender: Gender option
-}
-  with
-    static member Empty = {
-      FirstName = ""
-      LastName = ""
-      Birthday = None
-      Gender = None
-    }
+type Password = private Password of string
 
-type EmailAndPassword = {
-  Email: string
-  Password: string
-}
-  with
-  static member Empty = {
-    Email = ""
-    Password = ""
-  }
+module EmailAddress =
+  let maxLength = 100
 
-type SignUpRequest = {
-  FirstName: string
-  LastName: string
-  Email: string
-  Password: string
-}
+  let create
+    =  chain (isValidEmail) ["Bad format"]
+    ++ chain (hasMaxLengthOf maxLength) [sprintf "Maximum length is %i" maxLength]
+    >> map EmailAddress
 
-type ChangePasswordRequest = {
-  NewPassword: string
-  OldPassword: string
-}
+  let value (EmailAddress s) = s
+
+module Password =
+  let minLength = 8
+  let maxLength = 100
+  let restrictedWords = ["aller"; "retour"]
+
+  let create
+    =  chain (hasMinLengthOf minLength) [sprintf "Minimum length is %i" minLength]
+    ++ chain (hasMaxLengthOf maxLength) [sprintf "Maximum length is %i" maxLength]
+    ++ chain (containsWords restrictedWords >> not) ["App name is not allowed in password"]
+    >> map Password
+
+  let value (Password s) = s
