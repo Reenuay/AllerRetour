@@ -110,7 +110,7 @@ module App =
         Cmd.ofMsg (ResendConfirmEmail e)
 
       | ResendEmailPage.GoToChangeEmail ->
-        EmailAndPassword.Empty
+        ChangeEmailPage.initModel
         |> ChangeEmailPageModel
         |> NavigateTo
         |> Cmd.ofMsg
