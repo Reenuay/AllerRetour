@@ -132,12 +132,7 @@ let update mMsg mModel =
       let newModelOption, eMsg =
         match peMsg with
         | ChangePasswordSubPage.NoOp -> Some newModel, NoOp
-        | ChangePasswordSubPage.ChangePassword ->
-          None,
-          ChangePassword {
-            NewPassword = newModel.NewPassword
-            OldPassword = newModel.OldPassword
-          }
+        | ChangePasswordSubPage.ChangePassword r -> None, ChangePassword r
       { mModel with ChangePasswordPageModel = newModelOption }, eMsg
     | None -> mModel, NoOp
 

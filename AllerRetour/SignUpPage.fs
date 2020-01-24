@@ -12,7 +12,7 @@ type Model = {
   RepeatPassword: Validatable<string, string>
 }
 with
-  member this.checkRepeatPassword r =
+  member this.CheckRepeatPassword(r) =
     match this.Password with
     | Success p when Password.value p <> r ->
       Failure ["Passwords must be the same"]
@@ -42,7 +42,7 @@ with
       LastName = adaptV (NameString.create) (underV NameString.value this.LastName)
       Email = adaptV EmailAddress.create (underV EmailAddress.value this.Email)
       Password = adaptV Password.create (underV Password.value this.Password)
-      RepeatPassword = adaptV (this.checkRepeatPassword) (underV id this.RepeatPassword)
+      RepeatPassword = adaptV this.CheckRepeatPassword (underV id this.RepeatPassword)
   }
 
 type Msg =
@@ -82,7 +82,7 @@ let update msg (model: Model) =
     { model with Password = adaptV Password.create p }, NoOp
 
   | SetRepeatPassword r ->
-    { model with RepeatPassword = adaptV model.checkRepeatPassword r }, NoOp
+    { model with RepeatPassword = adaptV model.CheckRepeatPassword r }, NoOp
 
   | ClickSignUp ->
     match model.ToDto() with
