@@ -25,8 +25,8 @@ with
 
   member this.Revalidate() = {
     this with
-      Email = adaptV EmailAddress.create (under EmailAddress.value this.Email)
-      Password = adaptV Password.create (under Password.value this.Password)
+      Email = adaptV EmailAddress.create (underV EmailAddress.value this.Email)
+      Password = adaptV Password.create (underV Password.value this.Password)
   }
 
 type Msg =

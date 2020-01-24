@@ -35,7 +35,7 @@ module App =
     | SignIn of EmailAndPassword
     | SignUp of SignUpRequest
     | SignOut
-    | SendPasswordResetEmail
+    | SendPasswordResetEmail of string
     | UpdateProfile of Profile
     | ChangeEmail of EmailAndPassword
     | ChangePassword of ChangePasswordRequest
@@ -70,7 +70,7 @@ module App =
         |> Cmd.ofMsg
 
       | SignInPage.GoToForgotPassword ->
-        String.Empty
+        ForgotPasswordPage.initModel
         |> ForgotPasswordPageModel
         |> NavigateTo
         |> Cmd.ofMsg
@@ -91,7 +91,7 @@ module App =
     let cmd =
       match eMsg with
       | ForgotPasswordPage.NoOp -> Cmd.none
-      | ForgotPasswordPage.Send -> Cmd.ofMsg SendPasswordResetEmail
+      | ForgotPasswordPage.Send e -> Cmd.ofMsg (SendPasswordResetEmail e)
       | ForgotPasswordPage.GoToSignIn -> goToSignInCmd
     newModel, cmd
 
@@ -188,7 +188,7 @@ module App =
     | SignOut ->
       aModel, Cmd.ofMsg (NavigateTo (SignInPageModel SignInPage.initModel)) // TODO: Create real sign out logic
 
-    | SendPasswordResetEmail ->
+    | SendPasswordResetEmail _ ->
       aModel, Cmd.ofMsg (NavigateTo (SignInPageModel SignInPage.initModel)) // TODO: Create real email send logic
 
     | UpdateProfile _ ->

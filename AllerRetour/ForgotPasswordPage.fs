@@ -4,7 +4,7 @@ open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 
-type Model = string
+type Model = Validatable<EmailAddress, string>
 
 type Msg =
   | SetEmail of string
@@ -13,13 +13,18 @@ type Msg =
 
 type ExternalMsg =
   | NoOp
-  | Send
+  | Send of string
   | GoToSignIn
+
+let initModel = emptyString
 
 let update msg (model: Model) =
   match msg with
-  | SetEmail e -> e, NoOp
-  | ClickSend -> model, Send
+  | SetEmail e -> adaptV EmailAddress.create e, NoOp
+  | ClickSend ->
+    match model with
+    | Success e -> model, Send (EmailAddress.value e)
+    | Failure (x, _) -> adaptV EmailAddress.create x, NoOp
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view (model: Model) dispatch =
@@ -28,14 +33,18 @@ let view (model: Model) dispatch =
       padding = Thickness 20.0,
       verticalOptions = LayoutOptions.Center,
       children = [
-        View.Entry(
-          text = model,
-          placeholder = "Email",
-          textChanged = (fun args -> dispatch (SetEmail args.NewTextValue)))
-        View.Button(
+        yield!
+          makeEntry
+            false
+            "Email"
+            EmailAddress.value
+            (fun args -> dispatch (SetEmail args.NewTextValue))
+            model
+        yield View.Button(
           text = "Send",
+          isEnabled = (match model with Success _ -> true | _ -> false),
           command = (fun () -> dispatch ClickSend))
-        View.Button(
+        yield View.Button(
           text = "Return to sign in",
           command = (fun () -> dispatch ClickGoToSignIn))
       ]

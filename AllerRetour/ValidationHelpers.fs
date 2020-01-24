@@ -12,6 +12,6 @@ let adaptV f x =
   | Success s -> Success s
   | Failure l -> Failure (x, l)
 
-let under fSuccess = function
+let underV fSuccess = function
 | Success x -> fSuccess x
 | Failure (v, _) -> v

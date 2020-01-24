@@ -38,11 +38,11 @@ with
 
   member this.Revalidate() = {
     this with
-      FirstName = adaptV NameString.create (under NameString.value this.FirstName)
-      LastName = adaptV (NameString.create) (under NameString.value this.LastName)
-      Email = adaptV EmailAddress.create (under EmailAddress.value this.Email)
-      Password = adaptV Password.create (under Password.value this.Password)
-      RepeatPassword = adaptV (this.checkRepeatPassword) (under id this.RepeatPassword)
+      FirstName = adaptV NameString.create (underV NameString.value this.FirstName)
+      LastName = adaptV (NameString.create) (underV NameString.value this.LastName)
+      Email = adaptV EmailAddress.create (underV EmailAddress.value this.Email)
+      Password = adaptV Password.create (underV Password.value this.Password)
+      RepeatPassword = adaptV (this.checkRepeatPassword) (underV id this.RepeatPassword)
   }
 
 type Msg =
