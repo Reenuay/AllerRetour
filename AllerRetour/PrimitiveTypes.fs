@@ -4,6 +4,8 @@ module AllerRetour.PrimitiveTypes
 open TwoTrackResult
 open ValidationPredicates
 
+type Gender = Male | Female
+
 type EmailAddress = private EmailAddress of string
 
 type Password = private Password of string

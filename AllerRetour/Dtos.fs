@@ -2,8 +2,6 @@ namespace AllerRetour
 
 open System
 
-type Gender = Male | Female
-
 type Profile = {
   FirstName: string
   LastName: string

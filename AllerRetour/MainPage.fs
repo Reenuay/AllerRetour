@@ -74,7 +74,7 @@ let update mMsg mModel =
     { mModel
       with
         EditProfilePageModel
-          = Some (EditProfileSubPage.initModel mModel.MainPageModel.Profile)
+          = Some (EditProfileSubPage.create mModel.MainPageModel.Profile)
     }, NoOp
 
   | ClickChangeEmail ->
@@ -93,8 +93,8 @@ let update mMsg mModel =
         match eMsg with
         | EditProfileSubPage.NoOp ->
           Some newModel, NoOp, mModel.MainPageModel.Profile
-        | EditProfileSubPage.UpdateProfile ->
-          None, UpdateProfile newModel.Profile, newModel.Profile
+        | EditProfileSubPage.UpdateProfile p ->
+          None, UpdateProfile p, p
 
       { mModel
         with

@@ -180,7 +180,7 @@ module App =
       { aModel with PageModel = pModel }, Cmd.none
 
     | SignIn r ->
-      aModel, Cmd.ofMsg (NavigateTo (ResendEmailPageModel r.Email  )) // TODO: Create real sign in logic
+      aModel, Cmd.ofMsg (NavigateTo (MainPageModel MainPage.initModel)) // TODO: Create real sign in logic
 
     | SignUp r ->
       aModel, Cmd.ofMsg (NavigateTo (SignUpSuccessPageModel r.Email)) // TODO: Create real sign up logic

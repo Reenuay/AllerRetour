@@ -4,12 +4,45 @@ open System
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
+
 open AllerRetour.Controls
 
 type Model = {
-  Profile: Profile
+  FirstName: Validatable<NameString, string>
+  LastName: Validatable<NameString, string>
+  Birthday: DateTime option
+  Gender: Gender option
+  PreviousProfile: Profile
   SelectedGenderIndex: int
 }
+with
+  member this.ToDto() : Profile option =
+    match this.FirstName, this.LastName with
+    | Success f, Success l ->
+      Some {
+        FirstName = NameString.value f
+        LastName = NameString.value l
+        Birthday = this.Birthday
+        Gender = this.Gender
+      }
+    | _ ->
+      None
+
+  member this.IsValid() =
+    match this.FirstName, this.LastName with
+    | Success f, Success l ->
+      NameString.value f <> this.PreviousProfile.FirstName
+      && NameString.value l <> this.PreviousProfile.LastName
+      && this.Gender <> this.PreviousProfile.Gender
+      && this.Birthday <> this.PreviousProfile.Birthday
+
+    | _ -> false
+
+  member this.Revalidate() = {
+    this with
+      FirstName = adaptV NameString.create (underV NameString.value this.FirstName)
+      LastName = adaptV (NameString.create) (underV NameString.value this.LastName)
+  }
 
 type Msg =
   | SetFirstName of string
@@ -20,7 +53,7 @@ type Msg =
 
 type ExternalMsg =
   | NoOp
-  | UpdateProfile
+  | UpdateProfile of Profile
 
 let genderList = ["Male"; "Female"]
 
@@ -39,51 +72,64 @@ let fromGenderOption = function
   | Female -> List.findIndex (fun x -> x = "Female") genderList
 | None -> -1
 
-let initModel profile = {
-  Profile = profile
+let create (profile: Profile) = {
+  FirstName = adaptV NameString.create profile.FirstName
+  LastName = adaptV NameString.create profile.LastName
+  Birthday = profile.Birthday
+  Gender = profile.Gender
+  PreviousProfile = profile
   SelectedGenderIndex = fromGenderOption profile.Gender
 }
 
-let setProfile model profile =
-  { model with Profile = profile }
-
-let update msg model =
+let update msg (model: Model) =
   match msg with
-  | SetFirstName f -> setProfile model { model.Profile with FirstName = f }, NoOp
-  | SetLastName l -> setProfile model { model.Profile with LastName = l }, NoOp
-  | SetBirthday b -> setProfile model { model.Profile with Birthday = b }, NoOp
+  | SetFirstName f ->
+    { model with FirstName = adaptV NameString.create f }, NoOp
+  | SetLastName l ->
+    { model with LastName = adaptV NameString.create l }, NoOp
+  | SetBirthday b ->
+    { model with Birthday = b }, NoOp
   | SetGender (i, s) ->
     {
       model with
-        Profile = { model.Profile with Gender = toGenderOption s }
+        Gender = toGenderOption s
         SelectedGenderIndex = i
     }, NoOp
-  | ClickSave -> model, UpdateProfile
+  | ClickSave ->
+    match model.ToDto() with
+    | Some p -> model, UpdateProfile p
+    | None -> model.Revalidate(), NoOp
 
 let view model dispatch =
   View.ContentPage(
     content = View.StackLayout(
       children = [
-        View.Entry(
-          text = model.Profile.FirstName,
-          placeholder = "First name",
-          textChanged = (fun args -> dispatch (SetFirstName args.NewTextValue)))
-        View.Entry(
-          text = model.Profile.LastName,
-          placeholder = "Last name",
-          textChanged = (fun args -> dispatch (SetLastName args.NewTextValue)))
-        View.OptionalDatePicker(
+        yield!
+          makeEntry
+            false
+            "First name"
+            NameString.value
+            (fun args -> dispatch (SetFirstName args.NewTextValue))
+            model.FirstName
+        yield!
+          makeEntry
+            false
+            "Last name"
+            NameString.value
+            (fun args -> dispatch (SetLastName args.NewTextValue))
+            model.LastName
+        yield View.OptionalDatePicker(
           minimumDate = DateTime.Today.AddYears(-120),
           maximumDate = DateTime.Today.AddYears(-18),
-          optionalDate = model.Profile.Birthday,
+          optionalDate = model.Birthday,
           dateSelected=(fun args -> dispatch (SetBirthday (Some args.NewDate))))
-        View.Picker(
+        yield View.Picker(
           title = "Gender",
           selectedIndex = model.SelectedGenderIndex,
           items = genderList,
           selectedIndexChanged = (fun (i, item) -> dispatch (SetGender (i, item)))
         )
-        View.Button(
+        yield View.Button(
           text = "Save",
           command = (fun () -> dispatch ClickSave))
       ]
