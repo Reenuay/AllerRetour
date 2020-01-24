@@ -78,7 +78,11 @@ let update mMsg mModel =
     }, NoOp
 
   | ClickChangeEmail ->
-    { mModel with ChangeEmailPageModel = Some EmailAndPassword.Empty }, NoOp
+    { mModel
+      with
+        ChangeEmailPageModel =
+          Some (ChangeEmailSubPage.create mModel.MainPageModel.Email)
+    }, NoOp
 
   | ClickChangePassword ->
     { mModel with ChangePasswordPageModel = Some ChangePasswordSubPage.initModel }, NoOp
@@ -110,10 +114,10 @@ let update mMsg mModel =
       let newModelOption, eMsg2, email =
         match eMsg with
         | ChangeEmailSubPage.NoOp -> Some newModel, NoOp, mModel.MainPageModel.Email
-        | ChangeEmailSubPage.ChangeEmail ->
+        | ChangeEmailSubPage.ChangeEmail d ->
           None,
-          ChangeEmail newModel,
-          newModel.Email
+          ChangeEmail d,
+          d.Email
       { mModel
         with
           ChangeEmailPageModel = newModelOption
