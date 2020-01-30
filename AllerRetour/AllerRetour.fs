@@ -5,6 +5,8 @@ open Fabulous
 open Fabulous.XamarinForms
 open Fabulous.XamarinForms.LiveUpdate
 open Xamarin.Forms
+open TwoTrackResult
+open RequestTypes
 
 module App =
   type PageModel =
@@ -18,6 +20,7 @@ module App =
 
   type Model = {
     PageModel: PageModel
+    Token: string option
   }
 
   type PageMsg =
@@ -32,17 +35,19 @@ module App =
   type Msg =
     | PageMsg of PageMsg
     | NavigateTo of PageModel
-    | SignIn of EmailAndPassword
+    | SignIn of SignInRequest
     | SignUp of SignUpRequest
     | SignOut
     | SendPasswordResetEmail of string
-    | UpdateProfile of Profile
-    | ChangeEmail of EmailAndPassword
+    | UpdateProfile of UpdateProfileRequest
+    | ChangeEmail of ChangeEmailRequest
     | ChangePassword of ChangePasswordRequest
     | ResendConfirmEmail of string
+    | ShowError of string
 
   let initModel = {
     PageModel = SignInPageModel SignInPage.initModel
+    Token = None
   }
 
   let init () = initModel, Cmd.none
@@ -180,8 +185,33 @@ module App =
       { aModel with PageModel = pModel }, Cmd.none
 
     | SignIn r ->
-      aModel, Cmd.ofMsg (NavigateTo (MainPageModel MainPage.initModel)) // TODO: Create real sign in logic
+      match Http.signIn r |> Async.RunSynchronously with
+      | Success t ->
+        { aModel with Token = Some t.Token },
+        match t.EmailConfirmed with
+        | false ->
+          ResendEmailPageModel r.Email
+          |> NavigateTo
+          |> Cmd.ofMsg
 
+        | true ->
+          async {
+            let! profileRes = Http.getProfile t.Token
+
+            return
+              profileRes
+              |> bind MainPage.create
+              |> either (MainPageModel >> NavigateTo) (foldErrors >> ShowError)
+          }
+          |> Cmd.ofAsyncMsg
+
+      | Failure es ->
+        aModel,
+        es
+        |> foldErrors
+        |> ShowError
+        |> Cmd.ofMsg
+          
     | SignUp r ->
       aModel, Cmd.ofMsg (NavigateTo (SignUpSuccessPageModel r.Email)) // TODO: Create real sign up logic
 
@@ -202,6 +232,9 @@ module App =
 
     | ResendConfirmEmail _ ->
       aModel, Cmd.none // TODO: Create real confirm email resend logic
+
+    | ShowError _ ->
+      aModel, Cmd.none // TODO: Create real show error logic
 
   let view appModel dispatch =
     let pageDispatch = PageMsg >> dispatch

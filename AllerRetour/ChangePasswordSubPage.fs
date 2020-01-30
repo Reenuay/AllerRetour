@@ -3,6 +3,8 @@ module AllerRetour.ChangePasswordSubPage
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
+open PrimitiveTypes
+open RequestTypes
 
 type Model = {
   NewPassword: Validatable<Password, string>

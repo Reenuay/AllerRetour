@@ -5,13 +5,15 @@ open Fabulous.XamarinForms
 open Xamarin.Forms
 
 open TwoTrackResult
+open PrimitiveTypes
+open RequestTypes
 
 type Model = {
   Email: Validatable<EmailAddress, string>
   Password: Validatable<Password, string>
 }
 with
-  member this.ToDto() : EmailAndPassword option =
+  member this.ToDto() : SignInRequest option =
     match this.Email, this.Password with
     | Success e, Success p ->
       Some { Email = EmailAddress.value e; Password = Password.value p }
@@ -38,7 +40,7 @@ type Msg =
 
 type ExternalMsg =
   | NoOp
-  | SignIn of EmailAndPassword
+  | SignIn of SignInRequest
   | GoToSignUp
   | GoToForgotPassword
 

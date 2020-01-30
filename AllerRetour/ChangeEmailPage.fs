@@ -3,16 +3,18 @@ module AllerRetour.ChangeEmailPage
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
+open PrimitiveTypes
+open RequestTypes
 
 type Model = {
   Email: Validatable<EmailAddress, string>
   Password: Validatable<Password, string>
 }
 with
-  member this.ToDto() : EmailAndPassword option =
+  member this.ToDto() : ChangeEmailRequest option =
     match this.Email, this.Password with
     | Success e, Success p ->
-      Some { Email = EmailAddress.value e; Password = Password.value p }
+      Some { NewEmail = EmailAddress.value e; Password = Password.value p }
     | _ ->
       None
 
@@ -35,7 +37,7 @@ type Msg =
 
 type ExternalMsg =
   | NoOp
-  | ChangeEmail of EmailAndPassword
+  | ChangeEmail of ChangeEmailRequest
   | GoToSignIn
 
 let initModel = {

@@ -1,14 +1,29 @@
 module AllerRetour.MainPage
 
+open System
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
+open TwoTrackResult
+open PrimitiveTypes
+open RequestTypes
+open ResponseTypes
 
 type MainPageModel = {
   CardId: string
-  Email: string
-  Profile: Profile
+  Email: EmailAddress
+  FirstName: NameString
+  LastName: NameString
+  Birtday: DateTime option
+  Gender: Gender option
 }
+  with
+    member this.Profile : Profile = {
+      FirstName = this.FirstName
+      LastName = this.LastName
+      Birthday = this.Birtday
+      Gender = this.Gender
+    }
 
 type Model = {
   MainPageModel: MainPageModel
@@ -29,8 +44,8 @@ type Msg =
 type ExternalMsg =
   | NoOp
   | SignOut
-  | UpdateProfile of Profile
-  | ChangeEmail of EmailAndPassword
+  | UpdateProfile of UpdateProfileRequest
+  | ChangeEmail of ChangeEmailRequest
   | ChangePassword of ChangePasswordRequest
 
 type Pages = {
@@ -40,18 +55,34 @@ type Pages = {
   ChangePasswordPage: ViewElement option
 }
 
-let initMainPageModel = {
-  CardId = ""
-  Email = ""
-  Profile = Profile.Empty
-}
+let createMain (r: ProfileResponse) =
+  result {
+    let cardId = r.CardId
+    let! email = EmailAddress.create r.Email
+    let! firstName = NameString.create r.FirstName
+    let! lastName = NameString.create r.LastName
+    let gender =  Gender.fromString r.Gender
 
-let initModel = {
-  MainPageModel = initMainPageModel
-  EditProfilePageModel = None
-  ChangeEmailPageModel = None
-  ChangePasswordPageModel = None
-}
+    return {
+      CardId = cardId
+      Email = email
+      FirstName = firstName
+      LastName = lastName
+      Birtday = r.Birthday
+      Gender = gender
+    }
+  }
+
+let create r =
+  result {
+    let! main = createMain r
+    return {
+      MainPageModel = main
+      EditProfilePageModel = None
+      ChangeEmailPageModel = None
+      ChangePasswordPageModel = None
+    }
+  }
 
 let navigationMapper (model : Model) =
     let editPageModel = model.EditProfilePageModel
@@ -74,7 +105,9 @@ let update mMsg mModel =
     { mModel
       with
         EditProfilePageModel
-          = Some (EditProfileSubPage.create mModel.MainPageModel.Profile)
+          =  mModel.MainPageModel.Profile
+          |> EditProfileSubPage.create 
+          |> Some
     }, NoOp
 
   | ClickChangeEmail ->
@@ -96,14 +129,30 @@ let update mMsg mModel =
       let newModelOption, eMsg2, profile =
         match eMsg with
         | EditProfileSubPage.NoOp ->
-          Some newModel, NoOp, mModel.MainPageModel.Profile
+          Some newModel,
+          NoOp,
+          mModel.MainPageModel.Profile
         | EditProfileSubPage.UpdateProfile p ->
-          None, UpdateProfile p, p
+          None,
+          UpdateProfile {
+            FirstName = NameString.value p.FirstName
+            LastName = NameString.value p.LastName
+            Birthday = p.Birthday
+            Gender = Gender.optionToString p.Gender
+          },
+          p
 
       { mModel
         with
           EditProfilePageModel = newModelOption
-          MainPageModel = { mModel.MainPageModel with Profile = profile }
+          MainPageModel = {
+            mModel.MainPageModel
+              with
+                FirstName = profile.FirstName
+                LastName = profile.LastName
+                Birtday = profile.Birthday
+                Gender = profile.Gender
+          }
       }, eMsg2
     | None -> mModel, NoOp
 
@@ -113,11 +162,19 @@ let update mMsg mModel =
       let newModel, eMsg = ChangeEmailSubPage.update msg model
       let newModelOption, eMsg2, email =
         match eMsg with
-        | ChangeEmailSubPage.NoOp -> Some newModel, NoOp, mModel.MainPageModel.Email
+        | ChangeEmailSubPage.NoOp ->
+          Some newModel,
+          NoOp,
+          mModel.MainPageModel.Email
+
         | ChangeEmailSubPage.ChangeEmail d ->
           None,
-          ChangeEmail d,
+          ChangeEmail {
+            NewEmail = EmailAddress.value d.Email
+            Password = Password.value d.Password
+          },
           d.Email
+
       { mModel
         with
           ChangeEmailPageModel = newModelOption
@@ -140,9 +197,14 @@ let mainPageView mModel dispatch =
   View.ContentPage(
     content = View.StackLayout(
       children = [
-        View.Label(text = sprintf "Hello %s %s!" mModel.Profile.FirstName mModel.Profile.LastName)
+        View.Label(
+          text =
+            sprintf
+            "Hello %s %s!"
+            (NameString.value mModel.FirstName)
+            (NameString.value mModel.LastName))
         View.Label(text = mModel.CardId)
-        View.Label(text = mModel.Email)
+        View.Label(text = EmailAddress.value mModel.Email)
         View.Button(
           text = "Edit profile",
           command = (fun () -> dispatch ClickEditProfile))

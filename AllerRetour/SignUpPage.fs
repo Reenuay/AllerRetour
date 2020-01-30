@@ -3,6 +3,8 @@ module AllerRetour.SignUpPage
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
+open PrimitiveTypes
+open RequestTypes
 
 type Model = {
   FirstName: Validatable<NameString, string>

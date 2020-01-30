@@ -3,17 +3,19 @@ module AllerRetour.ChangeEmailSubPage
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
+open PrimitiveTypes
+open RequestTypes
 
 type Model = {
   Email: Validatable<EmailAddress, string>
-  PreviousEmail: string
+  PreviousEmail: EmailAddress
   Password: Validatable<Password, string>
 }
 with
   member this.ToDto() : EmailAndPassword option =
     match this.Email, this.Password with
     | Success e, Success p ->
-      Some { Email = EmailAddress.value e; Password = Password.value p }
+      Some { Email = e; Password = p }
     | _ ->
       None
 
@@ -26,7 +28,7 @@ with
     match EmailAddress.create email with
     | Failure x -> Failure x
     | Success e ->
-      if EmailAddress.value e = this.PreviousEmail then
+      if e = this.PreviousEmail then
         Failure ["This is the old value"]
       else
         Success e

@@ -1,6 +1,6 @@
-[<AutoOpen>]
 module AllerRetour.PrimitiveTypes
 
+open System
 open TwoTrackResult
 open ValidationPredicates
 
@@ -11,6 +11,34 @@ type EmailAddress = private EmailAddress of string
 type Password = private Password of string
 
 type NameString = private NameString of string
+
+type Profile = {
+  FirstName: NameString
+  LastName: NameString
+  Birthday: DateTime option
+  Gender: Gender option
+}
+
+type EmailAndPassword = {
+  Email: EmailAddress
+  Password: Password
+}
+
+module Gender =
+  let fromString = function
+  | "Male" -> Some Male
+  | "Female" -> Some Female
+  | _ -> None
+
+  let fromStringOption = Option.bind fromString
+
+  let toString = function
+  | Male -> "Male"
+  | Female -> "Female"
+
+  let optionToString = function
+  | Some g -> toString g
+  | None -> ""
 
 module EmailAddress =
   let maxLength = 100

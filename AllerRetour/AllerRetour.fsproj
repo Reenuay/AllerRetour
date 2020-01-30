@@ -13,8 +13,10 @@
     <Compile Include="ValidationPredicates.fs" />
     <Compile Include="ValidationHelpers.fs" />
     <Compile Include="PrimitiveTypes.fs" />
-    <Compile Include="Dtos.fs" />
+    <Compile Include="RequestTypes.fs" />
+    <Compile Include="ResponseTypes.fs" />
     <Compile Include="ViewHelpers.fs" />
+    <Compile Include="Http.fs" />
     <Compile Include="SignInPage.fs" />
     <Compile Include="SignUpPage.fs" />
     <Compile Include="ForgotPasswordPage.fs" />
@@ -28,6 +30,7 @@
     <Compile Include="AllerRetour.fs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FSharp.Data" Version="3.3.3" />
     <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.6" />
     <PackageReference Include="Xamarin.Forms" Version="4.3.0.908675" />
     <PackageReference Include="Xamarin.Essentials" Version="1.1.0" />

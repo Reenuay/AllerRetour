@@ -3,6 +3,7 @@ module AllerRetour.ForgotPasswordPage
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
+open PrimitiveTypes
 
 type Model = Validatable<EmailAddress, string>
 

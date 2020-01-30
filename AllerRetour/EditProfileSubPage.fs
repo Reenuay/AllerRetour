@@ -4,7 +4,7 @@ open System
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
-
+open PrimitiveTypes
 open AllerRetour.Controls
 
 type Model = {
@@ -20,8 +20,8 @@ with
     match this.FirstName, this.LastName with
     | Success f, Success l ->
       Some {
-        FirstName = NameString.value f
-        LastName = NameString.value l
+        FirstName = f
+        LastName = l
         Birthday = this.Birthday
         Gender = this.Gender
       }
@@ -31,8 +31,8 @@ with
   member this.IsValid() =
     match this.FirstName, this.LastName with
     | Success f, Success l ->
-      NameString.value f <> this.PreviousProfile.FirstName
-      && NameString.value l <> this.PreviousProfile.LastName
+      f <> this.PreviousProfile.FirstName
+      && l <> this.PreviousProfile.LastName
       && this.Gender <> this.PreviousProfile.Gender
       && this.Birthday <> this.PreviousProfile.Birthday
 
@@ -57,14 +57,6 @@ type ExternalMsg =
 
 let genderList = ["Male"; "Female"]
 
-let toGenderOption = function
-| Some x ->
-  match x with
-  | "Male" -> Some Male
-  | "Female" -> Some Female
-  | _ -> None
-| None -> None
-
 let fromGenderOption = function
 | Some x ->
   match x with
@@ -73,8 +65,8 @@ let fromGenderOption = function
 | None -> -1
 
 let create (profile: Profile) = {
-  FirstName = adaptV NameString.create profile.FirstName
-  LastName = adaptV NameString.create profile.LastName
+  FirstName = Success profile.FirstName
+  LastName = Success profile.LastName
   Birthday = profile.Birthday
   Gender = profile.Gender
   PreviousProfile = profile
@@ -92,7 +84,7 @@ let update msg (model: Model) =
   | SetGender (i, s) ->
     {
       model with
-        Gender = toGenderOption s
+        Gender = Gender.fromStringOption s
         SelectedGenderIndex = i
     }, NoOp
   | ClickSave ->
