@@ -176,48 +176,68 @@ module App =
 
     | _, _ -> aModel, Cmd.none
 
+  let handleTwoTrackHttp model fSuccess =
+    either
+      fSuccess
+      (fun es ->
+        model,
+        es
+        |> foldErrors
+        |> ShowError
+        |> Cmd.ofMsg)
+
   let expireTokenCmd date =
     async {
       do! Async.Sleep (date - DateTime.UtcNow).Milliseconds
       return SignOut
-    } |> Cmd.ofAsyncMsg
+    }
+    |> Cmd.ofAsyncMsg
+
+  let goToMainPageCmd token =
+    async {
+      let! response = Http.getProfile token
+      
+      return
+        response
+        |> bind MainPage.create
+        |> either
+          (MainPageModel >> NavigateTo)
+          ("Can not open main page" |> ShowError |> ignore2)
+    }
+    |> Cmd.ofAsyncMsg
 
   let signIn model request =
-    match Http.signIn request |> Async.RunSynchronously with
-    | Success t ->
-      let newModel = { model with Token = Some t.Token }
+    request
+    |> Http.signIn
+    |> Async.RunSynchronously
+    |> handleTwoTrackHttp
+      model
+      (fun t ->
+        let navCmd =
+          if t.EmailConfirmed then
+            goToMainPageCmd t.Token
+          else
+            request.Email
+            |> ResendEmailPageModel
+            |> NavigateTo
+            |> Cmd.ofMsg
+      
+        let timerCmd = expireTokenCmd t.Expires
+      
+        { model with Token = Some t.Token }, Cmd.batch [navCmd; timerCmd])
 
-      let navCmd =
-        match t.EmailConfirmed with
-        | false ->
-          request.Email
-          |> ResendEmailPageModel
-          |> NavigateTo
-          |> Cmd.ofMsg
-
-        | true ->
-          async {
-            let! profileRes = Http.getProfile t.Token
-
-            return
-              profileRes
-              |> bind MainPage.create
-              |> either
-                (MainPageModel >> NavigateTo)
-                ("Server Error" |> ShowError |> ignore2)
-          }
-          |> Cmd.ofAsyncMsg
-
-      let timerCmd = expireTokenCmd t.Expires
-
-      newModel, Cmd.batch [navCmd; timerCmd]
-
-    | Failure es ->
-      model,
-      es
-      |> foldErrors
-      |> ShowError
-      |> Cmd.ofMsg
+  let signUp model request =
+    request
+    |> Http.signUp
+    |> Async.RunSynchronously
+    |> handleTwoTrackHttp
+      model
+      (fun _ ->
+        model,
+        request.Email
+        |> SignUpSuccessPageModel
+        |> NavigateTo
+        |> Cmd.ofMsg)
       
   let update aMsg aModel =
     match aMsg with
@@ -231,11 +251,7 @@ module App =
       signIn aModel r
           
     | SignUp r ->
-      aModel,
-      r.Email
-      |> SignUpSuccessPageModel
-      |> NavigateTo
-      |> Cmd.ofMsg // TODO: Create real sign up logic
+      signUp aModel r
 
     | SignOut ->
       aModel, goToSignInCmd // TODO: Create real sign out logic

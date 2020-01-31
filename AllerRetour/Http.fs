@@ -52,5 +52,8 @@ let inline post route body headers =
 let signIn (r: SignInRequest) : AsyncT<SignInResponse> =
   post "/signin" r []
 
+let signUp (r: SignUpRequest) : AsyncT<int64> =
+  post "/signup" r []
+
 let getProfile token : AsyncT<ProfileResponse> =
   get "/profile" [] [ HttpRequestHeaders.Authorization (sprintf "Bearer %s" token) ]
