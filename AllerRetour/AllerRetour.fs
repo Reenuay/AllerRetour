@@ -176,30 +176,42 @@ module App =
 
     | _, _ -> aModel, Cmd.none
 
+  let expireTokenCmd date =
+    async {
+      do! Async.Sleep (date - DateTime.UtcNow).Milliseconds
+      return SignOut
+    } |> Cmd.ofAsyncMsg
+
   let signIn model request =
     match Http.signIn request |> Async.RunSynchronously with
     | Success t ->
       { model with Token = Some t.Token },
+      [
 
-      match t.EmailConfirmed with
-      | false ->
-        request.Email
-        |> ResendEmailPageModel
-        |> NavigateTo
-        |> Cmd.ofMsg
+        match t.EmailConfirmed with
+        | false ->
+          request.Email
+          |> ResendEmailPageModel
+          |> NavigateTo
+          |> Cmd.ofMsg
 
-      | true ->
-        async {
-          let! profileRes = Http.getProfile t.Token
+        | true ->
+          async {
+            let! profileRes = Http.getProfile t.Token
 
-          return
-            profileRes
-            |> bind MainPage.create
-            |> either
-              (MainPageModel >> NavigateTo)
-              ("Server Error" |> ShowError |> ignore2) // TO DO MAYBE: Log errors
-        }
-        |> Cmd.ofAsyncMsg
+            return
+              profileRes
+              |> bind MainPage.create
+              |> either
+                (MainPageModel >> NavigateTo)
+                ("Server Error" |> ShowError |> ignore2) // TO DO MAYBE: Log errors
+          }
+          |> Cmd.ofAsyncMsg
+
+        t.Expires
+        |> expireTokenCmd
+
+      ] |> Cmd.batch
 
     | Failure es ->
       model,
