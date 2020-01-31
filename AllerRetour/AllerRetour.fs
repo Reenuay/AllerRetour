@@ -185,9 +185,9 @@ module App =
   let signIn model request =
     match Http.signIn request |> Async.RunSynchronously with
     | Success t ->
-      { model with Token = Some t.Token },
-      [
+      let newModel = { model with Token = Some t.Token }
 
+      let navCmd =
         match t.EmailConfirmed with
         | false ->
           request.Email
@@ -208,10 +208,9 @@ module App =
           }
           |> Cmd.ofAsyncMsg
 
-        t.Expires
-        |> expireTokenCmd
+      let timerCmd = expireTokenCmd t.Expires
 
-      ] |> Cmd.batch
+      model, Cmd.batch [navCmd; timerCmd]
 
     | Failure es ->
       model,
