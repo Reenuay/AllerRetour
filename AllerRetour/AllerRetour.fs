@@ -204,13 +204,13 @@ module App =
               |> bind MainPage.create
               |> either
                 (MainPageModel >> NavigateTo)
-                ("Server Error" |> ShowError |> ignore2) // TO DO MAYBE: Log errors
+                ("Server Error" |> ShowError |> ignore2)
           }
           |> Cmd.ofAsyncMsg
 
       let timerCmd = expireTokenCmd t.Expires
 
-      model, Cmd.batch [navCmd; timerCmd]
+      newModel, Cmd.batch [navCmd; timerCmd]
 
     | Failure es ->
       model,
