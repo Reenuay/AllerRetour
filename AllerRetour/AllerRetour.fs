@@ -175,6 +175,38 @@ module App =
       { aModel with PageModel = MainPageModel newModel }, cmd
 
     | _, _ -> aModel, Cmd.none
+
+  let signIn model request =
+    match Http.signIn request |> Async.RunSynchronously with
+    | Success t ->
+      { model with Token = Some t.Token },
+
+      match t.EmailConfirmed with
+      | false ->
+        request.Email
+        |> ResendEmailPageModel
+        |> NavigateTo
+        |> Cmd.ofMsg
+
+      | true ->
+        async {
+          let! profileRes = Http.getProfile t.Token
+
+          return
+            profileRes
+            |> bind MainPage.create
+            |> either
+              (MainPageModel >> NavigateTo)
+              ("Server Error" |> ShowError |> ignore2) // TO DO MAYBE: Log errors
+        }
+        |> Cmd.ofAsyncMsg
+
+    | Failure es ->
+      model,
+      es
+      |> foldErrors
+      |> ShowError
+      |> Cmd.ofMsg
       
   let update aMsg aModel =
     match aMsg with
@@ -185,41 +217,20 @@ module App =
       { aModel with PageModel = pModel }, Cmd.none
 
     | SignIn r ->
-      match Http.signIn r |> Async.RunSynchronously with
-      | Success t ->
-        { aModel with Token = Some t.Token },
-        match t.EmailConfirmed with
-        | false ->
-          ResendEmailPageModel r.Email
-          |> NavigateTo
-          |> Cmd.ofMsg
-
-        | true ->
-          async {
-            let! profileRes = Http.getProfile t.Token
-
-            return
-              profileRes
-              |> bind MainPage.create
-              |> either (MainPageModel >> NavigateTo) (foldErrors >> ShowError)
-          }
-          |> Cmd.ofAsyncMsg
-
-      | Failure es ->
-        aModel,
-        es
-        |> foldErrors
-        |> ShowError
-        |> Cmd.ofMsg
+      signIn aModel r
           
     | SignUp r ->
-      aModel, Cmd.ofMsg (NavigateTo (SignUpSuccessPageModel r.Email)) // TODO: Create real sign up logic
+      aModel,
+      r.Email
+      |> SignUpSuccessPageModel
+      |> NavigateTo
+      |> Cmd.ofMsg // TODO: Create real sign up logic
 
     | SignOut ->
-      aModel, Cmd.ofMsg (NavigateTo (SignInPageModel SignInPage.initModel)) // TODO: Create real sign out logic
+      aModel, goToSignInCmd // TODO: Create real sign out logic
 
     | SendPasswordResetEmail _ ->
-      aModel, Cmd.ofMsg (NavigateTo (SignInPageModel SignInPage.initModel)) // TODO: Create real email send logic
+      aModel, goToSignInCmd // TODO: Create real email send logic
 
     | UpdateProfile _ ->
       aModel, Cmd.none // TODO: Create real profile update logic
@@ -240,13 +251,26 @@ module App =
     let pageDispatch = PageMsg >> dispatch
 
     match appModel.PageModel with
-    | SignInPageModel model -> SignInPage.view model (SignInPageMsg >> pageDispatch)
-    | SignUpPageModel model -> SignUpPage.view model (SignUpPageMsg >> pageDispatch)
-    | ForgotPasswordPageModel model -> ForgotPasswordPage.view model (ForgotPasswordPageMsg >> pageDispatch)
-    | SignUpSuccessPageModel model -> SignUpSuccessPage.view model (SignUpSuccessPageMsg >> pageDispatch)
-    | ResendEmailPageModel model -> ResendEmailPage.view model (ResendEmailPageMsg >> pageDispatch)
-    | ChangeEmailPageModel model -> ChangeEmailPage.view model (ChangeEmailPageMsg >> pageDispatch)
-    | MainPageModel model -> MainPage.view model (MainPageMsg >> pageDispatch)
+    | SignInPageModel model ->
+      SignInPage.view model (SignInPageMsg >> pageDispatch)
+
+    | SignUpPageModel model ->
+      SignUpPage.view model (SignUpPageMsg >> pageDispatch)
+
+    | ForgotPasswordPageModel model ->
+      ForgotPasswordPage.view model (ForgotPasswordPageMsg >> pageDispatch)
+
+    | SignUpSuccessPageModel model ->
+      SignUpSuccessPage.view model (SignUpSuccessPageMsg >> pageDispatch)
+
+    | ResendEmailPageModel model ->
+      ResendEmailPage.view model (ResendEmailPageMsg >> pageDispatch)
+
+    | ChangeEmailPageModel model ->
+      ChangeEmailPage.view model (ChangeEmailPageMsg >> pageDispatch)
+
+    | MainPageModel model ->
+      MainPage.view model (MainPageMsg >> pageDispatch)
 
   // Note, this declaration is needed if you enable LiveUpdate
   let program = Program.mkProgram init update view
