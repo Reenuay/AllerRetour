@@ -254,7 +254,7 @@ module App =
       signUp aModel r
 
     | SignOut ->
-      aModel, goToSignInCmd // TODO: Create real sign out logic
+      { aModel with Token = None }, goToSignInCmd
 
     | SendPasswordResetEmail _ ->
       aModel, goToSignInCmd // TODO: Create real email send logic
