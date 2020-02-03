@@ -42,7 +42,7 @@ module App =
     | UpdateProfile of UpdateProfileRequest
     | ChangeEmail of ChangeEmailRequest
     | ChangePassword of ChangePasswordRequest
-    | ResendConfirmEmail of string
+    | ResendConfirmEmail
     | ShowError of string
 
   let initModel = {
@@ -111,8 +111,8 @@ module App =
     let newModel, eMsg = ResendEmailPage.update msg model
     let cmd =
       match eMsg with
-      | ResendEmailPage.ResendEmail e ->
-        Cmd.ofMsg (ResendConfirmEmail e)
+      | ResendEmailPage.ResendEmail ->
+        Cmd.ofMsg ResendConfirmEmail
 
       | ResendEmailPage.GoToChangeEmail ->
         ChangeEmailPage.initModel
@@ -188,7 +188,10 @@ module App =
 
   let expireTokenCmd date =
     async {
-      do! Async.Sleep (date - DateTime.UtcNow).Milliseconds
+      do! (date - DateTime.UtcNow).TotalMilliseconds
+        |> int
+        |> Async.Sleep
+
       return SignOut
     }
     |> Cmd.ofAsyncMsg
@@ -238,6 +241,22 @@ module App =
         |> SignUpSuccessPageModel
         |> NavigateTo
         |> Cmd.ofMsg)
+
+  let resendConfirmEmail model =
+    match model.Token with
+    | Some t ->
+      t
+      |> Http.resendConfirmEmail
+      |> Async.RunSynchronously
+      |> handleTwoTrackHttp
+        model
+        (fun _ ->
+          model,
+          Cmd.none)
+
+    | None ->
+      model, Cmd.none
+      
       
   let update aMsg aModel =
     match aMsg with
@@ -268,8 +287,8 @@ module App =
     | ChangePassword _ ->
       aModel, Cmd.none // TODO: Create real password change logic
 
-    | ResendConfirmEmail _ ->
-      aModel, Cmd.none // TODO: Create real confirm email resend logic
+    | ResendConfirmEmail ->
+      resendConfirmEmail aModel
 
     | ShowError _ ->
       aModel, Cmd.none // TODO: Create real show error logic

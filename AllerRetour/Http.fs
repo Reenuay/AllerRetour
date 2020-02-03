@@ -41,6 +41,7 @@ let inline post route body headers =
               headers = [ HttpRequestHeaders.Accept HttpContentTypes.Json ] @ headers,
               body = TextRequest (Json.serialize body)
             )
+
       return
         match Json.deserialize res with
         | Choice1Of2 t -> Success t
@@ -49,11 +50,16 @@ let inline post route body headers =
     | exn -> return Failure [exn.Message]
   }
 
+let bearer token = HttpRequestHeaders.Authorization (sprintf "Bearer %s" token)
+
 let signIn (r: SignInRequest) : AsyncT<SignInResponse> =
   post "/signin" r []
 
-let signUp (r: SignUpRequest) : AsyncT<int64> =
+let signUp (r: SignUpRequest) : AsyncT<string> =
   post "/signup" r []
 
 let getProfile token : AsyncT<ProfileResponse> =
-  get "/profile" [] [ HttpRequestHeaders.Authorization (sprintf "Bearer %s" token) ]
+  get "/profile" [] [ bearer token ]
+
+let resendConfirmEmail token : AsyncT<string> =
+  post "/resend" () [ bearer token ]

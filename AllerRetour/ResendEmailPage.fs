@@ -12,13 +12,13 @@ type Msg =
   | ClickGoToSignIn
 
 type ExternalMsg =
-  | ResendEmail of string
+  | ResendEmail
   | GoToChangeEmail
   | GoToSignIn
 
 let update msg (model: Model) =
   match msg with
-  | ClickResendEmail -> model, ResendEmail model
+  | ClickResendEmail -> model, ResendEmail
   | ClickGoToChangeEmail -> model, GoToChangeEmail
   | ClickGoToSignIn -> model, GoToSignIn
 
@@ -31,7 +31,8 @@ let view model dispatch =
           text = sprintf "Please confirm your email address %s to be able to sign in." model
             + "Check your inbox for email we sent."
             + "If it's not there please check spam folder."
-            + "If it's still not there press resend email below.")
+            + "If it's still not there press resend email below."
+            + "It will be valid for 12 hours.")
         View.Button(
           text = "Resend email",
           command = (fun () -> dispatch ClickResendEmail))
