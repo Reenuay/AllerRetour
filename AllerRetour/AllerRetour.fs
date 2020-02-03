@@ -115,7 +115,8 @@ module App =
         Cmd.ofMsg ResendConfirmEmail
 
       | ResendEmailPage.GoToChangeEmail ->
-        ChangeEmailPage.initModel
+        model
+        |> ChangeEmailPage.create
         |> ChangeEmailPageModel
         |> NavigateTo
         |> Cmd.ofMsg

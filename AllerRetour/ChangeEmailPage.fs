@@ -8,6 +8,7 @@ open RequestTypes
 
 type Model = {
   Email: Validatable<EmailAddress, string>
+  PreviousEmail: string
   Password: Validatable<Password, string>
 }
 with
@@ -23,9 +24,18 @@ with
     | Success _, Success _ -> true
     | _ -> false
 
+  member this.CreateEmail(email) =
+    match EmailAddress.create email with
+    | Failure x -> Failure x
+    | Success e ->
+      if EmailAddress.value e = this.PreviousEmail then
+        Failure ["This is the old value"]
+      else
+        Success e
+
   member this.Revalidate() = {
     this with
-      Email = adaptV EmailAddress.create (underV EmailAddress.value this.Email)
+      Email = adaptV this.CreateEmail (underV EmailAddress.value this.Email)
       Password = adaptV Password.create (underV Password.value this.Password)
   }
 
@@ -40,15 +50,16 @@ type ExternalMsg =
   | ChangeEmail of ChangeEmailRequest
   | GoToSignIn
 
-let initModel = {
+let create email = {
   Email = emptyString
+  PreviousEmail = email
   Password = emptyString
 }
 
 let update msg (model: Model) =
   match msg with
   | SetEmail e ->
-    { model with Email = adaptV EmailAddress.create e }, NoOp
+    { model with Email = adaptV model.CreateEmail e }, NoOp
 
   | SetPassword p ->
     { model with Password = adaptV Password.create p }, NoOp
