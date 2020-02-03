@@ -63,3 +63,6 @@ let getProfile token : AsyncT<ProfileResponse> =
 
 let resendConfirmEmail token : AsyncT<string> =
   post "/resend" () [ bearer token ]
+
+let changeEmail token (r: ChangeEmailRequest) : AsyncT<string> =
+  post "/changeEmail" r [ bearer token ]

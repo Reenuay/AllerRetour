@@ -74,7 +74,7 @@ let view (model: Model) dispatch =
         yield!
           makeEntry
             false
-            "Email"
+            "New email"
             EmailAddress.value
             (fun args -> dispatch (SetEmail args.NewTextValue))
             model.Email

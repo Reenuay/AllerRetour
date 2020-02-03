@@ -256,7 +256,20 @@ module App =
 
     | None ->
       model, Cmd.none
-      
+
+  let changeEmail model request =
+    match model.Token with
+    | Some t ->
+      Http.changeEmail t request
+      |> Async.RunSynchronously
+      |> handleTwoTrackHttp
+        model
+        (fun _ ->
+          model,
+          Cmd.ofMsg SignOut)
+
+    | None ->
+      model, Cmd.none
       
   let update aMsg aModel =
     match aMsg with
@@ -281,8 +294,8 @@ module App =
     | UpdateProfile _ ->
       aModel, Cmd.none // TODO: Create real profile update logic
 
-    | ChangeEmail _ ->
-      aModel, Cmd.ofMsg SignOut // TODO: Create real email change logic
+    | ChangeEmail r ->
+      changeEmail aModel r
 
     | ChangePassword _ ->
       aModel, Cmd.none // TODO: Create real password change logic
