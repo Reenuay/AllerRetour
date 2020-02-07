@@ -197,18 +197,13 @@ module App =
     }
     |> Cmd.ofAsyncMsg
 
-  let goToMainPageCmd token =
-    async {
-      let! response = Http.getProfile token
-      
-      return
-        response
-        |> bind MainPage.create
-        |> either
-          (MainPageModel >> NavigateTo)
-          ("Can not open main page" |> ShowError |> ignore2)
-    }
-    |> Cmd.ofAsyncMsg
+  let goToMainPageCmd response =
+    response
+    |> bind MainPage.create
+    |> either
+      (MainPageModel >> NavigateTo)
+      ("Can not open main page" |> ShowError |> ignore2)
+    |> Cmd.ofMsg
 
   let signIn model request =
     request
@@ -219,7 +214,10 @@ module App =
       (fun t ->
         let navCmd =
           if t.EmailConfirmed then
-            goToMainPageCmd t.Token
+            t.Token
+            |> Http.getProfile
+            |> Async.RunSynchronously
+            |> goToMainPageCmd 
           else
             request.Email
             |> ResendEmailPageModel
@@ -258,6 +256,20 @@ module App =
     | None ->
       model, Cmd.none
 
+  let updateProfile model request =
+    match model.Token with
+    | Some t ->
+      Http.updateProfile t request
+      |> Async.RunSynchronously
+      |> handleTwoTrackHttp
+        model
+        (fun r ->
+          model,
+          goToMainPageCmd (succeed r))
+
+    | None ->
+      model, Cmd.none
+
   let changeEmail model request =
     match model.Token with
     | Some t ->
@@ -292,8 +304,8 @@ module App =
     | SendPasswordResetEmail _ ->
       aModel, goToSignInCmd // TODO: Create real email send logic
 
-    | UpdateProfile _ ->
-      aModel, Cmd.none // TODO: Create real profile update logic
+    | UpdateProfile r ->
+      updateProfile aModel r
 
     | ChangeEmail r ->
       changeEmail aModel r

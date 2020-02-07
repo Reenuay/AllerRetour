@@ -61,7 +61,7 @@ let createMain (r: ProfileResponse) =
     let! email = EmailAddress.create r.Email
     let! firstName = NameString.create r.FirstName
     let! lastName = NameString.create r.LastName
-    let gender =  Gender.fromString r.Gender
+    let gender = Gender.fromString r.Gender
 
     return {
       CardId = cardId
@@ -126,12 +126,12 @@ let update mMsg mModel =
     match mModel.EditProfilePageModel with
     | Some model ->
       let newModel, eMsg = EditProfileSubPage.update msg model
-      let newModelOption, eMsg2, profile =
+      let newModelOption, eMsg2 =
         match eMsg with
         | EditProfileSubPage.NoOp ->
           Some newModel,
-          NoOp,
-          mModel.MainPageModel.Profile
+          NoOp
+
         | EditProfileSubPage.UpdateProfile p ->
           None,
           UpdateProfile {
@@ -139,20 +139,11 @@ let update mMsg mModel =
             LastName = NameString.value p.LastName
             Birthday = p.Birthday
             Gender = Gender.optionToString p.Gender
-          },
-          p
+          }
 
       { mModel
         with
           EditProfilePageModel = newModelOption
-          MainPageModel = {
-            mModel.MainPageModel
-              with
-                FirstName = profile.FirstName
-                LastName = profile.LastName
-                Birtday = profile.Birthday
-                Gender = profile.Gender
-          }
       }, eMsg2
     | None -> mModel, NoOp
 
