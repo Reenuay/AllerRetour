@@ -75,3 +75,6 @@ let updateProfile token (r: UpdateProfileRequest) : AsyncT<ProfileResponse> =
 
 let changeEmail token (r: ChangeEmailRequest) : AsyncT<string> =
   post "/email/change" r [ bearer token ]
+
+let changePassword token (r: ChangePasswordRequest) : AsyncT<string> =
+  post "/password/change" r [ bearer token ]
