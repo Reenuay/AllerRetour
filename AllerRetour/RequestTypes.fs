@@ -18,6 +18,12 @@ type PasswordResetEmailRequest = {
   Email: string
 }
 
+type PasswordResetRequest = {
+  Email: string
+  NewPassword: string
+  Token: string
+}
+
 type UpdateProfileRequest = {
   FirstName: string
   LastName: string

@@ -12,6 +12,8 @@ type Password = private Password of string
 
 type NameString = private NameString of string
 
+type Pin = private Pin of string
+
 type Profile = {
   FirstName: NameString
   LastName: NameString
@@ -73,3 +75,10 @@ module NameString =
     >> map NameString
   
   let value (NameString s) = s
+
+module Pin =
+  let create
+    =  chain isValidPin ["Bad format"]
+    >> map Pin
+
+  let value (Pin s) = s

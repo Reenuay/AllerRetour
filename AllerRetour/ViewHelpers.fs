@@ -19,13 +19,9 @@ let makeEntry isPassword placeholder fSuccess dispatch v =
         placeholder = placeholder,
         isPassword = isPassword,
         textChanged = (fun args -> dispatch args))
-    yield!
-      if error <> String.Empty then
-        [
-          View.Label(
-            text = error,
-            fontSize = FontSize 10.0)
-        ]
-      else
-        []
+
+    if error <> String.Empty then
+      yield View.Label(
+          text = error,
+          fontSize = FontSize 10.0)
   ]

@@ -4,6 +4,7 @@ open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
+open RequestTypes
 
 type Model = Validatable<EmailAddress, string>
 
@@ -14,7 +15,7 @@ type Msg =
 
 type ExternalMsg =
   | NoOp
-  | Send of string
+  | Send of PasswordResetEmailRequest
   | GoToSignIn
 
 let initModel = emptyString
@@ -24,7 +25,7 @@ let update msg (model: Model) =
   | SetEmail e -> adaptV EmailAddress.create e, NoOp
   | ClickSend ->
     match model with
-    | Success e -> model, Send (EmailAddress.value e)
+    | Success e -> model, Send { Email = EmailAddress.value e }
     | Failure x -> Failure x, NoOp
   | ClickGoToSignIn -> model, GoToSignIn
 

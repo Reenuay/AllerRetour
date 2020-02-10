@@ -13,6 +13,7 @@ module App =
     | SignInPageModel of SignInPage.Model
     | SignUpPageModel of SignUpPage.Model
     | ForgotPasswordPageModel of ForgotPasswordPage.Model
+    | ResetPasswordPageModel of ResetPasswordPage.Model
     | SignUpSuccessPageModel of SignUpSuccessPage.Model
     | ResendEmailPageModel of ResendEmailPage.Model
     | ChangeEmailPageModel of ChangeEmailPage.Model
@@ -27,6 +28,7 @@ module App =
     | SignInPageMsg of SignInPage.Msg
     | SignUpPageMsg of SignUpPage.Msg
     | ForgotPasswordPageMsg of ForgotPasswordPage.Msg
+    | ResetPasswordPageMsg of ResetPasswordPage.Msg
     | SignUpSuccessPageMsg of SignUpSuccessPage.Msg
     | ResendEmailPageMsg of ResendEmailPage.Msg
     | ChangeEmailPageMsg of ChangeEmailPage.Msg
@@ -38,7 +40,8 @@ module App =
     | SignIn of SignInRequest
     | SignUp of SignUpRequest
     | SignOut
-    | SendPasswordResetEmail of string
+    | SendPasswordResetEmail of PasswordResetEmailRequest
+    | ResetPassword of PasswordResetRequest
     | UpdateProfile of UpdateProfileRequest
     | ChangeEmail of ChangeEmailRequest
     | ChangePassword of ChangePasswordRequest
@@ -96,8 +99,44 @@ module App =
     let cmd =
       match eMsg with
       | ForgotPasswordPage.NoOp -> Cmd.none
-      | ForgotPasswordPage.Send e -> Cmd.ofMsg (SendPasswordResetEmail e)
+      | ForgotPasswordPage.Send r -> Cmd.ofMsg (SendPasswordResetEmail r)
       | ForgotPasswordPage.GoToSignIn -> goToSignInCmd
+    newModel, cmd
+
+  let handleResetPasswordMsg msg model =
+    let newModel, eMsg = ResetPasswordPage.update msg model
+    let cmd =
+      match eMsg with
+      | ResetPasswordPage.NoOp ->
+        Cmd.none
+
+      | ResetPasswordPage.Timer ->
+        async {
+          do! Async.SwitchToThreadPool()
+          do! Async.Sleep 1000
+
+          return
+            if model.Timer > 0 then
+              ResetPasswordPage.TimerTick
+              |> ResetPasswordPageMsg
+              |> PageMsg
+              |> Some
+            else
+              None
+        }
+        |> Cmd.ofAsyncMsgOption
+
+      | ResetPasswordPage.ResetPassword r ->
+        r
+        |> ResetPassword
+        |> Cmd.ofMsg
+
+      | ResetPasswordPage.GoToForgotPassword ->
+        ForgotPasswordPage.initModel
+        |> ForgotPasswordPageModel
+        |> NavigateTo
+        |> Cmd.ofMsg
+
     newModel, cmd
 
   let handleSignUpSuccessMsg msg model =
@@ -159,6 +198,10 @@ module App =
       let newModel, cmd = handleForgotPasswordMsg msg model
       { aModel with PageModel = ForgotPasswordPageModel newModel }, cmd
 
+    | ResetPasswordPageMsg msg, ResetPasswordPageModel model ->
+      let newModel, cmd = handleResetPasswordMsg msg model
+      { aModel with PageModel = ResetPasswordPageModel newModel }, cmd
+
     | SignUpSuccessPageMsg msg, SignUpSuccessPageModel model ->
       let newModel, cmd = handleSignUpSuccessMsg msg model
       { aModel with PageModel = SignUpSuccessPageModel newModel }, cmd
@@ -189,6 +232,7 @@ module App =
 
   let expireTokenCmd date =
     async {
+      do! Async.SwitchToThreadPool()
       do! (date - DateTime.UtcNow).TotalMilliseconds
         |> int
         |> Async.Sleep
@@ -205,7 +249,7 @@ module App =
       ("Can not open main page" |> ShowError |> ignore2)
     |> Cmd.ofMsg
 
-  let signIn model request =
+  let signIn (model: Model) request =
     request
     |> Http.signIn
     |> Async.RunSynchronously
@@ -249,7 +293,28 @@ module App =
       model
       (fun _ ->
         model,
-        Cmd.none) // Change it to naviate to password reset page
+        Cmd.batch [
+          request.Email
+          |> ResetPasswordPage.initModel
+          |> ResetPasswordPageModel
+          |> NavigateTo
+          |> Cmd.ofMsg;
+
+          ResetPasswordPage.TimerTick
+          |> ResetPasswordPageMsg
+          |> PageMsg
+          |> Cmd.ofMsg;
+        ])
+
+  let resetPassword model request =
+    request
+    |> Http.resetPassword
+    |> Async.RunSynchronously
+    |> handleTwoTrackHttp
+      model
+      (fun _ ->
+        model,
+        goToSignInCmd)
 
   let resendConfirmEmail model =
     match model.Token with
@@ -325,8 +390,11 @@ module App =
     | SignOut ->
       { aModel with Token = None }, goToSignInCmd
 
-    | SendPasswordResetEmail e ->
-      sendPin aModel { Email = e }
+    | SendPasswordResetEmail r ->
+      sendPin aModel r
+
+    | ResetPassword r ->
+      resetPassword aModel r
 
     | UpdateProfile r ->
       updateProfile aModel r
@@ -340,8 +408,9 @@ module App =
     | ResendConfirmEmail ->
       resendConfirmEmail aModel
 
-    | ShowError _ ->
-      aModel, Cmd.none // TODO: Create real show error logic
+    | ShowError err ->
+      Application.Current.MainPage.DisplayAlert(String.Empty, err, "Ok") |> ignore
+      aModel, Cmd.none
 
   let view appModel dispatch =
     let pageDispatch = PageMsg >> dispatch
@@ -355,6 +424,9 @@ module App =
 
     | ForgotPasswordPageModel model ->
       ForgotPasswordPage.view model (ForgotPasswordPageMsg >> pageDispatch)
+
+    | ResetPasswordPageModel model ->
+      ResetPasswordPage.view model (ResetPasswordPageMsg >> pageDispatch)
 
     | SignUpSuccessPageModel model ->
       SignUpSuccessPage.view model (SignUpSuccessPageMsg >> pageDispatch)

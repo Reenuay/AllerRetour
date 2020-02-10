@@ -1,5 +1,6 @@
-module AllerRetour.ChangePasswordSubPage
+module AllerRetour.ResetPasswordPage
 
+open System
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
@@ -9,7 +10,9 @@ open RequestTypes
 type Model = {
   NewPassword: Validatable<Password, string>
   RepeatNewPassword: Validatable<string, string>
-  OldPassword: Validatable<Password, string>
+  Pin: Validatable<Pin, string>
+  Email: string
+  Timer: int
 }
 with
   member this.CheckRepeatPassword(r) =
@@ -19,18 +22,19 @@ with
     | _ ->
       Success r
 
-  member this.ToDto() : ChangePasswordRequest option =
-    match this.NewPassword, this.RepeatNewPassword, this.OldPassword with
-    | Success n, Success _, Success o ->
+  member this.ToDto() : PasswordResetRequest option =
+    match this.NewPassword, this.RepeatNewPassword, this.Pin with
+    | Success n, Success _, Success p ->
       Some {
+        Email = this.Email
         NewPassword = Password.value n
-        OldPassword = Password.value o
+        Token = Pin.value p
       }
     | _ ->
       None
 
   member this.IsValid() =
-    match this.NewPassword, this.RepeatNewPassword, this.OldPassword with
+    match this.NewPassword, this.RepeatNewPassword, this.Pin with
     | Success _, Success _, Success _ -> true
     | _ -> false
 
@@ -38,24 +42,32 @@ with
     this with
       NewPassword = adaptV Password.create (underV Password.value this.NewPassword)
       RepeatNewPassword = adaptV this.CheckRepeatPassword (underV id this.RepeatNewPassword)
-      OldPassword = adaptV Password.create (underV Password.value this.OldPassword)
+      Pin = adaptV Pin.create (underV Pin.value this.Pin)
   }
 
 type Msg =
   | SetNewPassword of string
   | SetRepeatNewPassword of string
-  | SetOldPassword of string
-  | ClickChange
+  | SetPin of string
+  | TimerTick
+  | ClickReset
 
 type ExternalMsg =
   | NoOp
-  | ChangePassword of ChangePasswordRequest
+  | Timer
+  | ResetPassword of PasswordResetRequest
+  | GoToForgotPassword
 
-let initModel = {
-  NewPassword = emptyString
-  RepeatNewPassword = emptyString
-  OldPassword = emptyString
-}
+let initModel email =
+  let fifteenMinutes = 15 * 60
+
+  {
+    NewPassword = emptyString
+    RepeatNewPassword = emptyString
+    Pin = emptyString
+    Email = email
+    Timer = fifteenMinutes
+  }
 
 let update msg (model: Model) =
   match msg with
@@ -65,18 +77,31 @@ let update msg (model: Model) =
   | SetRepeatNewPassword p ->
     { model with RepeatNewPassword = adaptV model.CheckRepeatPassword p }, NoOp
 
-  | SetOldPassword p ->
-    { model with OldPassword = adaptV Password.create p }, NoOp
+  | SetPin p ->
+    { model with Pin = adaptV Pin.create p }, NoOp
 
-  | ClickChange ->
+  | TimerTick ->
+    let time = model.Timer - 1
+    { model with Timer = time },
+    if time > 0 then Timer else GoToForgotPassword
+
+  | ClickReset ->
     match model.ToDto() with
-    | Some d -> model, ChangePassword d
+    | Some d -> model, ResetPassword d
     | None -> model.Revalidate(), NoOp
 
 let view model dispatch =
   View.ContentPage(
     content = View.StackLayout(
+      padding = Thickness 20.0,
       children = [
+        yield View.Label(
+          text = """
+            We sent you a verification code on your email.
+            It will be valid until timer stops.
+            Use it to reset your password.""")
+        yield View.Label(
+          text = TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss"))
         yield!
           makeEntry
             true
@@ -93,14 +118,14 @@ let view model dispatch =
             model.RepeatNewPassword
         yield!
           makeEntry
-            true
-            "Old password"
-            Password.value
-            (fun args -> dispatch (SetOldPassword args.NewTextValue))
-            model.OldPassword
+            false
+            "Code"
+            Pin.value
+            (fun args -> dispatch (SetPin args.NewTextValue))
+            model.Pin
         yield View.Button(
-          text = "Change password",
-          command = (fun () -> dispatch ClickChange))
+          text = "Reset password",
+          command = (fun () -> dispatch ClickReset))
       ]
     )
   )

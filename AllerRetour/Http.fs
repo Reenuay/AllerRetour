@@ -11,47 +11,61 @@ type AsyncT<'a> = Async<TwoTrackResult<'a, string list>>
 let baseUrl = "http://46.101.209.128/api/customer"
 let routeTo route = baseUrl + route
 
-let inline makeRequest f =
+let inline makeRequest (f: unit -> Async<HttpResponse>) =
   async {
-    try
-      let! res = f ()
-      return
-        match Json.deserialize res with
+    do! Async.SwitchToThreadPool()
+
+    let! res = f ()
+    let body =
+      match res.Body with
+      | Text t -> t
+      | _ -> failwith "Binary data returned but text was expected."
+
+    return
+      if res.StatusCode = 200 then
+        match Json.deserialize body with
         | Choice1Of2 t -> Success t
-        | Choice2Of2 e -> Failure [e]
-    with
-    | exn -> return Failure [exn.Message]
+        | Choice2Of2 e -> Failure [ "Parsing error: server returned invalid data" ]
+      else
+        let e =
+          match Json.deserialize body with
+          | Choice1Of2 s -> s
+          | Choice2Of2 s -> s
+        Failure [ e ]
   }
 
 let inline get route query headers =
   let f () =
-    Http.AsyncRequestString (
+    Http.AsyncRequest (
       routeTo route,
       httpMethod = "GET",
       headers = [ HttpRequestHeaders.Accept HttpContentTypes.Json ] @ headers,
-      query = query
+      query = query,
+      silentHttpErrors = true
     )
 
   makeRequest f
 
 let inline post route body headers =
   let f () =
-    Http.AsyncRequestString (
+    Http.AsyncRequest (
       routeTo route,
       httpMethod = "POST",
       headers = [ HttpRequestHeaders.Accept HttpContentTypes.Json ] @ headers,
-      body = TextRequest (Json.serialize body)
+      body = TextRequest (Json.serialize body),
+      silentHttpErrors = true
     )
 
   makeRequest f
 
 let inline put route body headers =
   let f () =
-    Http.AsyncRequestString (
+    Http.AsyncRequest (
       routeTo route,
       httpMethod = "PUT",
       headers = [ HttpRequestHeaders.Accept HttpContentTypes.Json ] @ headers,
-      body = TextRequest (Json.serialize body)
+      body = TextRequest (Json.serialize body),
+      silentHttpErrors = true
     )
 
   makeRequest f
@@ -66,6 +80,9 @@ let signUp (r: SignUpRequest) : AsyncT<string> =
 
 let sendPin (r: PasswordResetEmailRequest) : AsyncT<string> =
   post "/password/pin" r []
+
+let resetPassword (r: PasswordResetRequest) : AsyncT<string> =
+  post "/password/reset" r []
 
 let getProfile token : AsyncT<ProfileResponse> =
   get "/profile" [] [ bearer token ]

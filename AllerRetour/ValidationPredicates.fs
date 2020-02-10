@@ -23,6 +23,4 @@ let containsWords words s =
     RegexOptions.IgnoreCase
   )
 
-let isValidGuid (s : string) =
-  let mutable x = Guid.Empty
-  Guid.TryParse(s, &x)
+let isValidPin s = Regex.IsMatch(s, "\d{6}")
