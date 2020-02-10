@@ -25,7 +25,7 @@ let update msg (model: Model) =
   | ClickSend ->
     match model with
     | Success e -> model, Send (EmailAddress.value e)
-    | Failure (x, _) -> adaptV EmailAddress.create x, NoOp
+    | Failure x -> Failure x, NoOp
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view (model: Model) dispatch =

@@ -64,6 +64,9 @@ let signIn (r: SignInRequest) : AsyncT<SignInResponse> =
 let signUp (r: SignUpRequest) : AsyncT<string> =
   post "/signup" r []
 
+let sendPin (r: PasswordResetEmailRequest) : AsyncT<string> =
+  post "/password/pin" r []
+
 let getProfile token : AsyncT<ProfileResponse> =
   get "/profile" [] [ bearer token ]
 

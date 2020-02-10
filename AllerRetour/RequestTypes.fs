@@ -14,6 +14,10 @@ type SignUpRequest = {
   Password: string
 }
 
+type PasswordResetEmailRequest = {
+  Email: string
+}
+
 type UpdateProfileRequest = {
   FirstName: string
   LastName: string

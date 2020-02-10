@@ -241,6 +241,16 @@ module App =
         |> NavigateTo
         |> Cmd.ofMsg)
 
+  let sendPin model request =
+    request
+    |> Http.sendPin
+    |> Async.RunSynchronously
+    |> handleTwoTrackHttp
+      model
+      (fun _ ->
+        model,
+        Cmd.none) // Change it to naviate to password reset page
+
   let resendConfirmEmail model =
     match model.Token with
     | Some t ->
@@ -315,8 +325,8 @@ module App =
     | SignOut ->
       { aModel with Token = None }, goToSignInCmd
 
-    | SendPasswordResetEmail _ ->
-      aModel, goToSignInCmd // TODO: Create real email send logic
+    | SendPasswordResetEmail e ->
+      sendPin aModel { Email = e }
 
     | UpdateProfile r ->
       updateProfile aModel r
