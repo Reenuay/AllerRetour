@@ -30,7 +30,7 @@ let inline makeRequest (f: unit -> Async<HttpResponse>) =
         let e =
           match Json.deserialize body with
           | Choice1Of2 s -> s
-          | Choice2Of2 s -> s
+          | Choice2Of2 _ -> body
         Failure [ e ]
   }
 
