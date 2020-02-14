@@ -29,6 +29,7 @@
     <WarningLevel>4</WarningLevel>
     <SelectedDevice>Xiaomi Redmi 4X</SelectedDevice>
     <DefaultDevice>pixel_2_pie_9_0_api_28</DefaultDevice>
+    <AndroidDesignerPreferredDevice>Nexus 4</AndroidDesignerPreferredDevice>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -159,7 +160,20 @@
     <Compile Include="Properties\AssemblyInfo.fs" />
     <Compile Include="MainActivity.fs" />
     <None Include="Assets\AboutAssets.txt" />
+    <AndroidAsset Include="Assets\Helvetica.ttf" />
+    <AndroidAsset Include="Assets\Renogare.ttf" />
+    <AndroidAsset Include="Assets\SegoeUIBold.ttf" />
+    <AndroidAsset Include="Assets\SegoeUIItalic.ttf" />
+    <AndroidAsset Include="Assets\SegoeUILight.ttf" />
+    <AndroidAsset Include="Assets\SegoeUIRegular.ttf" />
+    <AndroidAsset Include="Assets\SegoeUISemiBold.ttf" />
     <None Include="Resources\AboutResources.txt" />
+    <AndroidResource Include="Resources\drawable\logo.png" />
+    <AndroidResource Include="Resources\drawable\background_dark.png" />
+    <AndroidResource Include="Resources\drawable\envelope.png" />
+    <AndroidResource Include="Resources\drawable\lock.png" />
+    <AndroidResource Include="Resources\drawable\eyeCrossed.png" />
+    <AndroidResource Include="Resources\drawable\eye.png" />
     <AndroidResource Include="Resources\layout\Tabbar.axml" />
     <AndroidResource Include="Resources\layout\Toolbar.axml" />
     <AndroidResource Include="Resources\values\styles.xml" />

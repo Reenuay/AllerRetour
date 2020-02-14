@@ -6,6 +6,7 @@ open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
 open RequestTypes
+open Views
 
 type Model = {
   NewPassword: Validatable<Password, string>
@@ -95,37 +96,45 @@ let view model dispatch =
     content = View.StackLayout(
       padding = Thickness 20.0,
       children = [
-        yield View.Label(
+        View.Label(
           text = """
             We sent you a verification code on your email.
             It will be valid until timer stops.
-            Use it to reset your password.""")
-        yield View.Label(
-          text = TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss"))
-        yield!
-          makeEntry
-            true
-            "New password"
-            Password.value
-            (fun args -> dispatch (SetNewPassword args.NewTextValue))
-            model.NewPassword
-        yield!
-          makeEntry
-            true
-            "Repeat new password"
-            id
-            (fun args -> dispatch (SetRepeatNewPassword args.NewTextValue))
-            model.RepeatNewPassword
-        yield!
-          makeEntry
-            false
-            "Code"
-            Pin.value
-            (fun args -> dispatch (SetPin args.NewTextValue))
-            model.Pin
-        yield View.Button(
+            Use it to reset your password."""
+        )
+
+        View.Label(
+          text = TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss")
+        )
+        
+        makeEntry
+          None
+          "New password"
+          None
+          Password.value
+          (fun args -> dispatch (SetNewPassword args.NewTextValue))
+          model.NewPassword
+        
+        makeEntry
+          None
+          "Repeat new password"
+          None
+          id
+          (fun args -> dispatch (SetRepeatNewPassword args.NewTextValue))
+          model.RepeatNewPassword
+        
+        makeEntry
+          None
+          "Code"
+          None
+          Pin.value
+          (fun args -> dispatch (SetPin args.NewTextValue))
+          model.Pin
+
+        View.Button(
           text = "Reset password",
-          command = (fun () -> dispatch ClickReset))
+          command = (fun () -> dispatch ClickReset)
+        )
       ]
     )
   )

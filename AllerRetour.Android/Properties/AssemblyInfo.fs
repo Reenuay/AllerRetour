@@ -1,4 +1,4 @@
-﻿namespace AllerRetour.Android
+namespace AllerRetour.Android
 
 open System.Reflection
 open System.Runtime.CompilerServices
@@ -17,7 +17,7 @@ type Resources = AllerRetour.Android.Resource
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("")>]
 [<assembly: AssemblyProduct("AllerRetour.Android")>]
-[<assembly: AssemblyCopyright("Copyright ©  2014")>]
+[<assembly: AssemblyCopyright("Copyright ©  2020")>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]
 [<assembly: ComVisible(false)>]

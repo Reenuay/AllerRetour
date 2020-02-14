@@ -5,6 +5,7 @@ open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
 open RequestTypes
+open Views
 
 type Model = {
   NewPassword: Validatable<Password, string>
@@ -77,30 +78,34 @@ let view model dispatch =
   View.ContentPage(
     content = View.StackLayout(
       children = [
-        yield!
-          makeEntry
-            true
-            "New password"
-            Password.value
-            (fun args -> dispatch (SetNewPassword args.NewTextValue))
-            model.NewPassword
-        yield!
-          makeEntry
-            true
-            "Repeat new password"
-            id
-            (fun args -> dispatch (SetRepeatNewPassword args.NewTextValue))
-            model.RepeatNewPassword
-        yield!
-          makeEntry
-            true
-            "Old password"
-            Password.value
-            (fun args -> dispatch (SetOldPassword args.NewTextValue))
-            model.OldPassword
-        yield View.Button(
+        makeEntry
+          None
+          "New password"
+          None
+          Password.value
+          (fun args -> dispatch (SetNewPassword args.NewTextValue))
+          model.NewPassword
+        
+        makeEntry
+          None
+          "Repeat new password"
+          None
+          id
+          (fun args -> dispatch (SetRepeatNewPassword args.NewTextValue))
+          model.RepeatNewPassword
+        
+        makeEntry
+          None
+          "Old password"
+          None
+          Password.value
+          (fun args -> dispatch (SetOldPassword args.NewTextValue))
+          model.OldPassword
+
+        View.Button(
           text = "Change password",
-          command = (fun () -> dispatch ClickChange))
+          command = (fun () -> dispatch ClickChange)
+        )
       ]
     )
   )

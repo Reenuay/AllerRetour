@@ -5,6 +5,8 @@ open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
 open RequestTypes
+open Views
+open Resources
 
 type Model = {
   FirstName: Validatable<NameString, string>
@@ -100,49 +102,56 @@ let view model dispatch =
       padding = Thickness 20.0,
       verticalOptions = LayoutOptions.Center,
       children = [
-        yield View.Label(text = "Aller Retour")
-        yield!
-          makeEntry
-            false
-            "First name"
-            NameString.value
-            (fun args -> dispatch (SetFirstName args.NewTextValue))
-            model.FirstName
-        yield!
-          makeEntry
-            false
-            "Last name"
-            NameString.value
-            (fun args -> dispatch (SetLastName args.NewTextValue))
-            model.LastName
-        yield!
-          makeEntry
-            false
-            "Email"
-            EmailAddress.value
-            (fun args -> dispatch (SetEmail args.NewTextValue))
-            model.Email
-        yield!
-          makeEntry
-            true
-            "Password"
-            Password.value
-            (fun args -> dispatch (SetPassword args.NewTextValue))
-            model.Password
-        yield!
-          makeEntry
-            true
-            "Repeat password"
-            id
-            (fun args -> dispatch (SetRepeatPassword args.NewTextValue))
-            model.RepeatPassword
-        yield View.Button(
+        makeEntry
+          None
+          "First name"
+          None
+          NameString.value
+          (fun args -> dispatch (SetFirstName args.NewTextValue))
+          model.FirstName
+        
+        makeEntry
+          None
+          "Last name"
+          None
+          NameString.value
+          (fun args -> dispatch (SetLastName args.NewTextValue))
+          model.LastName
+        
+        makeEntry
+          None
+          "Email"
+          (Some Images.envelopeIcon)
+          EmailAddress.value
+          (fun args -> dispatch (SetEmail args.NewTextValue))
+          model.Email
+        
+        makeEntry
+          None
+          "Password"
+          None
+          Password.value
+          (fun args -> dispatch (SetPassword args.NewTextValue))
+          model.Password
+        
+        makeEntry
+          None
+          "Repeat password"
+          None
+          id
+          (fun args -> dispatch (SetRepeatPassword args.NewTextValue))
+          model.RepeatPassword
+
+        View.Button(
           text = "Sign Up",
           isEnabled = model.IsValid(),
-          command = (fun () -> dispatch ClickSignUp))
-        yield View.Button(
+          command = (fun () -> dispatch ClickSignUp)
+        )
+
+        View.Button(
           text = "Already registered?",
-          command = (fun () -> dispatch ClickGoToSignIn))
+          command = (fun () -> dispatch ClickGoToSignIn)
+        )
       ]
     )
   )

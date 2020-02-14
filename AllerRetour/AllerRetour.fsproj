@@ -15,7 +15,8 @@
     <Compile Include="PrimitiveTypes.fs" />
     <Compile Include="RequestTypes.fs" />
     <Compile Include="ResponseTypes.fs" />
-    <Compile Include="ViewHelpers.fs" />
+    <Compile Include="Resources.fs" />
+    <Compile Include="Views.fs" />
     <Compile Include="Http.fs" />
     <Compile Include="SignInPage.fs" />
     <Compile Include="SignUpPage.fs" />

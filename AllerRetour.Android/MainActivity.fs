@@ -11,7 +11,7 @@ open Android.Widget
 open Android.OS
 open Xamarin.Forms.Platform.Android
 
-[<Activity (Label = "AllerRetour.Android", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = (ConfigChanges.ScreenSize ||| ConfigChanges.Orientation))>]
+[<Activity (Label = "AllerRetour.Android", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ScreenOrientation = ScreenOrientation.Portrait, ConfigurationChanges = (ConfigChanges.ScreenSize ||| ConfigChanges.Orientation))>]
 type MainActivity() =
     inherit FormsAppCompatActivity()
     override this.OnCreate (bundle: Bundle) =

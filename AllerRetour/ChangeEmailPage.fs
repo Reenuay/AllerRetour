@@ -5,6 +5,8 @@ open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
 open RequestTypes
+open Resources
+open Views
 
 type Model = {
   Email: Validatable<EmailAddress, string>
@@ -76,26 +78,31 @@ let view (model: Model) dispatch =
   View.ContentPage(
     content = View.StackLayout(
       children = [
-        yield!
-          makeEntry
-            false
-            "New email"
-            EmailAddress.value
-            (fun args -> dispatch (SetEmail args.NewTextValue))
-            model.Email
-        yield!
-          makeEntry
-            true
-            "Password"
-            Password.value
-            (fun args -> dispatch (SetPassword args.NewTextValue))
-            model.Password
-        yield View.Button(
+        makeEntry
+          None
+          "New email"
+          (Some Images.envelopeIcon)
+          EmailAddress.value
+          (fun args -> dispatch (SetEmail args.NewTextValue))
+          model.Email
+        
+        makeEntry
+          None
+          "Password"
+          None
+          Password.value
+          (fun args -> dispatch (SetPassword args.NewTextValue))
+          model.Password
+
+        View.Button(
           text = "Change email",
-          command = (fun () -> dispatch ClickChange))
-        yield View.Button(
+          command = (fun () -> dispatch ClickChange)
+        )
+
+        View.Button(
           text = "Return to sign in page",
-          command = (fun () -> dispatch ClickGoToSignIn))
+          command = (fun () -> dispatch ClickGoToSignIn)
+        )
       ]
     )
   )

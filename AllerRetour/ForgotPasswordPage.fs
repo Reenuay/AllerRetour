@@ -5,6 +5,8 @@ open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
 open RequestTypes
+open Views
+open Resources
 
 type Model = Validatable<EmailAddress, string>
 
@@ -35,20 +37,24 @@ let view (model: Model) dispatch =
       padding = Thickness 20.0,
       verticalOptions = LayoutOptions.Center,
       children = [
-        yield!
-          makeEntry
-            false
-            "Email"
-            EmailAddress.value
-            (fun args -> dispatch (SetEmail args.NewTextValue))
-            model
-        yield View.Button(
+        makeEntry
+          None
+          "Email"
+          (Some Images.envelopeIcon)
+          EmailAddress.value
+          (fun args -> dispatch (SetEmail args.NewTextValue))
+          model
+
+        View.Button(
           text = "Send",
           isEnabled = (match model with Success _ -> true | _ -> false),
-          command = (fun () -> dispatch ClickSend))
-        yield View.Button(
+          command = (fun () -> dispatch ClickSend)
+        )
+
+        View.Button(
           text = "Return to sign in",
-          command = (fun () -> dispatch ClickGoToSignIn))
+          command = (fun () -> dispatch ClickGoToSignIn)
+        )
       ]
     )
   )

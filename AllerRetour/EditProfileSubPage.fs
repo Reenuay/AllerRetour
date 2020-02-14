@@ -6,6 +6,7 @@ open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
 open AllerRetour.Controls
+open Views
 
 type Model = {
   FirstName: Validatable<NameString, string>
@@ -96,34 +97,40 @@ let view model dispatch =
   View.ContentPage(
     content = View.StackLayout(
       children = [
-        yield!
-          makeEntry
-            false
-            "First name"
-            NameString.value
-            (fun args -> dispatch (SetFirstName args.NewTextValue))
-            model.FirstName
-        yield!
-          makeEntry
-            false
-            "Last name"
-            NameString.value
-            (fun args -> dispatch (SetLastName args.NewTextValue))
-            model.LastName
-        yield View.OptionalDatePicker(
+        makeEntry
+          None
+          "First name"
+          None
+          NameString.value
+          (fun args -> dispatch (SetFirstName args.NewTextValue))
+          model.FirstName
+        
+        makeEntry
+          None
+          "Last name"
+          None
+          NameString.value
+          (fun args -> dispatch (SetLastName args.NewTextValue))
+          model.LastName
+
+        View.OptionalDatePicker(
           minimumDate = DateTime.Today.AddYears(-120),
           maximumDate = DateTime.Today.AddYears(-18),
           optionalDate = model.Birthday,
-          dateSelected=(fun args -> dispatch (SetBirthday (Some args.NewDate))))
-        yield View.Picker(
+          dateSelected=(fun args -> dispatch (SetBirthday (Some args.NewDate)))
+        )
+
+        View.Picker(
           title = "Gender",
           selectedIndex = model.SelectedGenderIndex,
           items = genderList,
           selectedIndexChanged = (fun (i, item) -> dispatch (SetGender (i, item)))
         )
-        yield View.Button(
+
+        View.Button(
           text = "Save",
-          command = (fun () -> dispatch ClickSave))
+          command = (fun () -> dispatch ClickSave)
+        )
       ]
     )
   )
