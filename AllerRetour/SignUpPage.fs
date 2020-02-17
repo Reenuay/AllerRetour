@@ -14,6 +14,8 @@ type Model = {
   Email: Validatable<EmailAddress, string>
   Password: Validatable<Password, string>
   RepeatPassword: Validatable<string, string>
+  PasswordHidden: bool
+  PasswordRepeatHidden: bool
 }
 with
   member this.CheckRepeatPassword(r) =
@@ -55,6 +57,8 @@ type Msg =
   | SetEmail of string
   | SetPassword of string
   | SetRepeatPassword of string
+  | SwapPasswordHidden
+  | SwapPasswordRepeatHidden
   | ClickSignUp
   | ClickGoToSignIn
 
@@ -69,6 +73,8 @@ let initModel = {
   Email = emptyString
   Password = emptyString
   RepeatPassword = emptyString
+  PasswordHidden = true
+  PasswordRepeatHidden = true
 }
 
 let update msg (model: Model) =
@@ -88,6 +94,12 @@ let update msg (model: Model) =
   | SetRepeatPassword r ->
     { model with RepeatPassword = adaptV model.CheckRepeatPassword r }, NoOp
 
+  | SwapPasswordHidden ->
+    { model with PasswordHidden = not model.PasswordHidden }, NoOp
+
+  | SwapPasswordRepeatHidden ->
+    { model with PasswordRepeatHidden = not model.PasswordRepeatHidden }, NoOp
+
   | ClickSignUp ->
     match model.ToDto() with
     | Some d -> model, SignUp d
@@ -97,61 +109,61 @@ let update msg (model: Model) =
     model, GoToSignIn
 
 let view model dispatch =
-  View.ContentPage(
-    content = View.StackLayout(
-      padding = Thickness 20.0,
-      verticalOptions = LayoutOptions.Center,
-      children = [
-        makeEntry
-          None
-          "First name"
-          None
-          NameString.value
-          (fun args -> dispatch (SetFirstName args.NewTextValue))
-          model.FirstName
-        
-        makeEntry
-          None
-          "Last name"
-          None
-          NameString.value
-          (fun args -> dispatch (SetLastName args.NewTextValue))
-          model.LastName
-        
-        makeEntry
-          None
-          "Email"
-          (Some Images.envelopeIcon)
-          EmailAddress.value
-          (fun args -> dispatch (SetEmail args.NewTextValue))
-          model.Email
-        
-        makeEntry
-          None
-          "Password"
-          None
-          Password.value
-          (fun args -> dispatch (SetPassword args.NewTextValue))
-          model.Password
-        
-        makeEntry
-          None
-          "Repeat password"
-          None
-          id
-          (fun args -> dispatch (SetRepeatPassword args.NewTextValue))
-          model.RepeatPassword
+  makePage [
+    makeLogo ()
 
-        View.Button(
-          text = "Sign Up",
-          isEnabled = model.IsValid(),
-          command = (fun () -> dispatch ClickSignUp)
-        )
+    makeThinText "sign up using email"
+    |> margin Thicknesses.bigUpperSpace
 
-        View.Button(
-          text = "Already registered?",
-          command = (fun () -> dispatch ClickGoToSignIn)
-        )
-      ]
-    )
-  )
+    makeEntry
+      None
+      "First name"
+      (Some Images.userIcon)
+      NameString.value
+      (bindNewText dispatch SetFirstName)
+      model.FirstName
+        
+    makeEntry
+      None
+      "Last name"
+      (Some Images.userIcon)
+      NameString.value
+      (bindNewText dispatch SetLastName)
+      model.LastName
+        
+    makeEntry
+      None
+      "Email"
+      (Some Images.envelopeIcon)
+      EmailAddress.value
+      (bindNewText dispatch SetEmail)
+      model.Email
+        
+    makeEntry
+      (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
+      "Password"
+      (Some Images.lockIcon)
+      Password.value
+      (bindNewText dispatch SetPassword)
+      model.Password
+        
+    makeEntry
+      (Some (model.PasswordRepeatHidden, bindPress dispatch SwapPasswordRepeatHidden))
+      "Repeat password"
+      (Some Images.lockIcon)
+      id
+      (bindNewText dispatch SetRepeatPassword)
+      model.RepeatPassword
+    |> margin (Thicknesses.mediumLowerSpace)
+
+    makeButton
+      (model.IsValid())
+      (bindPress dispatch ClickSignUp)
+      "sign up"
+    |> margin (Thicknesses.mediumLowerSpace)
+
+    makeLink
+      (bindPress dispatch ClickGoToSignIn)
+      "already registered?"
+    |> horizontalOptions LayoutOptions.Center
+  ]

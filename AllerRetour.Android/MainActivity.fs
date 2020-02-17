@@ -18,7 +18,7 @@ open Xamarin.Forms.PlatformConfiguration.AndroidSpecific
   Icon = "@mipmap/icon",
   Theme = "@style/MainTheme",
   MainLauncher = true,
-  WindowSoftInputMode = SoftInput.AdjustResize,
+  ScreenOrientation = ScreenOrientation.Portrait,
   ConfigurationChanges = (ConfigChanges.ScreenSize ||| ConfigChanges.Orientation)
 )>]
 type MainActivity() =

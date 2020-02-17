@@ -14,6 +14,7 @@ module Images =
   let logo = Path "logo.png"
   let envelopeIcon = Path "envelope.png"
   let lockIcon = Path "lock.png"
+  let userIcon = Path "user.png"
   let eyeIcon = Path "eye.png"
   let eyeCrossedIcon = Path "eyeCrossed.png"
 

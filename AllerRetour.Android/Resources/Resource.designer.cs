@@ -6462,6 +6462,9 @@ namespace AllerRetour.Android
 			// aapt resource value: 0x7F070140
 			public const int tooltip_frame_light = 2131165504;
 			
+			// aapt resource value: 0x7F070141
+			public const int user = 2131165505;
+			
 			static Drawable()
 			{
 				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
