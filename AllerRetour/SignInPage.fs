@@ -75,9 +75,12 @@ let view (model: Model) dispatch =
     makeLogo ()
 
     makeLabel "justCash"
+    |> padding Thicknesses.bigUpperSpace
 
     makeThinText "save on shopping\nsimply and tastefully"
     |> padding Thicknesses.bigLowerSpace
+
+    makeThinText "login with email"
     
     makeEntry
       None

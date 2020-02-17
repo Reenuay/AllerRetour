@@ -112,7 +112,7 @@ let view model dispatch =
   makePage [
     makeLogo ()
 
-    makeThinText "sign up using email"
+    makeThinText "sign up with email"
     |> margin Thicknesses.bigUpperSpace
 
     makeEntry

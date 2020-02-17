@@ -11,7 +11,7 @@ open Views
 type Model = {
   NewPassword: Validatable<Password, string>
   RepeatNewPassword: Validatable<string, string>
-  Pin: Validatable<Pin, string>
+  Token: Validatable<Pin, string>
   Email: string
   Timer: int
 }
@@ -24,7 +24,7 @@ with
       Success r
 
   member this.ToDto() : PasswordResetRequest option =
-    match this.NewPassword, this.RepeatNewPassword, this.Pin with
+    match this.NewPassword, this.RepeatNewPassword, this.Token with
     | Success n, Success _, Success p ->
       Some {
         Email = this.Email
@@ -35,7 +35,7 @@ with
       None
 
   member this.IsValid() =
-    match this.NewPassword, this.RepeatNewPassword, this.Pin with
+    match this.NewPassword, this.RepeatNewPassword, this.Token with
     | Success _, Success _, Success _ -> true
     | _ -> false
 
@@ -43,13 +43,13 @@ with
     this with
       NewPassword = adaptV Password.create (underV Password.value this.NewPassword)
       RepeatNewPassword = adaptV this.CheckRepeatPassword (underV id this.RepeatNewPassword)
-      Pin = adaptV Pin.create (underV Pin.value this.Pin)
+      Token = adaptV Pin.create (underV Pin.value this.Token)
   }
 
 type Msg =
   | SetNewPassword of string
   | SetRepeatNewPassword of string
-  | SetPin of string
+  | SetToken of string
   | TimerTick
   | ClickReset
 
@@ -65,7 +65,7 @@ let initModel email =
   {
     NewPassword = emptyString
     RepeatNewPassword = emptyString
-    Pin = emptyString
+    Token = emptyString
     Email = email
     Timer = fifteenMinutes
   }
@@ -78,8 +78,8 @@ let update msg (model: Model) =
   | SetRepeatNewPassword p ->
     { model with RepeatNewPassword = adaptV model.CheckRepeatPassword p }, NoOp
 
-  | SetPin p ->
-    { model with Pin = adaptV Pin.create p }, NoOp
+  | SetToken p ->
+    { model with Token = adaptV Pin.create p }, NoOp
 
   | TimerTick ->
     let time = model.Timer - 1
@@ -131,8 +131,8 @@ let view model dispatch =
           "Code"
           None
           Pin.value
-          (fun args -> dispatch (SetPin args.NewTextValue))
-          model.Pin
+          (fun args -> dispatch (SetToken args.NewTextValue))
+          model.Token
 
         View.Button(
           text = "Reset password",

@@ -37,6 +37,10 @@ module TwoTrackResult =
     | Success _,  Failure f2 -> Failure f2
     | Failure f1, Failure f2 -> Failure (fFailure f1 f2)
 
+  let isSuccess = function
+  | Success _ -> true
+  | Failure _ -> false
+
   let (++) v1 v2 x =
     let ok _ _ = x
     let error e1 e2 = e1 @ e2

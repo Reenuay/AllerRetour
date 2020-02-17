@@ -175,6 +175,7 @@
     <AndroidResource Include="Resources\drawable\eyeCrossed.png" />
     <AndroidResource Include="Resources\drawable\eye.png" />
     <AndroidResource Include="Resources\drawable\user.png" />
+    <AndroidResource Include="Resources\drawable\forgotPassword.png" />
     <AndroidResource Include="Resources\layout\Tabbar.axml" />
     <AndroidResource Include="Resources\layout\Toolbar.axml" />
     <AndroidResource Include="Resources\values\styles.xml" />

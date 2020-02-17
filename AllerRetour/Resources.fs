@@ -17,6 +17,7 @@ module Images =
   let userIcon = Path "user.png"
   let eyeIcon = Path "eye.png"
   let eyeCrossedIcon = Path "eyeCrossed.png"
+  let forgotPassword = Path "forgotPassword.png"
 
 module Fonts =
   let renogare = "Renogare.ttf#Renogare-Regular"
@@ -39,3 +40,4 @@ module Thicknesses =
 module Opacities =
   let opaque = 1.
   let light = 0.8
+  let ten = 0.1

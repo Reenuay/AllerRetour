@@ -25,25 +25,21 @@ let makeLogo () =
     margin = Thicknesses.bigUpperSpace
   )
 
-let makeLabel text =
+let makeText fontSize fontFamily opacity text =
   View.Label(
     text = text,
-    fontSize = FontSizes.big,
+    opacity = opacity,
+    fontSize = fontSize,
     textColor = Colors.accent,
-    fontFamily = Fonts.renogare,
-    horizontalTextAlignment = TextAlignment.Center,
-    margin = Thicknesses.bigUpperSpace
-  )
-
-let makeThinText text =
-  View.Label(
-    text = text,
-    opacity = Opacities.light,
-    fontSize = FontSizes.thin,
-    textColor = Colors.accent,
-    fontFamily = Fonts.segoeUiLight,
+    fontFamily = fontFamily,
     horizontalTextAlignment = TextAlignment.Center
   )
+
+let makeLabel = makeText FontSizes.big Fonts.renogare Opacities.opaque
+
+let makeInfoText = makeText FontSizes.light Fonts.segoeUiLight Opacities.opaque
+
+let makeThinText = makeText FontSizes.thin Fonts.segoeUiLight Opacities.light
 
 let makeEntry passwordOptions keyboard placeholder image fSuccess dispatch v =
   let isPassword = function
@@ -175,6 +171,35 @@ let makeDuoGrid (v1: ViewElement) (v2: ViewElement) =
 
       v2.Column(1)
         |> horizontalOptions LayoutOptions.End
+        |> verticalOptions LayoutOptions.Center
+    ]
+  )
+
+let makeCircle image =
+  let bigRadius = screenWidthP 0.6
+  let littleRadius = bigRadius * 0.75
+
+  let circle radius =
+    View.BoxView(
+      backgroundColor = Colors.accent,
+      opacity = Opacities.ten,
+      width = radius,
+      height = radius,
+      cornerRadius = CornerRadius(radius),
+      horizontalOptions = LayoutOptions.Center,
+      verticalOptions = LayoutOptions.Center
+    )
+
+  View.Grid(
+    rowSpacing = 0.,
+    columnSpacing = 0.,
+    width = bigRadius,
+    children = [
+      circle bigRadius
+      circle littleRadius
+      image
+        |> widthRequest (littleRadius * 0.75)
+        |> horizontalOptions LayoutOptions.Center
         |> verticalOptions LayoutOptions.Center
     ]
   )

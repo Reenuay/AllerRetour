@@ -32,30 +32,35 @@ let update msg (model: Model) =
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view (model: Model) dispatch =
-  View.ContentPage(
-    content = View.StackLayout(
-      padding = Thickness 20.0,
-      verticalOptions = LayoutOptions.Center,
-      children = [
-        makeEntry
-          None
-          None
-          "Email"
-          (Some Images.envelopeIcon)
-          EmailAddress.value
-          (fun args -> dispatch (SetEmail args.NewTextValue))
-          model
+  makePage [
+    makeCircle
+      (View.Image(
+        source = Images.forgotPassword
+      ))
+    |> margin Thicknesses.bigLowerSpace
 
-        View.Button(
-          text = "Send",
-          isEnabled = (match model with Success _ -> true | _ -> false),
-          command = (fun () -> dispatch ClickSend)
-        )
+    makeInfoText "Please enter your registered email ID"
 
-        View.Button(
-          text = "Return to sign in",
-          command = (fun () -> dispatch ClickGoToSignIn)
-        )
-      ]
-    )
-  )
+    makeThinText "We will send a verification code\n to your registered email ID"
+
+    makeEntry
+      None
+      (Some Keyboard.Email)
+      "Email"
+      (Some Images.envelopeIcon)
+      EmailAddress.value
+      (bindNewText dispatch SetEmail)
+      model
+    |> margin (Thicknesses.mediumLowerSpace)
+
+    makeButton
+      (TwoTrackResult.isSuccess model)
+      (bindPress dispatch ClickSend)
+      "send"
+    |> margin (Thicknesses.mediumLowerSpace)
+
+    makeNavButton
+      (bindPress dispatch ClickGoToSignIn)
+      "log in"
+    |> horizontalOptions LayoutOptions.Center
+  ]
