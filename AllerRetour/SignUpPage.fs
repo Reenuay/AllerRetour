@@ -117,6 +117,7 @@ let view model dispatch =
 
     makeEntry
       None
+      None
       "First name"
       (Some Images.userIcon)
       NameString.value
@@ -124,6 +125,7 @@ let view model dispatch =
       model.FirstName
         
     makeEntry
+      None
       None
       "Last name"
       (Some Images.userIcon)
@@ -133,6 +135,7 @@ let view model dispatch =
         
     makeEntry
       None
+      (Some Keyboard.Email)
       "Email"
       (Some Images.envelopeIcon)
       EmailAddress.value
@@ -141,6 +144,7 @@ let view model dispatch =
         
     makeEntry
       (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
+      None
       "Password"
       (Some Images.lockIcon)
       Password.value
@@ -149,6 +153,7 @@ let view model dispatch =
         
     makeEntry
       (Some (model.PasswordRepeatHidden, bindPress dispatch SwapPasswordRepeatHidden))
+      None
       "Repeat password"
       (Some Images.lockIcon)
       id

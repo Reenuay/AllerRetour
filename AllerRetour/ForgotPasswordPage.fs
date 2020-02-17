@@ -39,6 +39,7 @@ let view (model: Model) dispatch =
       children = [
         makeEntry
           None
+          None
           "Email"
           (Some Images.envelopeIcon)
           EmailAddress.value

@@ -109,6 +109,7 @@ let view model dispatch =
         
         makeEntry
           None
+          None
           "New password"
           None
           Password.value
@@ -117,6 +118,7 @@ let view model dispatch =
         
         makeEntry
           None
+          None
           "Repeat new password"
           None
           id
@@ -124,6 +126,7 @@ let view model dispatch =
           model.RepeatNewPassword
         
         makeEntry
+          None
           None
           "Code"
           None

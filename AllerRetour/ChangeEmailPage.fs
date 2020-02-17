@@ -80,6 +80,7 @@ let view (model: Model) dispatch =
       children = [
         makeEntry
           None
+          None
           "New email"
           (Some Images.envelopeIcon)
           EmailAddress.value
@@ -87,6 +88,7 @@ let view (model: Model) dispatch =
           model.Email
         
         makeEntry
+          None
           None
           "Password"
           None

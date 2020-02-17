@@ -99,6 +99,7 @@ let view model dispatch =
       children = [
         makeEntry
           None
+          None
           "First name"
           None
           NameString.value
@@ -106,6 +107,7 @@ let view model dispatch =
           model.FirstName
         
         makeEntry
+          None
           None
           "Last name"
           None

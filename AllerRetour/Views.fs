@@ -45,7 +45,7 @@ let makeThinText text =
     horizontalTextAlignment = TextAlignment.Center
   )
 
-let makeEntry passwordOptions placeholder image fSuccess dispatch v =
+let makeEntry passwordOptions keyboard placeholder image fSuccess dispatch v =
   let isPassword = function
   | Some (isSet, _) -> isSet
   | None -> false
@@ -81,7 +81,12 @@ let makeEntry passwordOptions placeholder image fSuccess dispatch v =
           placeholderColor = Colors.accent,
           fontSize = FontSizes.light,
           textColor = Colors.accent,
-          fontFamily = Fonts.segoeUiLight
+          fontFamily = Fonts.segoeUiLight,
+          keyboard =
+            if Option.isNone keyboard then
+              Keyboard.Default
+            else
+              Option.get keyboard
         )
         .Column(1)
 

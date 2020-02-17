@@ -81,6 +81,7 @@ let view (model: Model) dispatch =
     
     makeEntry
       None
+      (Some Keyboard.Email)
       "Email"
       (Some Images.envelopeIcon)
       EmailAddress.value
@@ -89,6 +90,7 @@ let view (model: Model) dispatch =
     
     makeEntry
       (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
+      None
       "Password"
       (Some Images.lockIcon)
       Password.value
