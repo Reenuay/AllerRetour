@@ -9,6 +9,7 @@ open Resources
 let screenSize () = Device.Info.ScaledScreenSize
 let screenWidth () = (screenSize ()).Width
 let screenHeight () = (screenSize ()).Height
+let screenWidthP percent = screenWidth () * percent
 
 let bindPress dispatch msg () = dispatch msg
 
@@ -20,7 +21,7 @@ let bindNewText dispatch msg (args: TextChangedEventArgs) =
 let makeLogo () =
   View.Image(
     source = Images.logo,
-    width = screenWidth () * 0.5,
+    width = screenWidthP 0.5,
     margin = Thicknesses.bigUpperSpace
   )
 
@@ -59,7 +60,7 @@ let makeEntry passwordOptions placeholder image fSuccess dispatch v =
     rowdefs = [Auto; Auto],
     rowSpacing = 0.,
     columnSpacing = 0.,
-    width = screenWidth () * 0.8,
+    width = screenWidthP 0.8,
     children = [
       if Option.isSome image then
         yield
@@ -139,13 +140,17 @@ let makeButton isEnabled command text =
   )
 
 let makeTextButton font command text =
-  View.Button(
+  View.Label(
     text = text,
     fontFamily = font,
-    command = command,
     fontSize = FontSizes.light,
-    backgroundColor = Color.Transparent,
-    textColor = Colors.accent
+    textColor = Colors.accent,
+    padding = Thicknesses.zero,
+    gestureRecognizers = [
+      View.TapGestureRecognizer(
+        command = command
+      )
+    ]
   )
 
 let makeLink = makeTextButton Fonts.segoeUiLight
@@ -157,13 +162,15 @@ let makeDuoGrid (v1: ViewElement) (v2: ViewElement) =
     coldefs = [Star; Star],
     rowSpacing = 0.,
     columnSpacing = 0.,
-    width = screenWidth () * 0.8,
+    width = screenWidthP 0.8,
     children = [
       v1.Column(0)
         |> horizontalOptions LayoutOptions.Start
+        |> verticalOptions LayoutOptions.Center
 
       v2.Column(1)
         |> horizontalOptions LayoutOptions.End
+        |> verticalOptions LayoutOptions.Center
     ]
   )
 
