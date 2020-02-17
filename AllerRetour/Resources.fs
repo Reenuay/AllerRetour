@@ -6,6 +6,7 @@ open Xamarin.Forms
 
 module Colors =
   let backgroundDark = Color.FromHex("#141E32")
+  let backgroundLight = Color.FromHex("#E2DEE3")
   let accent = Color.FromHex("#E52535")
 
 module Images =
@@ -30,8 +31,10 @@ module Thicknesses =
   let bigUpperSpace = Thickness (0., 50., 0., 0.)
   let bigLowerSpace = Thickness (0., 0., 0., 50.)
   let mediumLowerSpace = Thickness (0., 0., 0., 35.)
-  let entryError = Thickness (4., -15., 4., 0.)
+  let paddingForEntryError = Thickness (4., -15., 4., 0.)
   let rightLittleSpace = Thickness (0., 0., 5., 0.)
+  let paddingForButton = Thickness (40., 0., 40., -4.)
 
 module Opacities =
+  let opaque = 1.
   let light = 0.8

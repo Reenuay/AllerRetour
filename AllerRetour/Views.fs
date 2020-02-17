@@ -112,8 +112,58 @@ let makeEntry passwordOptions placeholder image fSuccess dispatch v =
           (makeThinText error)
           .Row(1)
           .Column(1)
-          |> margin Thicknesses.entryError
+          |> margin Thicknesses.paddingForEntryError
           |> horizontalTextAlignment TextAlignment.Start
+    ]
+  )
+
+let makeButton isEnabled command text =
+  let ifEnabled enabled disabled =
+    if isEnabled then enabled else disabled
+
+  View.Button(
+    text = text,
+    height = 32.,
+    command = command,
+    cornerRadius = 32,
+    isEnabled = isEnabled,
+    fontSize = FontSizes.light,
+    fontFamily = Fonts.renogare,
+    borderColor = Colors.accent,
+    padding = Thicknesses.paddingForButton,
+    horizontalOptions = LayoutOptions.Center,
+    textColor = ifEnabled Colors.backgroundLight Colors.accent,
+    backgroundColor = ifEnabled Colors.accent Color.Transparent,
+    opacity = ifEnabled Opacities.opaque Opacities.light,
+    borderWidth = ifEnabled 0. 1.
+  )
+
+let makeTextButton font command text =
+  View.Button(
+    text = text,
+    fontFamily = font,
+    command = command,
+    fontSize = FontSizes.light,
+    backgroundColor = Color.Transparent,
+    textColor = Colors.accent
+  )
+
+let makeLink = makeTextButton Fonts.segoeUiLight
+
+let makeNavButton = makeTextButton Fonts.renogare
+
+let makeDuoGrid (v1: ViewElement) (v2: ViewElement) =
+  View.Grid(
+    coldefs = [Star; Star],
+    rowSpacing = 0.,
+    columnSpacing = 0.,
+    width = screenWidth () * 0.8,
+    children = [
+      v1.Column(0)
+        |> horizontalOptions LayoutOptions.Start
+
+      v2.Column(1)
+        |> horizontalOptions LayoutOptions.End
     ]
   )
 

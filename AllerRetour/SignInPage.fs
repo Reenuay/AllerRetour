@@ -96,19 +96,13 @@ let view (model: Model) dispatch =
       model.Password
     |> margin (Thicknesses.mediumLowerSpace)
 
-    View.Button(
-      text = "Sign In",
-      isEnabled = model.IsValid(),
-      command = bindPress dispatch ClickSignIn
-    )
+    makeButton
+      (model.IsValid())
+      (bindPress dispatch ClickSignIn)
+      "log in"
+    |> margin (Thicknesses.mediumLowerSpace)
 
-    View.Button(
-      text = "Not registered?",
-      command = bindPress dispatch ClickGoToSignUp
-    )
-
-    View.Button(
-      text = "Forgot password?",
-      command = bindPress dispatch ClickToForgotPassword
-    )
+    makeDuoGrid
+      (makeLink (bindPress dispatch ClickToForgotPassword) "forgot password?")
+      (makeNavButton (bindPress dispatch ClickGoToSignUp) "sign up")
   ]
