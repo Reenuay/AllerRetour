@@ -178,31 +178,27 @@ let makeDuoGrid (v1: ViewElement) (v2: ViewElement) =
 let makeCircle image =
   let bigRadius = screenWidthP 0.6
   let littleRadius = bigRadius * 0.75
+  let a = Colors.accent
 
-  let circle radius =
-    View.BoxView(
-      backgroundColor = Colors.accent,
-      opacity = Opacities.ten,
+  let circle radius content =
+    View.Frame(
+      backgroundColor = Color.FromRgba(a.R, a.G, a.B, Opacities.ten),
       width = radius,
       height = radius,
-      cornerRadius = CornerRadius(radius),
+      cornerRadius = radius,
       horizontalOptions = LayoutOptions.Center,
-      verticalOptions = LayoutOptions.Center
+      verticalOptions = LayoutOptions.Center,
+      padding = Thicknesses.zero,
+      margin = Thicknesses.zero,
+      content = content
     )
 
-  View.Grid(
-    rowSpacing = 0.,
-    columnSpacing = 0.,
-    width = bigRadius,
-    children = [
-      circle bigRadius
-      circle littleRadius
-      image
-        |> widthRequest (littleRadius * 0.75)
-        |> horizontalOptions LayoutOptions.Center
-        |> verticalOptions LayoutOptions.Center
-    ]
-  )
+  image
+  |> widthRequest (littleRadius * 0.75)
+  |> horizontalOptions LayoutOptions.Center
+  |> verticalOptions LayoutOptions.Center
+  |> circle littleRadius
+  |> circle bigRadius
 
 let makePage children =
   View.ContentPage(
