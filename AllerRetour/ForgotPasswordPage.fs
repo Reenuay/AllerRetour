@@ -37,7 +37,7 @@ let view (model: Model) dispatch =
       (View.Image(
         source = Images.forgotPassword
       ))
-    |> margin Thicknesses.bigLowerSpace
+    |> margin Thicknesses.mediumUpperBigLowerSpace
 
     makeInfoText "Please enter your registered email ID"
 
@@ -51,16 +51,16 @@ let view (model: Model) dispatch =
       EmailAddress.value
       (bindNewText dispatch SetEmail)
       model
-    |> margin (Thicknesses.mediumLowerSpace)
+    |> margin Thicknesses.mediumLowerSpace
 
     makeButton
       (TwoTrackResult.isSuccess model)
       (bindPress dispatch ClickSend)
       "send"
-    |> margin (Thicknesses.mediumLowerSpace)
+    |> margin Thicknesses.mediumLowerSpace
 
     makeNavButton
       (bindPress dispatch ClickGoToSignIn)
       "log in"
-    |> horizontalOptions LayoutOptions.Center
+    |> margin Thicknesses.mediumLowerSpace
   ]

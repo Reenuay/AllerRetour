@@ -19,11 +19,9 @@ type Model = {
 }
 with
   member this.CheckRepeatPassword(r) =
-    match this.Password with
-    | Success p when Password.value p <> r ->
-      Failure ["Passwords must be the same"]
-    | _ ->
-      Success r
+    match underV Password.value this.Password with
+    | x when x <> "" && x = r -> Success r
+    | _ -> Failure ["Passwords must be the same"]
 
   member this.ToDto() : SignUpRequest option =
     match this.FirstName, this.LastName, this.Email, this.Password, this.RepeatPassword with
@@ -154,22 +152,21 @@ let view model dispatch =
     makeEntry
       (Some (model.PasswordRepeatHidden, bindPress dispatch SwapPasswordRepeatHidden))
       None
-      "Repeat password"
+      "Re-enter password"
       (Some Images.lockIcon)
       id
       (bindNewText dispatch SetRepeatPassword)
       model.RepeatPassword
-    |> margin (Thicknesses.mediumLowerSpace)
+    |> margin Thicknesses.mediumLowerSpace
 
     makeButton
       (model.IsValid())
       (bindPress dispatch ClickSignUp)
       "sign up"
-    |> margin (Thicknesses.mediumLowerSpace)
+    |> margin Thicknesses.mediumLowerSpace
 
     makeLink
       (bindPress dispatch ClickGoToSignIn)
       "already registered?"
-    |> horizontalOptions LayoutOptions.Center
-    |> margin (Thicknesses.mediumLowerSpace)
+    |> margin Thicknesses.mediumLowerSpace
   ]

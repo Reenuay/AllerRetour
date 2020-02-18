@@ -7,6 +7,7 @@ open Xamarin.Forms
 open PrimitiveTypes
 open RequestTypes
 open Views
+open Resources
 
 type Model = {
   NewPassword: Validatable<Password, string>
@@ -14,14 +15,15 @@ type Model = {
   Token: Validatable<Pin, string>
   Email: string
   Timer: int
+  TokenEntered: bool
+  NewPasswordHidden: bool
+  RepeatNewPasswordHidden: bool
 }
 with
   member this.CheckRepeatPassword(r) =
-    match this.NewPassword with
-    | Success p when Password.value p <> r ->
-      Failure ["Passwords must be the same"]
-    | _ ->
-      Success r
+    match underV Password.value this.NewPassword with
+    | x when x <> "" && x = r -> Success r
+    | _ -> Failure ["Passwords must be the same"]
 
   member this.ToDto() : PasswordResetRequest option =
     match this.NewPassword, this.RepeatNewPassword, this.Token with
@@ -52,12 +54,18 @@ type Msg =
   | SetToken of string
   | TimerTick
   | ClickReset
+  | SetTokenEntered of bool
+  | SwapNewPasswordHidden
+  | SwapRepeatNewPasswordHidden
+  | ClickConfirm
+  | ClickGoToSignIn
 
 type ExternalMsg =
   | NoOp
   | Timer
   | ResetPassword of PasswordResetRequest
   | GoToForgotPassword
+  | GoToSignIn
 
 let initModel email =
   let fifteenMinutes = 15 * 60
@@ -68,6 +76,9 @@ let initModel email =
     Token = emptyString
     Email = email
     Timer = fifteenMinutes
+    TokenEntered = false
+    NewPasswordHidden = true
+    RepeatNewPasswordHidden = true
   }
 
 let update msg (model: Model) =
@@ -82,62 +93,111 @@ let update msg (model: Model) =
     { model with Token = adaptV Pin.create p }, NoOp
 
   | TimerTick ->
-    let time = model.Timer - 1
-    { model with Timer = time },
-    if time > 0 then Timer else GoToForgotPassword
+    if model.TokenEntered then
+      model, NoOp
+    else
+      let time = model.Timer - 1
+      { model with Timer = time },
+      if time > 0 then Timer else GoToForgotPassword
 
   | ClickReset ->
     match model.ToDto() with
     | Some d -> model, ResetPassword d
     | None -> model.Revalidate(), NoOp
 
-let view model dispatch =
-  View.ContentPage(
-    content = View.StackLayout(
-      padding = Thickness 20.0,
-      children = [
-        View.Label(
-          text = """
-            We sent you a verification code on your email.
-            It will be valid until timer stops.
-            Use it to reset your password."""
-        )
+  | SetTokenEntered e ->
+    { model with TokenEntered = e }, NoOp
 
-        View.Label(
-          text = TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss")
-        )
-        
+  | SwapNewPasswordHidden ->
+    { model with NewPasswordHidden = not model.NewPasswordHidden }, NoOp
+
+  | SwapRepeatNewPasswordHidden ->
+    { model with RepeatNewPasswordHidden = not model.RepeatNewPasswordHidden }, NoOp
+
+  | ClickConfirm ->
+    (
+      if TwoTrackResult.isSuccess model.Token then
+        { model with TokenEntered = true }
+      else
+        { model with Token = adaptV Pin.create (underV Pin.value model.Token) }
+    ), NoOp
+
+  | ClickGoToSignIn ->
+    model, GoToSignIn
+    
+
+let view model dispatch =
+  let entered v1 v2 =
+    if model.TokenEntered then v1 else v2
+
+  makePage [
+    yield
+      makeCircle
+        (View.Image(
+          source = entered Images.passwordChange Images.verificationCode
+        ))
+      |> margin Thicknesses.mediumUpperBigLowerSpace
+
+    if not model.TokenEntered then
+      yield! [
+        makeInfoText
+          "Please enter your verification code"
+
+        makeThinText "We sent a verification code\nto your registered email ID"
+
+        makeThinText (TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss"))
+
         makeEntry
           None
+          (Some Keyboard.Numeric)
+          "Code"
+          (Some Images.lockIcon)
+          Pin.value
+          (bindNewText dispatch SetToken)
+          model.Token
+        |> margin (Thicknesses.mediumLowerSpace)
+
+        makeButton
+          (TwoTrackResult.isSuccess model.Token)
+          (bindPress dispatch ClickConfirm)
+          "confirm"
+        |> margin (Thicknesses.mediumLowerSpace)
+      ]
+    else
+      yield! [
+        makeInfoText
+          "Please enter a new password"
+        |> margin Thicknesses.mediumLowerSpace
+
+        makeEntry
+          (Some (model.NewPasswordHidden, bindPress dispatch SwapNewPasswordHidden))
           None
           "New password"
-          None
+          (Some Images.lockIcon)
           Password.value
-          (fun args -> dispatch (SetNewPassword args.NewTextValue))
+          (bindNewText dispatch SetNewPassword)
           model.NewPassword
         
         makeEntry
+          (Some (model.RepeatNewPasswordHidden, bindPress dispatch SwapRepeatNewPasswordHidden))
           None
-          None
-          "Repeat new password"
-          None
+          "Re-enter password"
+          (Some Images.lockIcon)
           id
-          (fun args -> dispatch (SetRepeatNewPassword args.NewTextValue))
+          (bindNewText dispatch SetRepeatNewPassword)
           model.RepeatNewPassword
-        
-        makeEntry
-          None
-          None
-          "Code"
-          None
-          Pin.value
-          (fun args -> dispatch (SetToken args.NewTextValue))
-          model.Token
+        |> margin Thicknesses.mediumLowerSpace
 
-        View.Button(
-          text = "Reset password",
-          command = (fun () -> dispatch ClickReset)
-        )
+        makeButton
+          (model.IsValid())
+          (bindPress dispatch ClickReset)
+          "change password"
+        |> margin Thicknesses.mediumLowerSpace
       ]
-    )
-  )
+
+    yield
+      makeNavButton
+        (bindPress dispatch ClickGoToSignIn)
+        "log in"
+      |> margin Thicknesses.mediumLowerSpace
+  ]

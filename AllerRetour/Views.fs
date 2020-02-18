@@ -128,7 +128,6 @@ let makeButton isEnabled command text =
     height = 32.,
     command = command,
     cornerRadius = 32,
-    isEnabled = isEnabled,
     fontSize = FontSizes.light,
     fontFamily = Fonts.renogare,
     borderColor = Colors.accent,
@@ -147,6 +146,7 @@ let makeTextButton font command text =
     fontSize = FontSizes.light,
     textColor = Colors.accent,
     padding = Thicknesses.zero,
+    horizontalOptions = LayoutOptions.Center,
     gestureRecognizers = [
       View.TapGestureRecognizer(
         command = command
@@ -194,7 +194,7 @@ let makeCircle image =
     )
 
   image
-  |> widthRequest (littleRadius * 0.75)
+  |> widthRequest (littleRadius * 0.65)
   |> horizontalOptions LayoutOptions.Center
   |> verticalOptions LayoutOptions.Center
   |> circle littleRadius

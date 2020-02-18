@@ -200,6 +200,8 @@
     <AndroidResource Include="Resources\mipmap-xxxhdpi\Icon.png" />
     <AndroidResource Include="Resources\mipmap-xxxhdpi\launcher_foreground.png" />
     <None Include="packages.config" />
+    <AndroidResource Include="Resources\drawable\passwordChange.png" />
+    <AndroidResource Include="Resources\drawable\verificationCode.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Data">

@@ -75,10 +75,10 @@ let view (model: Model) dispatch =
     makeLogo ()
 
     makeLabel "justCash"
-    |> padding Thicknesses.bigUpperSpace
+    |> margin Thicknesses.bigUpperSpace
 
     makeThinText "save on shopping\nsimply and tastefully"
-    |> padding Thicknesses.bigLowerSpace
+    |> margin Thicknesses.bigLowerSpace
 
     makeThinText "login with email"
     
@@ -99,16 +99,17 @@ let view (model: Model) dispatch =
       Password.value
       (bindNewText dispatch SetPassword)
       model.Password
-    |> margin (Thicknesses.mediumLowerSpace)
+    |> margin Thicknesses.mediumLowerSpace
 
     makeButton
       (model.IsValid())
       (bindPress dispatch ClickSignIn)
       "log in"
-    |> margin (Thicknesses.mediumLowerSpace)
+    |> margin Thicknesses.mediumLowerSpace
 
     makeDuoGrid
       (makeLink (bindPress dispatch ClickToForgotPassword) "forgot password?"
       |> margin (Thickness (0.,-8., 0., 0.)))
       (makeNavButton (bindPress dispatch ClickGoToSignUp) "sign up")
+    |> margin Thicknesses.mediumLowerSpace
   ]

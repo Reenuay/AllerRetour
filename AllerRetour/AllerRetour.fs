@@ -137,6 +137,9 @@ module App =
         |> NavigateTo
         |> Cmd.ofMsg
 
+      | ResetPasswordPage.GoToSignIn ->
+        goToSignInCmd
+
     newModel, cmd
 
   let handleSignUpSuccessMsg msg model =
