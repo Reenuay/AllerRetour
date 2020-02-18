@@ -171,4 +171,5 @@ let view model dispatch =
       (bindPress dispatch ClickGoToSignIn)
       "already registered?"
     |> horizontalOptions LayoutOptions.Center
+    |> margin (Thicknesses.mediumLowerSpace)
   ]
