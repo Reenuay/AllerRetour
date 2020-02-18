@@ -46,7 +46,7 @@ module App =
     | ChangeEmail of ChangeEmailRequest
     | ChangePassword of ChangePasswordRequest
     | ResendConfirmEmail
-    | ShowError of string
+    | ShowMessage of string
 
   let initModel = {
     PageModel = SignInPageModel SignInPage.initModel
@@ -230,7 +230,7 @@ module App =
         model,
         es
         |> foldErrors
-        |> ShowError
+        |> ShowMessage
         |> Cmd.ofMsg)
 
   let expireTokenCmd date =
@@ -249,7 +249,7 @@ module App =
     |> bind MainPage.create
     |> either
       (MainPageModel >> NavigateTo)
-      ("Can not open main page" |> ShowError |> ignore2)
+      ("Can not open main page" |> ShowMessage |> ignore2)
     |> Cmd.ofMsg
 
   let signIn (model: Model) request =
@@ -317,7 +317,13 @@ module App =
       model
       (fun _ ->
         model,
-        goToSignInCmd)
+        Cmd.batch [
+          goToSignInCmd
+
+          "Your password has been successfully changed!"
+          |> ShowMessage
+          |> Cmd.ofMsg
+        ])
 
   let resendConfirmEmail model =
     match model.Token with
@@ -411,7 +417,7 @@ module App =
     | ResendConfirmEmail ->
       resendConfirmEmail aModel
 
-    | ShowError err ->
+    | ShowMessage err ->
       Application.Current.MainPage.DisplayAlert(String.Empty, err, "Ok") |> ignore
       aModel, Cmd.none
 
