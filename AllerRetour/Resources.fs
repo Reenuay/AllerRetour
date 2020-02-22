@@ -20,6 +20,7 @@ module Images =
   let forgotPassword = Path "forgotPassword.png"
   let verificationCode = Path "verificationCode.png"
   let passwordChange = Path "passwordChange.png"
+  let success = Path "success.png"
 
 module Fonts =
   let renogare = "Renogare.ttf#Renogare-Regular"

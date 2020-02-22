@@ -3,6 +3,8 @@ module AllerRetour.SignUpSuccessPage
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
+open Resources
+open Views
 
 type Model = string
 
@@ -15,17 +17,23 @@ let update msg (model: Model) =
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view model dispatch =
-  View.ContentPage(
-    content = View.StackLayout(
-      verticalOptions = LayoutOptions.Center,
-      children = [
-        View.Label(
-          text = "Success! We sent you an email.\n"
-            + sprintf "Please check you email address %s for confirmation.\n" model
-            + "If there is no email check spam folder.")
-        View.Button(
-          text = "Return to sign in page",
-          command = (fun () -> dispatch ClickGoToSignIn))
-      ]
+  makePage [
+    makeCircle
+      (View.Image(
+        source = Images.success
+      ))
+    |> margin Thicknesses.mediumUpperBigLowerSpace
+
+    makeInfoText "Success!"
+
+    makeThinText (
+      sprintf "We sent a confirmation link to your email %s." model
+      + "Use it to be able to log in."
     )
-  )
+    |> margin Thicknesses.mediumLowerSpace
+
+    makeNavButton
+      (bindPress dispatch ClickGoToSignIn)
+      "log in"
+    |> margin Thicknesses.mediumLowerSpace
+  ]
