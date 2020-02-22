@@ -78,11 +78,7 @@ let makeEntry passwordOptions keyboard placeholder image fSuccess dispatch v =
           fontSize = FontSizes.light,
           textColor = Colors.accent,
           fontFamily = Fonts.segoeUiLight,
-          keyboard =
-            if Option.isNone keyboard then
-              Keyboard.Default
-            else
-              Option.get keyboard
+          keyboard = Option.defaultValue Keyboard.Default keyboard
         )
         .Column(1)
 
