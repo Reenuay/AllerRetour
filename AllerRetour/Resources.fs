@@ -40,6 +40,7 @@ module Thicknesses =
   let paddingForEntryError = Thickness (4., -15., 4., 0.)
   let rightLittleSpace = Thickness (0., 0., 5., 0.)
   let paddingForButton = Thickness (40., 0., 40., -4.)
+  let duoGridCentering = Thickness (0.,-8., 0., 0.)
 
 module Opacities =
   let opaque = 1.

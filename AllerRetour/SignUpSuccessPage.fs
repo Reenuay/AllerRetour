@@ -28,7 +28,7 @@ let view model dispatch =
 
     makeThinText (
       sprintf "We sent a confirmation link to your email %s." model
-      + "Use it to be able to log in."
+      + "Use it to confirm your ID.\nIt will be valid for 12 hours."
     )
     |> margin Thicknesses.mediumLowerSpace
 

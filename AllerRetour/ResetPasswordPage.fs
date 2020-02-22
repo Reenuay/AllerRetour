@@ -127,19 +127,15 @@ let update msg (model: Model) =
     
 
 let view model dispatch =
-  let entered v1 v2 =
-    if model.TokenEntered then v1 else v2
-
   makePage [
-    yield
-      makeCircle
-        (View.Image(
-          source = entered Images.passwordChange Images.verificationCode
-        ))
-      |> margin Thicknesses.mediumUpperBigLowerSpace
-
     if not model.TokenEntered then
       yield! [
+        makeCircle
+          (View.Image(
+            source = Images.verificationCode
+          ))
+        |> margin Thicknesses.mediumUpperBigLowerSpace
+
         makeInfoText
           "Please enter your verification code"
 
@@ -165,6 +161,12 @@ let view model dispatch =
       ]
     else
       yield! [
+        makeCircle
+          (View.Image(
+            source = Images.passwordChange
+          ))
+        |> margin Thicknesses.mediumUpperBigLowerSpace
+        
         makeInfoText
           "Please enter a new password"
         |> margin Thicknesses.mediumLowerSpace

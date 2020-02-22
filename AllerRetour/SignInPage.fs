@@ -109,7 +109,7 @@ let view (model: Model) dispatch =
 
     makeDuoGrid
       (makeLink (bindPress dispatch ClickToForgotPassword) "forgot password?"
-      |> margin (Thickness (0.,-8., 0., 0.)))
+      |> margin Thicknesses.duoGridCentering)
       (makeNavButton (bindPress dispatch ClickGoToSignUp) "sign up")
     |> margin Thicknesses.mediumLowerSpace
   ]

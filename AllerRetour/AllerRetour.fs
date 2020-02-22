@@ -335,7 +335,9 @@ module App =
         model
         (fun _ ->
           model,
-          Cmd.none)
+          "Email were sent successfully!"
+          |> ShowMessage
+          |> Cmd.ofMsg)
 
     | None ->
       model, Cmd.none

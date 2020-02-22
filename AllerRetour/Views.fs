@@ -160,6 +160,7 @@ let makeDuoGrid (v1: ViewElement) (v2: ViewElement) =
     rowSpacing = 0.,
     columnSpacing = 0.,
     width = screenWidthP 0.8,
+    horizontalOptions = LayoutOptions.CenterAndExpand,
     children = [
       v1.Column(0)
         |> horizontalOptions LayoutOptions.Start
