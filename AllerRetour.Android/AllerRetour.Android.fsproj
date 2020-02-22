@@ -183,6 +183,8 @@
     <AndroidResource Include="Resources\drawable\eye.png" />
     <AndroidResource Include="Resources\drawable\user.png" />
     <AndroidResource Include="Resources\drawable\forgotPassword.png" />
+    <AndroidResource Include="Resources\drawable\passwordChange.png" />
+    <AndroidResource Include="Resources\drawable\verificationCode.png" />
     <AndroidResource Include="Resources\layout\Tabbar.axml" />
     <AndroidResource Include="Resources\layout\Toolbar.axml" />
     <AndroidResource Include="Resources\values\styles.xml" />
@@ -200,8 +202,6 @@
     <AndroidResource Include="Resources\mipmap-xxxhdpi\Icon.png" />
     <AndroidResource Include="Resources\mipmap-xxxhdpi\launcher_foreground.png" />
     <None Include="packages.config" />
-    <AndroidResource Include="Resources\drawable\passwordChange.png" />
-    <AndroidResource Include="Resources\drawable\verificationCode.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Data">
