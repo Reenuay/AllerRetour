@@ -12,6 +12,7 @@ type Model = {
   Email: Validatable<EmailAddress, string>
   PreviousEmail: string
   Password: Validatable<Password, string>
+  PasswordHidden: bool
 }
 with
   member this.ToDto() : ChangeEmailRequest option =
@@ -44,6 +45,7 @@ with
 type Msg =
   | SetEmail of string
   | SetPassword of string
+  | SwapPasswordHidden
   | ClickChange
   | ClickGoToSignIn
 
@@ -56,6 +58,7 @@ let create email = {
   Email = emptyString
   PreviousEmail = email
   Password = emptyString
+  PasswordHidden = true
 }
 
 let update msg (model: Model) =
@@ -66,6 +69,9 @@ let update msg (model: Model) =
   | SetPassword p ->
     { model with Password = adaptV Password.create p }, NoOp
 
+  | SwapPasswordHidden ->
+    { model with PasswordHidden = not model.PasswordHidden }, NoOp
+
   | ClickChange ->
     match model.ToDto() with
     | Some d -> model, ChangeEmail d
@@ -75,36 +81,43 @@ let update msg (model: Model) =
     model, GoToSignIn
 
 let view (model: Model) dispatch =
-  View.ContentPage(
-    content = View.StackLayout(
-      children = [
-        makeEntry
-          None
-          None
-          "New email"
-          (Some Images.envelopeIcon)
-          EmailAddress.value
-          (fun args -> dispatch (SetEmail args.NewTextValue))
-          model.Email
+  makePage [
+    makeCircle
+      (View.Image(
+        source = Images.passwordChange
+      ))
+    |> margin Thicknesses.mediumUpperBigLowerSpace
+
+    makeInfoText "Please enter new email"
+    |> margin Thicknesses.mediumLowerSpace
+
+    makeEntry
+      None
+      (Some Keyboard.Email)
+      "New email"
+      (Some Images.envelopeIcon)
+      EmailAddress.value
+      (bindNewText dispatch SetEmail)
+      model.Email
         
-        makeEntry
-          None
-          None
-          "Password"
-          None
-          Password.value
-          (fun args -> dispatch (SetPassword args.NewTextValue))
-          model.Password
+    makeEntry
+      (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
+      None
+      "Password"
+      (Some Images.lockIcon)
+      Password.value
+      (bindNewText dispatch SetPassword)
+      model.Password
+    |> margin Thicknesses.mediumLowerSpace
 
-        View.Button(
-          text = "Change email",
-          command = (fun () -> dispatch ClickChange)
-        )
+    makeButton
+      (model.IsValid())
+      (bindPress dispatch ClickChange)
+      "change"
+    |> margin Thicknesses.mediumLowerSpace
 
-        View.Button(
-          text = "Return to sign in page",
-          command = (fun () -> dispatch ClickGoToSignIn)
-        )
-      ]
-    )
-  )
+    makeNavButton
+      (bindPress dispatch ClickGoToSignIn)
+      "log in"
+    |> margin Thicknesses.mediumLowerSpace
+  ]

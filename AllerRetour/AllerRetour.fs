@@ -365,7 +365,14 @@ module App =
         model
         (fun _ ->
           model,
-          Cmd.ofMsg SignOut)
+          Cmd.batch [
+            Cmd.ofMsg SignOut
+
+            "Your email has been successfully changed!"
+            +  "Check your inbox to confirm your new email ID."
+            |> ShowMessage
+            |> Cmd.ofMsg
+          ])
 
     | None ->
       model, Cmd.none

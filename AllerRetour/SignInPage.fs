@@ -3,7 +3,6 @@ module AllerRetour.SignInPage
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
-open TwoTrackResult
 open PrimitiveTypes
 open RequestTypes
 open Resources
