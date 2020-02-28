@@ -32,11 +32,9 @@ let update msg (model: Model) =
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view (model: Model) dispatch =
-  makePage [
-    makeCircle
-      (View.Image(
-        source = Images.forgotPassword
-      ))
+  makeScrollStackPage [
+    Images.forgotPassword
+    |> makeCircle
     |> margin Thicknesses.mediumUpperBigLowerSpace
 
     makeInfoText "Please enter your registered email ID"

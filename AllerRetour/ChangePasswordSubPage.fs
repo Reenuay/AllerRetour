@@ -5,12 +5,16 @@ open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
 open RequestTypes
+open Resources
 open Views
 
 type Model = {
   NewPassword: Validatable<Password, string>
   RepeatNewPassword: Validatable<string, string>
   OldPassword: Validatable<Password, string>
+  NewPasswordHidden: bool
+  RepeatNewPasswordHidden: bool
+  OldPasswordHidden: bool
 }
 with
   member this.CheckRepeatPassword(r) =
@@ -46,16 +50,24 @@ type Msg =
   | SetNewPassword of string
   | SetRepeatNewPassword of string
   | SetOldPassword of string
+  | SwapNewPasswordHidden
+  | SwapRepeatNewPasswordHidden
+  | SwapOldPasswordHidden
   | ClickChange
+  | ClickGoBack
 
 type ExternalMsg =
   | NoOp
   | ChangePassword of ChangePasswordRequest
+  | GoBack
 
 let initModel = {
   NewPassword = emptyString
   RepeatNewPassword = emptyString
   OldPassword = emptyString
+  NewPasswordHidden = true
+  RepeatNewPasswordHidden = true
+  OldPasswordHidden = true
 }
 
 let update msg (model: Model) =
@@ -69,46 +81,62 @@ let update msg (model: Model) =
   | SetOldPassword p ->
     { model with OldPassword = adaptV Password.create p }, NoOp
 
+  | SwapNewPasswordHidden ->
+    { model with NewPasswordHidden = not model.NewPasswordHidden }, NoOp
+
+  | SwapRepeatNewPasswordHidden ->
+    { model with RepeatNewPasswordHidden = not model.RepeatNewPasswordHidden }, NoOp
+
+  | SwapOldPasswordHidden ->
+    { model with OldPasswordHidden = not model.OldPasswordHidden }, NoOp
+
   | ClickChange ->
     match model.ToDto() with
     | Some d -> model, ChangePassword d
     | None -> model.Revalidate(), NoOp
 
-let view model dispatch =
-  View.ContentPage(
-    content = View.StackLayout(
-      children = [
-        makeEntry
-          None
-          None
-          "New password"
-          None
-          Password.value
-          (fun args -> dispatch (SetNewPassword args.NewTextValue))
-          model.NewPassword
-        
-        makeEntry
-          None
-          None
-          "Repeat new password"
-          None
-          id
-          (fun args -> dispatch (SetRepeatNewPassword args.NewTextValue))
-          model.RepeatNewPassword
-        
-        makeEntry
-          None
-          None
-          "Old password"
-          None
-          Password.value
-          (fun args -> dispatch (SetOldPassword args.NewTextValue))
-          model.OldPassword
+  | ClickGoBack ->
+    model, GoBack
 
-        View.Button(
-          text = "Change password",
-          command = (fun () -> dispatch ClickChange)
-        )
-      ]
-    )
-  )
+let view model dispatch =
+  makeScrollStack LayoutOptions.StartAndExpand [
+    makeBackButton (bindPress dispatch ClickGoBack)
+
+    Images.passwordChange
+    |> makeCircle
+    |> margin Thicknesses.mediumUpperBigLowerSpace
+
+    makeEntry
+      (Some (model.NewPasswordHidden, bindPress dispatch SwapNewPasswordHidden))
+      None
+      "New password"
+      None
+      Password.value
+      (bindNewText dispatch SetNewPassword)
+      model.NewPassword
+        
+    makeEntry
+      (Some (model.RepeatNewPasswordHidden, bindPress dispatch SwapRepeatNewPasswordHidden))
+      None
+      "Repeat new password"
+      None
+      id
+      (bindNewText dispatch SetRepeatNewPassword)
+      model.RepeatNewPassword
+        
+    makeEntry
+      (Some (model.OldPasswordHidden, bindPress dispatch SwapOldPasswordHidden))
+      None
+      "Old password"
+      None
+      Password.value
+      (bindNewText dispatch SetOldPassword)
+      model.OldPassword
+    |> margin Thicknesses.mediumLowerSpace
+
+    makeButton
+      (model.IsValid())
+      (bindPress dispatch ClickChange)
+      "change"
+    |> margin Thicknesses.mediumLowerSpace
+  ]

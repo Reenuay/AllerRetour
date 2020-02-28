@@ -25,11 +25,9 @@ let update msg (model: Model) =
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view model dispatch =
-  makePage [
-    makeCircle
-      (View.Image(
-        source = Images.verificationCode
-      ))
+  makeScrollStackPage [
+    Images.verificationCode
+    |> makeCircle
     |> margin Thicknesses.mediumUpperBigLowerSpace
 
     makeInfoText "Please confirm your registered email ID"

@@ -15,23 +15,26 @@ let inline makeRequest (f: unit -> Async<HttpResponse>) =
   async {
     do! Async.SwitchToThreadPool()
 
-    let! res = f ()
-    let body =
-      match res.Body with
-      | Text t -> t
-      | _ -> failwith "Binary data returned but text was expected."
+    try
+      let! res = f ()
+      let body =
+        match res.Body with
+        | Text t -> t
+        | _ -> failwith "Binary data returned but text was expected."
 
-    return
-      if res.StatusCode = 200 then
-        match Json.deserialize body with
-        | Choice1Of2 t -> Success t
-        | Choice2Of2 e -> Failure [ "Parsing error: server returned invalid data" ]
-      else
-        let e =
+      return
+        if res.StatusCode = 200 then
           match Json.deserialize body with
-          | Choice1Of2 s -> s
-          | Choice2Of2 _ -> body
-        Failure [ e ]
+          | Choice1Of2 t -> Success t
+          | Choice2Of2 e -> Failure [ "Parsing error: server returned invalid data" ]
+        else
+          let e =
+            match Json.deserialize body with
+            | Choice1Of2 s -> s
+            | Choice2Of2 _ -> body
+          Failure [ e ]
+    with
+    | ex -> return Failure [ "No internet connection" ]
   }
 
 let inline get route query headers =

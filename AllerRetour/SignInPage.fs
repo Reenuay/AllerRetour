@@ -70,7 +70,7 @@ let update msg (model: Model) =
     model, GoToForgotPassword
 
 let view (model: Model) dispatch =    
-  makePage [
+  makeScrollStackPage [
     makeLogo ()
 
     makeLabel "justCash"

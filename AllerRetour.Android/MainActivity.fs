@@ -11,6 +11,7 @@ open Android.Widget
 open Android.OS
 open Xamarin.Forms
 open Xamarin.Forms.Platform.Android
+open Xamarin.Forms.PlatformConfiguration
 open Xamarin.Forms.PlatformConfiguration.AndroidSpecific
 
 [<Activity(
@@ -22,26 +23,33 @@ open Xamarin.Forms.PlatformConfiguration.AndroidSpecific
   ConfigurationChanges = (ConfigChanges.ScreenSize ||| ConfigChanges.Orientation)
 )>]
 type MainActivity() =
-    inherit FormsAppCompatActivity()
-    override this.OnCreate (bundle: Bundle) =
-        FormsAppCompatActivity.TabLayoutResource <- Resources.Layout.Tabbar
-        FormsAppCompatActivity.ToolbarResource <- Resources.Layout.Toolbar
-        base.OnCreate (bundle)
+  inherit FormsAppCompatActivity()
+  override this.OnCreate (bundle: Bundle) =
+    FormsAppCompatActivity.TabLayoutResource <- Resources.Layout.Tabbar
+    FormsAppCompatActivity.ToolbarResource <- Resources.Layout.Toolbar
+    base.OnCreate (bundle)
 
-        Xamarin.Essentials.Platform.Init(this, bundle)
 
-        Xamarin.Forms.Forms.Init (this, bundle)
+    Xamarin.Essentials.Platform.Init(this, bundle)
 
-        let appcore  = new AllerRetour.App()
-        this.LoadApplication (appcore)
+    Xamarin.Forms.Forms.Init (this, bundle)
 
-        Application
-          .Current
-          .On<Xamarin.Forms.PlatformConfiguration.Android>()
-          .UseWindowSoftInputModeAdjust(WindowSoftInputModeAdjust.Resize);
-        |> ignore
+    //global.ZXing.Net.Mobile.Forms.Android.Platform.Init()
 
-    override this.OnRequestPermissionsResult(requestCode: int, permissions: string[], [<GeneratedEnum>] grantResults: Android.Content.PM.Permission[]) =
-        Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults)
+    let appcore  = new AllerRetour.App()
+    this.LoadApplication (appcore)
 
-        base.OnRequestPermissionsResult(requestCode, permissions, grantResults)
+    FFImageLoading.Forms.Platform.CachedImageRenderer.Init(enableFastRenderer = Nullable(true))
+
+    Application
+      .Current
+      .On<Android>()
+      .UseWindowSoftInputModeAdjust(WindowSoftInputModeAdjust.Resize)
+    |> ignore
+
+
+  override this.OnRequestPermissionsResult(requestCode: int, permissions: string[], [<GeneratedEnum>] grantResults: Android.Content.PM.Permission[]) =
+    Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults)
+
+    //global.ZXing.Net.Mobile.Android.PermissionsHandler.OnRequestPermissionsResult (requestCode, permissions, grantResults)
+    base.OnRequestPermissionsResult(requestCode, permissions, grantResults)

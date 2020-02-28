@@ -21,6 +21,13 @@ module Images =
   let verificationCode = Path "verificationCode.png"
   let passwordChange = Path "passwordChange.png"
   let success = Path "success.png"
+  let profileIcon = Path "profileIcon.png"
+  let profileIconActive = Path "profileIconActive.png"
+  let tabLight = Path "tabLight.png"
+  let tabLightShadow = Path "tabLightShadow.png"
+  let list = Path "list.png"
+  let backButton = Path "backButton.png"
+  let profile = Path "profile.png"
 
 module Fonts =
   let renogare = "Renogare.ttf#Renogare-Regular"
@@ -28,8 +35,10 @@ module Fonts =
 
 module FontSizes =
   let big = FontSize 32.
+  let medium = FontSize 24.
   let light = FontSize 18.
   let thin = FontSize 14.
+  let xtrasmall = FontSize 8.
 
 module Thicknesses =
   let zero = Thickness 0.
@@ -41,6 +50,7 @@ module Thicknesses =
   let rightLittleSpace = Thickness (0., 0., 5., 0.)
   let paddingForButton = Thickness (40., 0., 40., -4.)
   let duoGridCentering = Thickness (0.,-8., 0., 0.)
+  let eight = Thickness 8.
 
 module Opacities =
   let opaque = 1.

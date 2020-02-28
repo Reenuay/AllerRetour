@@ -107,7 +107,7 @@ let update msg (model: Model) =
     model, GoToSignIn
 
 let view model dispatch =
-  makePage [
+  makeScrollStackPage [
     makeLogo ()
 
     makeThinText "sign up with email"

@@ -244,14 +244,6 @@ module App =
     }
     |> Cmd.ofAsyncMsg
 
-  let goToMainPageCmd response =
-    response
-    |> bind MainPage.create
-    |> either
-      (MainPageModel >> NavigateTo)
-      ("Can not open main page" |> ShowMessage |> ignore2)
-    |> Cmd.ofMsg
-
   let signIn (model: Model) request =
     request
     |> Http.signIn
@@ -264,7 +256,11 @@ module App =
             t.Token
             |> Http.getProfile
             |> Async.RunSynchronously
-            |> goToMainPageCmd 
+            |> bind MainPage.create
+            |> either
+              (MainPageModel >> NavigateTo)
+              ("Can not open main page: server sent invalid data" |> ShowMessage |> ignore2)
+            |> Cmd.ofMsg 
           else
             request.Email
             |> ResendEmailPageModel
@@ -350,8 +346,18 @@ module App =
       |> handleTwoTrackHttp
         model
         (fun r ->
-          model,
-          goToMainPageCmd (succeed r))
+          match model.PageModel with
+          | MainPageModel m ->
+            model,
+            r
+            |> MainPage.updateModel m
+            |> either
+              (MainPageModel >> NavigateTo)
+              ("Can not open main page: server sent invalid data" |> ShowMessage |> ignore2)
+            |> Cmd.ofMsg
+
+          | _ ->
+            model, Cmd.none)
 
     | None ->
       model, Cmd.none
@@ -369,7 +375,7 @@ module App =
             Cmd.ofMsg SignOut
 
             "Your email has been successfully changed!"
-            +  "Check your inbox to confirm your new email ID."
+            +  " Check your inbox to confirm your new email ID."
             |> ShowMessage
             |> Cmd.ofMsg
           ])
@@ -386,7 +392,14 @@ module App =
         model
         (fun _ ->
           model,
-          Cmd.ofMsg SignOut)
+          Cmd.batch [
+            Cmd.ofMsg SignOut
+
+            "Your password has been successfully changed!"
+            +  " Please relogin using new password."
+            |> ShowMessage
+            |> Cmd.ofMsg
+          ])
 
     | None ->
       model, Cmd.none

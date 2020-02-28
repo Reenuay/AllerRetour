@@ -127,13 +127,11 @@ let update msg (model: Model) =
     
 
 let view model dispatch =
-  makePage [
+  makeScrollStackPage [
     if not model.TokenEntered then
       yield! [
-        makeCircle
-          (View.Image(
-            source = Images.verificationCode
-          ))
+        Images.verificationCode
+        |> makeCircle
         |> margin Thicknesses.mediumUpperBigLowerSpace
 
         makeInfoText
@@ -161,10 +159,8 @@ let view model dispatch =
       ]
     else
       yield! [
-        makeCircle
-          (View.Image(
-            source = Images.passwordChange
-          ))
+        Images.passwordChange
+        |> makeCircle
         |> margin Thicknesses.mediumUpperBigLowerSpace
         
         makeInfoText

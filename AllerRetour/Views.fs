@@ -37,6 +37,8 @@ let makeText fontSize fontFamily opacity text =
 
 let makeLabel = makeText FontSizes.big Fonts.renogare Opacities.opaque
 
+let makeHomeText = makeText FontSizes.medium Fonts.segoeUiLight Opacities.opaque
+
 let makeInfoText = makeText FontSizes.light Fonts.segoeUiLight Opacities.opaque
 
 let makeThinText = makeText FontSizes.thin Fonts.segoeUiLight Opacities.light
@@ -135,14 +137,15 @@ let makeButton isEnabled command text =
     borderWidth = ifEnabled 0. 1.
   )
 
-let makeTextButton font command text =
+let makeTextButton font fontSize margin horizontalOptions command text =
   View.Label(
     text = text,
     fontFamily = font,
-    fontSize = FontSizes.light,
+    fontSize = fontSize,
     textColor = Colors.accent,
     padding = Thicknesses.zero,
-    horizontalOptions = LayoutOptions.Center,
+    horizontalOptions = horizontalOptions,
+    margin = margin,
     gestureRecognizers = [
       View.TapGestureRecognizer(
         command = command
@@ -150,9 +153,19 @@ let makeTextButton font command text =
     ]
   )
 
-let makeLink = makeTextButton Fonts.segoeUiLight
+let makeLink =
+  makeTextButton
+    Fonts.segoeUiLight
+    FontSizes.light
+    Thicknesses.zero
+    LayoutOptions.Center
 
-let makeNavButton = makeTextButton Fonts.renogare
+let makeNavButton =
+  makeTextButton
+    Fonts.renogare
+    FontSizes.light
+    Thicknesses.zero
+    LayoutOptions.Center
 
 let makeDuoGrid (v1: ViewElement) (v2: ViewElement) =
   View.Grid(
@@ -172,7 +185,7 @@ let makeDuoGrid (v1: ViewElement) (v2: ViewElement) =
     ]
   )
 
-let makeCircle image =
+let makeCircle path =
   let bigRadius = screenWidthP 0.6
   let littleRadius = bigRadius * 0.75
   let a = Colors.accent
@@ -190,28 +203,100 @@ let makeCircle image =
       content = content
     )
 
-  image
+  View.Image(source = path)
   |> widthRequest (littleRadius * 0.65)
   |> horizontalOptions LayoutOptions.Center
   |> verticalOptions LayoutOptions.Center
   |> circle littleRadius
   |> circle bigRadius
 
-let makePage children =
-  View.ContentPage(
-    content = View.ScrollView(
-      content = View.Grid(
-        children = [
-          View.Image(
-            source = Images.backgroundDark,
-            aspect = Aspect.AspectFill
-          )
+let makeCircle2 radius content =
+  View.Frame(
+    backgroundColor = Color.Transparent,
+    width = radius,
+    height = radius,
+    cornerRadius = radius,
+    borderColor = Colors.accent,
+    horizontalOptions = LayoutOptions.Center,
+    verticalOptions = LayoutOptions.Center,
+    padding = Thicknesses.zero,
+    margin = Thicknesses.zero,
+    content = (
+      content
+      |> horizontalOptions LayoutOptions.Center
+      |> verticalOptions LayoutOptions.Center
+    )
+  )
+  |> borderWidth 1.
+
+
+let makeScrollStack verticalOptions children =
+  View.Grid(
+    rowSpacing = 0.,
+    columnSpacing = 0.,
+    verticalOptions = LayoutOptions.FillAndExpand,
+    children = [
+      View.Image(
+        source = Images.backgroundDark,
+        aspect = Aspect.AspectFill
+      )
+      View.ScrollView(
+        content =
           View.StackLayout(
             horizontalOptions = LayoutOptions.CenterAndExpand,
-            verticalOptions = LayoutOptions.CenterAndExpand,
+            verticalOptions = verticalOptions,
             children = children
           )
-        ]
       )
-    )
+    ]
+  )
+
+let makeScrollStackPage children =
+  View.ContentPage(
+    useSafeArea = true,
+    content = makeScrollStack LayoutOptions.CenterAndExpand children
+  )
+
+let makeDuoStack first second =
+  View.StackLayout(
+    children = [
+      first
+      second
+    ]
+  )
+
+let makeHorizontalDivider () =
+  View.BoxView(
+    height = 1.,
+    backgroundColor = Colors.accent,
+    horizontalOptions = LayoutOptions.FillAndExpand
+  )
+
+let makeBackButton dispatch =
+  View.Image(
+    source = Images.backButton,
+    width = 15.,
+    aspect = Aspect.AspectFit,
+    margin = Thickness(0., 35., 0., 0.),
+    horizontalOptions = LayoutOptions.Start,
+    opacity = Opacities.light,
+    gestureRecognizers = [
+      View.TapGestureRecognizer(
+        command = dispatch
+      )
+    ]
+  )
+
+let makeProfilePageButton command text =
+  View.Button(
+    fontFamily = Fonts.segoeUiLight,
+    fontSize = FontSizes.light,
+    margin = Thickness(20., 0.),
+    padding = Thickness(0., 10.),
+    horizontalOptions = LayoutOptions.FillAndExpand,
+    verticalOptions = LayoutOptions.Start,
+    command = command,
+    text = text,
+    backgroundColor = Color.Transparent,
+    textColor = Colors.accent
   )

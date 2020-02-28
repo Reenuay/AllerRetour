@@ -23,6 +23,8 @@ module TwoTrackResult =
   | Success s -> fSuccess s
   | Failure f -> fFailure f
 
+  let getSuccess x = either id (fun _ -> failwith "got Failure instead of Success") x
+
   let map f = either (f >> succeed) (fail)
 
   let bind f = either f fail

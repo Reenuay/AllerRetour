@@ -17,11 +17,9 @@ let update msg (model: Model) =
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view model dispatch =
-  makePage [
-    makeCircle
-      (View.Image(
-        source = Images.success
-      ))
+  makeScrollStackPage [
+    Images.success
+    |> makeCircle
     |> margin Thicknesses.mediumUpperBigLowerSpace
 
     makeInfoText "Success!"

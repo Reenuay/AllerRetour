@@ -67,7 +67,8 @@ module OptionalDatePickerExtension =
           ?fontAttributes = fontAttributes,
           ?fontFamily = fontFamily,
           ?fontSize = fontSize,
-          ?dateSelected = dateSelected
+          ?dateSelected = dateSelected,
+          ?date = Option.defaultValue (Some DateTime.Now) optionalDate
         )
 
       match optionalDate with

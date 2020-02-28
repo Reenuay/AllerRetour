@@ -12,6 +12,7 @@ type Model = {
   Email: Validatable<EmailAddress, string>
   PreviousEmail: EmailAddress
   Password: Validatable<Password, string>
+  PasswordHidden: bool
 }
 with
   member this.ToDto() : EmailAndPassword option =
@@ -44,16 +45,20 @@ with
 type Msg =
   | SetEmail of string
   | SetPassword of string
+  | SwapPasswordHidden
   | ClickChange
+  | ClickGoBack
 
 type ExternalMsg =
   | NoOp
   | ChangeEmail of EmailAndPassword
+  | GoBack
 
 let create email = {
   Email = emptyString
   PreviousEmail = email
   Password = emptyString
+  PasswordHidden = true
 }
 
 let update msg (model: Model) =
@@ -69,32 +74,42 @@ let update msg (model: Model) =
     | Some d -> model, ChangeEmail d
     | None -> model.Revalidate(), NoOp
 
-let view (model: Model) dispatch =
-  View.ContentPage(
-    content = View.StackLayout(
-      children = [
-        makeEntry
-          None
-          None
-          "New email"
-          (Some Images.envelopeIcon)
-          EmailAddress.value
-          (fun args -> dispatch (SetEmail args.NewTextValue))
-          model.Email
-        
-        makeEntry
-          None
-          None
-          "Password"
-          None
-          Password.value
-          (fun args -> dispatch (SetPassword args.NewTextValue))
-          model.Password
+  | SwapPasswordHidden ->
+    { model with PasswordHidden = not model.PasswordHidden }, NoOp
 
-        View.Button(
-          text = "Change email",
-          command = (fun () -> dispatch ClickChange)
-        )
-      ]
-    )
-  )
+  | ClickGoBack ->
+    model, GoBack
+
+let view (model: Model) dispatch =
+  makeScrollStack LayoutOptions.StartAndExpand [
+    makeBackButton (bindPress dispatch ClickGoBack)
+
+    Images.passwordChange
+    |> makeCircle
+    |> margin Thicknesses.mediumUpperBigLowerSpace
+
+    makeEntry
+      None
+      (Some Keyboard.Email)
+      "New email"
+      None
+      EmailAddress.value
+      (bindNewText dispatch SetEmail)
+      model.Email
+        
+    makeEntry
+      (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
+      None
+      "Password"
+      None
+      Password.value
+      (bindNewText dispatch SetPassword)
+      model.Password
+    |> margin Thicknesses.mediumLowerSpace
+
+    makeButton
+      (model.IsValid())
+      (bindPress dispatch ClickChange)
+      "change"
+    |> margin Thicknesses.mediumLowerSpace
+  ]
