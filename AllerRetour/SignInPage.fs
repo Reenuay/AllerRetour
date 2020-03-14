@@ -69,7 +69,7 @@ let update msg (model: Model) =
   | ClickToForgotPassword ->
     model, GoToForgotPassword
 
-let view (model: Model) dispatch =    
+let view (model: Model) dispatch =
   makeScrollStackPage [
     makeLogo ()
 
