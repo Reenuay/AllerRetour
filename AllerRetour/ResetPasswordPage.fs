@@ -127,75 +127,78 @@ let update msg (model: Model) =
     
 
 let view model dispatch =
-  makeScrollStackPage [
-    if not model.TokenEntered then
-      yield! [
-        Images.verificationCode
-        |> makeCircle
-        |> margin Thicknesses.mediumUpperBigLowerSpace
+  View.MakeScrollStackPage(
+    isDarkTheme = GlobalSettings.IsDarkTheme,
+    children = [
+      if not model.TokenEntered then
+        yield! [
+          Images.verificationCode
+          |> makeCircle
+          |> margin Thicknesses.mediumUpperBigLowerSpace
 
-        makeInfoText
-          "Please enter your verification code"
+          makeInfoText
+            "Please enter your verification code"
 
-        makeThinText "We sent a verification code\nto your registered email ID"
+          makeThinText "We sent a verification code\nto your registered email ID"
 
-        makeThinText (TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss"))
+          makeThinText (TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss"))
 
-        makeEntry
-          None
-          (Some Keyboard.Numeric)
-          "Code"
-          (Some Images.lockIcon)
-          Pin.value
-          (bindNewText dispatch SetToken)
-          model.Token
-        |> margin (Thicknesses.mediumLowerSpace)
+          makeEntry
+            None
+            (Some Keyboard.Numeric)
+            "Code"
+            (Some Images.lockIcon)
+            Pin.value
+            (bindNewText dispatch SetToken)
+            model.Token
+          |> margin (Thicknesses.mediumLowerSpace)
 
-        makeButton
-          (TwoTrackResult.isSuccess model.Token)
-          (bindPress dispatch ClickConfirm)
-          "confirm"
-        |> margin (Thicknesses.mediumLowerSpace)
-      ]
-    else
-      yield! [
-        Images.passwordChange
-        |> makeCircle
-        |> margin Thicknesses.mediumUpperBigLowerSpace
+          makeButton
+            (TwoTrackResult.isSuccess model.Token)
+            (bindPress dispatch ClickConfirm)
+            "confirm"
+          |> margin (Thicknesses.mediumLowerSpace)
+        ]
+      else
+        yield! [
+          Images.passwordChange
+          |> makeCircle
+          |> margin Thicknesses.mediumUpperBigLowerSpace
         
-        makeInfoText
-          "Please enter a new password"
-        |> margin Thicknesses.mediumLowerSpace
+          makeInfoText
+            "Please enter a new password"
+          |> margin Thicknesses.mediumLowerSpace
 
-        makeEntry
-          (Some (model.NewPasswordHidden, bindPress dispatch SwapNewPasswordHidden))
-          None
-          "New password"
-          (Some Images.lockIcon)
-          Password.value
-          (bindNewText dispatch SetNewPassword)
-          model.NewPassword
+          makeEntry
+            (Some (model.NewPasswordHidden, bindPress dispatch SwapNewPasswordHidden))
+            None
+            "New password"
+            (Some Images.lockIcon)
+            Password.value
+            (bindNewText dispatch SetNewPassword)
+            model.NewPassword
         
-        makeEntry
-          (Some (model.RepeatNewPasswordHidden, bindPress dispatch SwapRepeatNewPasswordHidden))
-          None
-          "Re-enter password"
-          (Some Images.lockIcon)
-          id
-          (bindNewText dispatch SetRepeatNewPassword)
-          model.RepeatNewPassword
-        |> margin Thicknesses.mediumLowerSpace
+          makeEntry
+            (Some (model.RepeatNewPasswordHidden, bindPress dispatch SwapRepeatNewPasswordHidden))
+            None
+            "Re-enter password"
+            (Some Images.lockIcon)
+            id
+            (bindNewText dispatch SetRepeatNewPassword)
+            model.RepeatNewPassword
+          |> margin Thicknesses.mediumLowerSpace
 
-        makeButton
-          (model.IsValid())
-          (bindPress dispatch ClickReset)
-          "change password"
-        |> margin Thicknesses.mediumLowerSpace
-      ]
+          makeButton
+            (model.IsValid())
+            (bindPress dispatch ClickReset)
+            "change password"
+          |> margin Thicknesses.mediumLowerSpace
+        ]
 
-    yield
-      makeNavButton
-        (bindPress dispatch ClickGoToSignIn)
-        "log in"
-      |> margin Thicknesses.mediumLowerSpace
-  ]
+      yield
+        makeNavButton
+          (bindPress dispatch ClickGoToSignIn)
+          "log in"
+        |> margin Thicknesses.mediumLowerSpace
+    ]
+  )

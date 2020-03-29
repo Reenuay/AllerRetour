@@ -104,58 +104,62 @@ let update msg (model: Model) =
     model, GoBack
 
 let view model dispatch =
-  makeScrollStack LayoutOptions.StartAndExpand [
-    makeBackButton (bindPress dispatch ClickGoBack)
+  View.MakeScrollStack(
+    isDarkTheme = GlobalSettings.IsDarkTheme,
+    verticalOptions = LayoutOptions.StartAndExpand,
+    children = [
+      makeBackButton (bindPress dispatch ClickGoBack)
 
-    Images.profile
-    |> makeCircle
-    |> margin Thicknesses.mediumUpperBigLowerSpace
+      Images.profile
+      |> makeCircle
+      |> margin Thicknesses.mediumUpperBigLowerSpace
 
-    makeEntry
-      None
-      None
-      "First name"
-      None
-      NameString.value
-      (bindNewText dispatch SetFirstName)
-      model.FirstName
+      makeEntry
+        None
+        None
+        "First name"
+        None
+        NameString.value
+        (bindNewText dispatch SetFirstName)
+        model.FirstName
         
-    makeEntry
-      None
-      None
-      "Last name"
-      None
-      NameString.value
-      (bindNewText dispatch SetLastName)
-      model.LastName
+      makeEntry
+        None
+        None
+        "Last name"
+        None
+        NameString.value
+        (bindNewText dispatch SetLastName)
+        model.LastName
 
-    View.OptionalDatePicker(
-      minimumDate = DateTime.Today.AddYears(-120),
-      maximumDate = DateTime.Today.AddYears(-18),
-      optionalDate = model.Birthday,
-      textColor = Colors.accent,
-      fontSize = FontSizes.light,
-      fontFamily = Fonts.segoeUiLight,
-      dateSelected = (fun args -> dispatch (SetBirthday (Some args.NewDate)))
-    )
-    |> opacity Opacities.light
+      View.OptionalDatePicker(
+        minimumDate = DateTime.Today.AddYears(-120),
+        maximumDate = DateTime.Today.AddYears(-18),
+        optionalDate = model.Birthday,
+        textColor = Colors.accent,
+        fontSize = FontSizes.light,
+        fontFamily = Fonts.segoeUiLight,
+        dateSelected = (fun args -> dispatch (SetBirthday (Some args.NewDate)))
+      )
+      |> opacity Opacities.light
 
-    View.Picker(
-      title = "Gender",
-      selectedIndex = model.SelectedGenderIndex,
-      items = genderList,
-      opacity = Opacities.light,
-      textColor = Colors.accent,
-      fontSize = FontSizes.light,
-      fontFamily = Fonts.segoeUiLight,
-      titleColor = Colors.accent,
-      selectedIndexChanged = (fun (i, item) -> dispatch (SetGender (i, item)))
-    )
-    |> margin Thicknesses.mediumLowerSpace
+      View.Picker(
+        title = "Gender",
+        selectedIndex = model.SelectedGenderIndex,
+        items = genderList,
+        opacity = Opacities.light,
+        textColor = Colors.accent,
+        fontSize = FontSizes.light,
+        fontFamily = Fonts.segoeUiLight,
+        titleColor = Colors.accent,
+        selectedIndexChanged = (fun (i, item) -> dispatch (SetGender (i, item)))
+      )
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeButton
-      (model.IsValid())
-      (bindPress dispatch ClickSave)
-      "save"
-    |> margin Thicknesses.mediumLowerSpace
-  ]
+      makeButton
+        (model.IsValid())
+        (bindPress dispatch ClickSave)
+        "save"
+      |> margin Thicknesses.mediumLowerSpace
+    ]
+  )

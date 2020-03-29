@@ -1,6 +1,5 @@
 module AllerRetour.SignUpPage
 
-open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
@@ -107,66 +106,69 @@ let update msg (model: Model) =
     model, GoToSignIn
 
 let view model dispatch =
-  makeScrollStackPage [
-    makeLogo ()
+  View.MakeScrollStackPage(
+    isDarkTheme = GlobalSettings.IsDarkTheme,
+    children = [
+      makeLogo ()
 
-    makeThinText "sign up with email"
-    |> margin Thicknesses.bigUpperSpace
+      makeThinText "sign up with email"
+      |> margin Thicknesses.bigUpperSpace
 
-    makeEntry
-      None
-      None
-      "First name"
-      (Some Images.userIcon)
-      NameString.value
-      (bindNewText dispatch SetFirstName)
-      model.FirstName
+      makeEntry
+        None
+        None
+        "First name"
+        (Some Images.userIcon)
+        NameString.value
+        (bindNewText dispatch SetFirstName)
+        model.FirstName
         
-    makeEntry
-      None
-      None
-      "Last name"
-      (Some Images.userIcon)
-      NameString.value
-      (bindNewText dispatch SetLastName)
-      model.LastName
+      makeEntry
+        None
+        None
+        "Last name"
+        (Some Images.userIcon)
+        NameString.value
+        (bindNewText dispatch SetLastName)
+        model.LastName
         
-    makeEntry
-      None
-      (Some Keyboard.Email)
-      "Email"
-      (Some Images.envelopeIcon)
-      EmailAddress.value
-      (bindNewText dispatch SetEmail)
-      model.Email
+      makeEntry
+        None
+        (Some Keyboard.Email)
+        "Email"
+        (Some Images.envelopeIcon)
+        EmailAddress.value
+        (bindNewText dispatch SetEmail)
+        model.Email
         
-    makeEntry
-      (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
-      None
-      "Password"
-      (Some Images.lockIcon)
-      Password.value
-      (bindNewText dispatch SetPassword)
-      model.Password
+      makeEntry
+        (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
+        None
+        "Password"
+        (Some Images.lockIcon)
+        Password.value
+        (bindNewText dispatch SetPassword)
+        model.Password
         
-    makeEntry
-      (Some (model.PasswordRepeatHidden, bindPress dispatch SwapPasswordRepeatHidden))
-      None
-      "Re-enter password"
-      (Some Images.lockIcon)
-      id
-      (bindNewText dispatch SetRepeatPassword)
-      model.RepeatPassword
-    |> margin Thicknesses.mediumLowerSpace
+      makeEntry
+        (Some (model.PasswordRepeatHidden, bindPress dispatch SwapPasswordRepeatHidden))
+        None
+        "Re-enter password"
+        (Some Images.lockIcon)
+        id
+        (bindNewText dispatch SetRepeatPassword)
+        model.RepeatPassword
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeButton
-      (model.IsValid())
-      (bindPress dispatch ClickSignUp)
-      "sign up"
-    |> margin Thicknesses.mediumLowerSpace
+      makeButton
+        (model.IsValid())
+        (bindPress dispatch ClickSignUp)
+        "sign up"
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeLink
-      (bindPress dispatch ClickGoToSignIn)
-      "already registered?"
-    |> margin Thicknesses.mediumLowerSpace
-  ]
+      makeLink
+        (bindPress dispatch ClickGoToSignIn)
+        "already registered?"
+      |> margin Thicknesses.mediumLowerSpace
+    ]
+  )

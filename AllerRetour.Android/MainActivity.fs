@@ -1,15 +1,11 @@
 namespace AllerRetour.Android
 
 open System
-
 open Android.App
-open Android.Content
 open Android.Content.PM
 open Android.Runtime
 open Android.Views
-open Android.Widget
 open Android.OS
-open Xamarin.Forms
 open Xamarin.Forms.Platform.Android
 open Xamarin.Forms.PlatformConfiguration
 open Xamarin.Forms.PlatformConfiguration.AndroidSpecific
@@ -24,32 +20,58 @@ open Xamarin.Forms.PlatformConfiguration.AndroidSpecific
 )>]
 type MainActivity() =
   inherit FormsAppCompatActivity()
+
+  let mutable softInputAssist : SoftInputAssist =  null
+        
   override this.OnCreate (bundle: Bundle) =
     FormsAppCompatActivity.TabLayoutResource <- Resources.Layout.Tabbar
     FormsAppCompatActivity.ToolbarResource <- Resources.Layout.Toolbar
+
     base.OnCreate (bundle)
-
-
-    Xamarin.Essentials.Platform.Init(this, bundle)
-
-    Xamarin.Forms.Forms.Init (this, bundle)
 
     //global.ZXing.Net.Mobile.Forms.Android.Platform.Init()
 
-    let appcore  = new AllerRetour.App()
-    this.LoadApplication (appcore)
+    Xamarin.Essentials.Platform.Init(this, bundle)
+    Xamarin.Forms.Forms.Init(this, bundle)
+
+    if Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat && Build.VERSION.SdkInt < BuildVersionCodes.Lollipop then
+      this.Window.AddFlags(WindowManagerFlags.TranslucentStatus)
+
+    if Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat then
+      this.Window.DecorView.SystemUiVisibility <-
+        SystemUiFlags.LayoutStable
+        ||| SystemUiFlags.LayoutFullscreen
+        |> LanguagePrimitives.EnumToValue
+        |> LanguagePrimitives.EnumOfValue
+    
+    if Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop then
+      this.Window.ClearFlags(WindowManagerFlags.TranslucentStatus)
+      this.Window.SetStatusBarColor(Android.Graphics.Color.Transparent)
+
+    this.Window.SetSoftInputMode(SoftInput.AdjustResize)
 
     FFImageLoading.Forms.Platform.CachedImageRenderer.Init(enableFastRenderer = Nullable(true))
 
-    Application
-      .Current
-      .On<Android>()
-      .UseWindowSoftInputModeAdjust(WindowSoftInputModeAdjust.Resize)
-    |> ignore
+    let appcore = new AllerRetour.App()
+    this.LoadApplication (appcore)
 
+    softInputAssist <- SoftInputAssist(this)
 
-  override this.OnRequestPermissionsResult(requestCode: int, permissions: string[], [<GeneratedEnum>] grantResults: Android.Content.PM.Permission[]) =
+  override _.OnRequestPermissionsResult(requestCode: int, permissions: string[], [<GeneratedEnum>] grantResults: Android.Content.PM.Permission[]) =
     Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults)
 
     //global.ZXing.Net.Mobile.Android.PermissionsHandler.OnRequestPermissionsResult (requestCode, permissions, grantResults)
+
     base.OnRequestPermissionsResult(requestCode, permissions, grantResults)
+
+  override _.OnResume() =
+    softInputAssist.OnResume()
+    base.OnResume()
+
+  override _.OnPause() =
+    softInputAssist.OnPause()
+    base.OnPause()
+
+  override _.OnDestroy() =
+    softInputAssist.OnDestroy()
+    base.OnDestroy()

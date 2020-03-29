@@ -1,6 +1,5 @@
 module AllerRetour.SignInPage
 
-open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
@@ -70,45 +69,48 @@ let update msg (model: Model) =
     model, GoToForgotPassword
 
 let view (model: Model) dispatch =
-  makeScrollStackPage [
-    makeLogo ()
+  View.MakeScrollStackPage(
+    isDarkTheme = GlobalSettings.IsDarkTheme,
+    children = [
+      makeLogo ()
 
-    makeLabel "justCash"
-    |> margin Thicknesses.bigUpperSpace
+      makeLabel "justCash"
+      |> margin Thicknesses.bigUpperSpace
 
-    makeThinText "save on shopping\nsimply and tastefully"
-    |> margin Thicknesses.bigLowerSpace
+      makeThinText "save on shopping\nsimply and tastefully"
+      |> margin Thicknesses.bigLowerSpace
 
-    makeThinText "login with email"
+      makeThinText "login with email"
+
+      View.MakeEntry(
+        model.Email,
+        "Email",
+        EmailAddress.value,
+        (bindNewText dispatch SetEmail),
+        keyboard = Keyboard.Email,
+        image = Images.envelopeIcon
+      )
     
-    makeEntry
-      None
-      (Some Keyboard.Email)
-      "Email"
-      (Some Images.envelopeIcon)
-      EmailAddress.value
-      (bindNewText dispatch SetEmail)
-      model.Email
-    
-    makeEntry
-      (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
-      None
-      "Password"
-      (Some Images.lockIcon)
-      Password.value
-      (bindNewText dispatch SetPassword)
-      model.Password
-    |> margin Thicknesses.mediumLowerSpace
+      makeEntry
+        (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
+        None
+        "Password"
+        (Some Images.lockIcon)
+        Password.value
+        (bindNewText dispatch SetPassword)
+        model.Password
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeButton
-      (model.IsValid())
-      (bindPress dispatch ClickSignIn)
-      "log in"
-    |> margin Thicknesses.mediumLowerSpace
+      makeButton
+        (model.IsValid())
+        (bindPress dispatch ClickSignIn)
+        "log in"
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeDuoGrid
-      (makeLink (bindPress dispatch ClickToForgotPassword) "forgot password?"
-      |> margin Thicknesses.duoGridCentering)
-      (makeNavButton (bindPress dispatch ClickGoToSignUp) "sign up")
-    |> margin Thicknesses.mediumLowerSpace
-  ]
+      makeDuoGrid
+        (makeLink (bindPress dispatch ClickToForgotPassword) "forgot password?"
+        |> margin Thicknesses.duoGridCentering)
+        (makeNavButton (bindPress dispatch ClickGoToSignUp) "sign up")
+      |> margin Thicknesses.mediumLowerSpace
+    ]
+  )

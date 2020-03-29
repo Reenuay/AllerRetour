@@ -99,44 +99,48 @@ let update msg (model: Model) =
     model, GoBack
 
 let view model dispatch =
-  makeScrollStack LayoutOptions.StartAndExpand [
-    makeBackButton (bindPress dispatch ClickGoBack)
+  View.MakeScrollStack(
+    isDarkTheme = GlobalSettings.IsDarkTheme,
+    verticalOptions = LayoutOptions.StartAndExpand,
+    children = [
+      makeBackButton (bindPress dispatch ClickGoBack)
 
-    Images.passwordChange
-    |> makeCircle
-    |> margin Thicknesses.mediumUpperBigLowerSpace
+      Images.passwordChange
+      |> makeCircle
+      |> margin Thicknesses.mediumUpperBigLowerSpace
 
-    makeEntry
-      (Some (model.NewPasswordHidden, bindPress dispatch SwapNewPasswordHidden))
-      None
-      "New password"
-      None
-      Password.value
-      (bindNewText dispatch SetNewPassword)
-      model.NewPassword
+      makeEntry
+        (Some (model.NewPasswordHidden, bindPress dispatch SwapNewPasswordHidden))
+        None
+        "New password"
+        None
+        Password.value
+        (bindNewText dispatch SetNewPassword)
+        model.NewPassword
         
-    makeEntry
-      (Some (model.RepeatNewPasswordHidden, bindPress dispatch SwapRepeatNewPasswordHidden))
-      None
-      "Repeat new password"
-      None
-      id
-      (bindNewText dispatch SetRepeatNewPassword)
-      model.RepeatNewPassword
+      makeEntry
+        (Some (model.RepeatNewPasswordHidden, bindPress dispatch SwapRepeatNewPasswordHidden))
+        None
+        "Repeat new password"
+        None
+        id
+        (bindNewText dispatch SetRepeatNewPassword)
+        model.RepeatNewPassword
         
-    makeEntry
-      (Some (model.OldPasswordHidden, bindPress dispatch SwapOldPasswordHidden))
-      None
-      "Old password"
-      None
-      Password.value
-      (bindNewText dispatch SetOldPassword)
-      model.OldPassword
-    |> margin Thicknesses.mediumLowerSpace
+      makeEntry
+        (Some (model.OldPasswordHidden, bindPress dispatch SwapOldPasswordHidden))
+        None
+        "Old password"
+        None
+        Password.value
+        (bindNewText dispatch SetOldPassword)
+        model.OldPassword
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeButton
-      (model.IsValid())
-      (bindPress dispatch ClickChange)
-      "change"
-    |> margin Thicknesses.mediumLowerSpace
-  ]
+      makeButton
+        (model.IsValid())
+        (bindPress dispatch ClickChange)
+        "change"
+      |> margin Thicknesses.mediumLowerSpace
+    ]
+  )

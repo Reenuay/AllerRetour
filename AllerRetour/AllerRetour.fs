@@ -187,42 +187,6 @@ module App =
       | MainPage.ChangePassword r -> Cmd.ofMsg (ChangePassword r)
     newModel, cmd
 
-  let handlePageMsg pMsg aModel =
-    match pMsg, aModel.PageModel with
-    | SignInPageMsg msg, SignInPageModel model ->
-      let newModel, cmd = handleSignInMsg msg model
-      { aModel with PageModel = SignInPageModel newModel }, cmd
-
-    | SignUpPageMsg msg, SignUpPageModel model ->
-      let newModel, cmd = handleSignUpMsg msg model
-      { aModel with PageModel = SignUpPageModel newModel }, cmd
-
-    | ForgotPasswordPageMsg msg, ForgotPasswordPageModel model ->
-      let newModel, cmd = handleForgotPasswordMsg msg model
-      { aModel with PageModel = ForgotPasswordPageModel newModel }, cmd
-
-    | ResetPasswordPageMsg msg, ResetPasswordPageModel model ->
-      let newModel, cmd = handleResetPasswordMsg msg model
-      { aModel with PageModel = ResetPasswordPageModel newModel }, cmd
-
-    | SignUpSuccessPageMsg msg, SignUpSuccessPageModel model ->
-      let newModel, cmd = handleSignUpSuccessMsg msg model
-      { aModel with PageModel = SignUpSuccessPageModel newModel }, cmd
-
-    | ResendEmailPageMsg msg, ResendEmailPageModel model ->
-      let newModel, cmd = handleResendEmailMsg msg model
-      { aModel with PageModel = ResendEmailPageModel newModel }, cmd
-
-    | ChangeEmailPageMsg msg, ChangeEmailPageModel model ->
-      let newModel, cmd = handleChangeEmailMsg msg model
-      { aModel with PageModel = ChangeEmailPageModel newModel }, cmd
-
-    | MainPageMsg msg, MainPageModel model ->
-      let newModel, cmd = handleMainMsg msg model
-      { aModel with PageModel = MainPageModel newModel }, cmd
-
-    | _, _ -> aModel, Cmd.none
-
   let handleTwoTrackHttp model fSuccess =
     either
       fSuccess
@@ -403,6 +367,42 @@ module App =
 
     | None ->
       model, Cmd.none
+
+  let handlePageMsg pMsg aModel =
+    match pMsg, aModel.PageModel with
+    | SignInPageMsg msg, SignInPageModel model ->
+      let newModel, cmd = handleSignInMsg msg model
+      { aModel with PageModel = SignInPageModel newModel }, cmd
+
+    | SignUpPageMsg msg, SignUpPageModel model ->
+      let newModel, cmd = handleSignUpMsg msg model
+      { aModel with PageModel = SignUpPageModel newModel }, cmd
+
+    | ForgotPasswordPageMsg msg, ForgotPasswordPageModel model ->
+      let newModel, cmd = handleForgotPasswordMsg msg model
+      { aModel with PageModel = ForgotPasswordPageModel newModel }, cmd
+
+    | ResetPasswordPageMsg msg, ResetPasswordPageModel model ->
+      let newModel, cmd = handleResetPasswordMsg msg model
+      { aModel with PageModel = ResetPasswordPageModel newModel }, cmd
+
+    | SignUpSuccessPageMsg msg, SignUpSuccessPageModel model ->
+      let newModel, cmd = handleSignUpSuccessMsg msg model
+      { aModel with PageModel = SignUpSuccessPageModel newModel }, cmd
+
+    | ResendEmailPageMsg msg, ResendEmailPageModel model ->
+      let newModel, cmd = handleResendEmailMsg msg model
+      { aModel with PageModel = ResendEmailPageModel newModel }, cmd
+
+    | ChangeEmailPageMsg msg, ChangeEmailPageModel model ->
+      let newModel, cmd = handleChangeEmailMsg msg model
+      { aModel with PageModel = ChangeEmailPageModel newModel }, cmd
+
+    | MainPageMsg msg, MainPageModel model ->
+      let newModel, cmd = handleMainMsg msg model
+      { aModel with PageModel = MainPageModel newModel }, cmd
+
+    | _, _ -> aModel, Cmd.none
       
   let update aMsg aModel =
     match aMsg with
@@ -521,5 +521,3 @@ type App () as app =
     Console.WriteLine "OnStart: using same logic as OnResume()"
     this.OnResume()
 #endif
-
-

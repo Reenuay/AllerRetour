@@ -81,35 +81,39 @@ let update msg (model: Model) =
     model, GoBack
 
 let view (model: Model) dispatch =
-  makeScrollStack LayoutOptions.StartAndExpand [
-    makeBackButton (bindPress dispatch ClickGoBack)
+  View.MakeScrollStack(
+    isDarkTheme = GlobalSettings.IsDarkTheme,
+    verticalOptions = LayoutOptions.StartAndExpand,
+    children = [
+      makeBackButton (bindPress dispatch ClickGoBack)
 
-    Images.passwordChange
-    |> makeCircle
-    |> margin Thicknesses.mediumUpperBigLowerSpace
+      Images.passwordChange
+      |> makeCircle
+      |> margin Thicknesses.mediumUpperBigLowerSpace
 
-    makeEntry
-      None
-      (Some Keyboard.Email)
-      "New email"
-      None
-      EmailAddress.value
-      (bindNewText dispatch SetEmail)
-      model.Email
+      makeEntry
+        None
+        (Some Keyboard.Email)
+        "New email"
+        None
+        EmailAddress.value
+        (bindNewText dispatch SetEmail)
+        model.Email
         
-    makeEntry
-      (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
-      None
-      "Password"
-      None
-      Password.value
-      (bindNewText dispatch SetPassword)
-      model.Password
-    |> margin Thicknesses.mediumLowerSpace
+      makeEntry
+        (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
+        None
+        "Password"
+        None
+        Password.value
+        (bindNewText dispatch SetPassword)
+        model.Password
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeButton
-      (model.IsValid())
-      (bindPress dispatch ClickChange)
-      "change"
-    |> margin Thicknesses.mediumLowerSpace
-  ]
+      makeButton
+        (model.IsValid())
+        (bindPress dispatch ClickChange)
+        "change"
+      |> margin Thicknesses.mediumLowerSpace
+    ]
+  )

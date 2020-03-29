@@ -1,6 +1,5 @@
 module AllerRetour.ValidationPredicates
 
-open System
 open System.Net.Mail
 open System.Text.RegularExpressions
 

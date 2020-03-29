@@ -25,40 +25,45 @@ let initModel = emptyString
 let update msg (model: Model) =
   match msg with
   | SetEmail e -> adaptV EmailAddress.create e, NoOp
+
   | ClickSend ->
     match model with
     | Success e -> model, Send { Email = EmailAddress.value e }
     | Failure (x, _) -> adaptV EmailAddress.create x, NoOp
+
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view (model: Model) dispatch =
-  makeScrollStackPage [
-    Images.forgotPassword
-    |> makeCircle
-    |> margin Thicknesses.mediumUpperBigLowerSpace
+  View.MakeScrollStackPage(
+    isDarkTheme = GlobalSettings.IsDarkTheme,
+    children = [
+      Images.forgotPassword
+      |> makeCircle
+      |> margin Thicknesses.mediumUpperBigLowerSpace
 
-    makeInfoText "Please enter your registered email ID"
+      makeInfoText "Please enter your registered email ID"
 
-    makeThinText "We will send a verification code\n to your registered email ID"
+      makeThinText "We will send a verification code\n to your registered email ID"
 
-    makeEntry
-      None
-      (Some Keyboard.Email)
-      "Email"
-      (Some Images.envelopeIcon)
-      EmailAddress.value
-      (bindNewText dispatch SetEmail)
-      model
-    |> margin Thicknesses.mediumLowerSpace
+      makeEntry
+        None
+        (Some Keyboard.Email)
+        "Email"
+        (Some Images.envelopeIcon)
+        EmailAddress.value
+        (bindNewText dispatch SetEmail)
+        model
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeButton
-      (TwoTrackResult.isSuccess model)
-      (bindPress dispatch ClickSend)
-      "send"
-    |> margin Thicknesses.mediumLowerSpace
+      makeButton
+        (TwoTrackResult.isSuccess model)
+        (bindPress dispatch ClickSend)
+        "send"
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeNavButton
-      (bindPress dispatch ClickGoToSignIn)
-      "log in"
-    |> margin Thicknesses.mediumLowerSpace
-  ]
+      makeNavButton
+        (bindPress dispatch ClickGoToSignIn)
+        "log in"
+      |> margin Thicknesses.mediumLowerSpace
+    ]
+  )

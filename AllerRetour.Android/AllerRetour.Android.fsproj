@@ -47,9 +47,10 @@
     <MandroidI18n />
     <AndroidUseSharedRuntime>true</AndroidUseSharedRuntime>
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+    <AndroidSupportedAbis />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
+    <DebugSymbols>false</DebugSymbols>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release</OutputPath>
@@ -172,6 +173,7 @@
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />
     <Compile Include="Properties\AssemblyInfo.fs" />
+    <Compile Include="SoftInputAssist.fs" />
     <Compile Include="MainActivity.fs" />
     <None Include="Assets\AboutAssets.txt" />
     <AndroidAsset Include="Assets\Helvetica.ttf" />
@@ -200,6 +202,10 @@
     <AndroidResource Include="Resources\drawable\list.png" />
     <AndroidResource Include="Resources\drawable\backButton.png" />
     <AndroidResource Include="Resources\drawable\profile.png" />
+    <AndroidResource Include="Resources\drawable\backgroundLight.png" />
+    <AndroidResource Include="Resources\drawable\tabDarkShadow.png" />
+    <AndroidResource Include="Resources\drawable\tabDark.png" />
+    <AndroidResource Include="Resources\drawable\profileIconLight.png" />
     <AndroidResource Include="Resources\layout\Tabbar.axml" />
     <AndroidResource Include="Resources\layout\Toolbar.axml" />
     <AndroidResource Include="Resources\values\styles.xml" />

@@ -1,8 +1,6 @@
 module AllerRetour.Http
 
-open System
 open FSharp.Data
-
 open RequestTypes
 open ResponseTypes
 

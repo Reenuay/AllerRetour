@@ -1,6 +1,5 @@
 module AllerRetour.Resources
 
-open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 
@@ -11,6 +10,7 @@ module Colors =
 
 module Images =
   let backgroundDark = Path "background_dark.png"
+  let backgroundLight = Path "backgroundLight.png"
   let logo = Path "logo.png"
   let envelopeIcon = Path "envelope.png"
   let lockIcon = Path "lock.png"
@@ -23,8 +23,11 @@ module Images =
   let success = Path "success.png"
   let profileIcon = Path "profileIcon.png"
   let profileIconActive = Path "profileIconActive.png"
+  let profileIconLight = Path "profileIconLight.png"
   let tabLight = Path "tabLight.png"
   let tabLightShadow = Path "tabLightShadow.png"
+  let tabDark = Path "tabDark.png"
+  let tabDarkShadow = Path "tabDarkShadow.png"
   let list = Path "list.png"
   let backButton = Path "backButton.png"
   let profile = Path "profile.png"

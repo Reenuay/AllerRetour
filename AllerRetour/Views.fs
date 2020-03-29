@@ -4,6 +4,7 @@ open System
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
+open PrimitiveTypes
 open Resources
 
 let screenSize () = Device.Info.ScaledScreenSize
@@ -43,14 +44,14 @@ let makeInfoText = makeText FontSizes.light Fonts.segoeUiLight Opacities.opaque
 
 let makeThinText = makeText FontSizes.thin Fonts.segoeUiLight Opacities.light
 
-let makeEntry passwordOptions keyboard placeholder image fSuccess dispatch v =
+let makeEntry passwordOptions keyboard placeholder image map dispatch v =
   let isPassword = function
   | Some (isSet, _) -> isSet
   | None -> false
 
   let text, error =
     match v with
-    | Success x -> fSuccess x, ""
+    | Success x -> map x, ""
     | Failure (v, l) -> v, foldErrors l
 
   View.Grid(
@@ -229,34 +230,6 @@ let makeCircle2 radius content =
   )
   |> borderWidth 1.
 
-
-let makeScrollStack verticalOptions children =
-  View.Grid(
-    rowSpacing = 0.,
-    columnSpacing = 0.,
-    verticalOptions = LayoutOptions.FillAndExpand,
-    children = [
-      View.Image(
-        source = Images.backgroundDark,
-        aspect = Aspect.AspectFill
-      )
-      View.ScrollView(
-        content =
-          View.StackLayout(
-            horizontalOptions = LayoutOptions.CenterAndExpand,
-            verticalOptions = verticalOptions,
-            children = children
-          )
-      )
-    ]
-  )
-
-let makeScrollStackPage children =
-  View.ContentPage(
-    useSafeArea = true,
-    content = makeScrollStack LayoutOptions.CenterAndExpand children
-  )
-
 let makeDuoStack first second =
   View.StackLayout(
     children = [
@@ -300,3 +273,64 @@ let makeProfilePageButton command text =
     backgroundColor = Color.Transparent,
     textColor = Colors.accent
   )
+
+type View with
+  static member MakeEntry
+    (
+      value,
+      placeholder,
+      map,
+      dispatch,
+      ?passwordOptions,
+      ?keyboard,
+      ?image
+    ) =
+    makeEntry passwordOptions keyboard placeholder image map dispatch value
+
+  static member MakeScrollStack
+    (
+      ?children,
+      ?isDarkTheme,
+      ?verticalOptions
+    ) =
+    let isDarkTheme = Option.defaultValue false isDarkTheme
+
+    View.AbsoluteLayout(
+      verticalOptions = LayoutOptions.FillAndExpand,
+      children = [
+        View.Image(
+          source = (if isDarkTheme then Images.backgroundDark else Images.backgroundLight),
+          aspect = Aspect.AspectFill
+        )
+          .LayoutFlags(AbsoluteLayoutFlags.PositionProportional ||| AbsoluteLayoutFlags.WidthProportional)
+          .LayoutBounds(Rectangle(0., 0., 1., screenHeight()))
+
+        View.ScrollView(
+          content =
+            View.StackLayout(
+              horizontalOptions = LayoutOptions.CenterAndExpand,
+              ?verticalOptions = verticalOptions,
+              ?children = children
+            )
+        )
+          .LayoutFlags(AbsoluteLayoutFlags.All)
+          .LayoutBounds(Rectangle(0., 0., 1., 1.))
+      ]
+    )
+
+  static member MakeScrollStackPage
+    (
+      ?children,
+      ?isDarkTheme,
+      ?verticalOptions
+    ) =
+    let verticalOptions = Option.defaultValue LayoutOptions.FillAndExpand verticalOptions
+
+    View.ContentPage(
+      useSafeArea = true,
+      content = View.MakeScrollStack(
+        ?children = children,
+        ?isDarkTheme = isDarkTheme,
+        verticalOptions = verticalOptions
+      )
+    )

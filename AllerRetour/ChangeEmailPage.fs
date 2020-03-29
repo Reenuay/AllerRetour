@@ -81,41 +81,44 @@ let update msg (model: Model) =
     model, GoToSignIn
 
 let view (model: Model) dispatch =
-  makeScrollStackPage [
-    Images.passwordChange
-    |> makeCircle
-    |> margin Thicknesses.mediumUpperBigLowerSpace
+  View.MakeScrollStackPage(
+    isDarkTheme = GlobalSettings.IsDarkTheme,
+    children = [
+      Images.passwordChange
+      |> makeCircle
+      |> margin Thicknesses.mediumUpperBigLowerSpace
 
-    makeInfoText "Please enter new email"
-    |> margin Thicknesses.mediumLowerSpace
+      makeInfoText "Please enter new email"
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeEntry
-      None
-      (Some Keyboard.Email)
-      "New email"
-      (Some Images.envelopeIcon)
-      EmailAddress.value
-      (bindNewText dispatch SetEmail)
-      model.Email
+      makeEntry
+        None
+        (Some Keyboard.Email)
+        "New email"
+        (Some Images.envelopeIcon)
+        EmailAddress.value
+        (bindNewText dispatch SetEmail)
+        model.Email
         
-    makeEntry
-      (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
-      None
-      "Password"
-      (Some Images.lockIcon)
-      Password.value
-      (bindNewText dispatch SetPassword)
-      model.Password
-    |> margin Thicknesses.mediumLowerSpace
+      makeEntry
+        (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
+        None
+        "Password"
+        (Some Images.lockIcon)
+        Password.value
+        (bindNewText dispatch SetPassword)
+        model.Password
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeButton
-      (model.IsValid())
-      (bindPress dispatch ClickChange)
-      "change"
-    |> margin Thicknesses.mediumLowerSpace
+      makeButton
+        (model.IsValid())
+        (bindPress dispatch ClickChange)
+        "change"
+      |> margin Thicknesses.mediumLowerSpace
 
-    makeNavButton
-      (bindPress dispatch ClickGoToSignIn)
-      "log in"
-    |> margin Thicknesses.mediumLowerSpace
-  ]
+      makeNavButton
+        (bindPress dispatch ClickGoToSignIn)
+        "log in"
+      |> margin Thicknesses.mediumLowerSpace
+    ]
+  )

@@ -1,7 +1,5 @@
 module AllerRetour.QRCode
 
-open System
-open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 open ZXing.Net.Mobile.Forms
@@ -21,4 +19,3 @@ let create value =
   qr.BarcodeValue <- value
 
   View.External(qr)
-  

@@ -15,6 +15,7 @@ type Page =
   | ForProfileEdit of EditProfileSubPage.Model
   | ForEmailChange of ChangeEmailSubPage.Model
   | ForPasswordChange of ChangePasswordSubPage.Model
+  | ForSettings
 
 type Model = {
   CardId: string
@@ -39,11 +40,13 @@ type Msg =
   | ClickEditProfile
   | ClickChangeEmail
   | ClickChangePassword
+  | ClickSettings
   | ClickSignOut
   | ChangeTab of int
   | EditProfilePageMsg of EditProfileSubPage.Msg
   | ChangeEmailPageMsg of ChangeEmailSubPage.Msg
   | ChangePasswordPageMsg of ChangePasswordSubPage.Msg
+  | SettingsPageMsg of SettingsPage.Msg
 
 type ExternalMsg =
   | NoOp
@@ -103,6 +106,10 @@ let update msg model =
   | ClickChangePassword ->
     let p = ForPasswordChange ChangePasswordSubPage.initModel
     { model with PageStack = p::model.PageStack }, NoOp
+
+  | ClickSettings ->
+    let s = ForSettings
+    { model with PageStack = s::model.PageStack }, NoOp
 
   | ClickSignOut ->
     model, SignOut
@@ -199,22 +206,54 @@ let update msg model =
     | _ ->
       model, NoOp
 
+  | SettingsPageMsg sMsg ->
+    match sMsg with
+    | SettingsPage.ChangeTheme t ->
+      GlobalSettings.Settings := { GlobalSettings.Settings.Value with Theme = t }
+      model, NoOp
+
+    | SettingsPage.ClickGoBack ->
+      { model with PageStack = model.PageStack.Tail }, NoOp
+
 let tabs = [
-  Images.profileIcon, Images.profileIconActive, "home"
-  Images.profileIcon, Images.profileIconActive, "notifications"
-  Images.profileIcon, Images.profileIconActive, "my card"
-  Images.profileIcon, Images.profileIconActive, "search"
-  Images.profileIcon, Images.profileIconActive, "profile"
+  Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "home"
+  Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "notifications"
+  Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "my card"
+  Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "search"
+  Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "profile"
 ]
 
 let tabCount = List.length tabs
 
-let makeTab column isLast isActive dispatch icon iconActive title =
-  let c = if isActive then Colors.accent else Colors.backgroundDark
+let makeTab column isLast isActive dispatch icon iconActive title isDarkTheme =
+  let c =
+    if not isDarkTheme then
+      Color.White
+    else if isActive then
+      Colors.accent
+    else
+      Colors.backgroundDark
+
+  let opacity =
+    if isActive || isDarkTheme then
+      Opacities.light
+    else
+      0.6
 
   [
     View.Image(
-      source = (if isLast then Images.tabLight else Images.tabLightShadow),
+      source = (
+        if isLast then
+          if isDarkTheme then
+            Images.tabLight
+          else
+            Images.tabDark
+        else
+          if isDarkTheme then
+            Images.tabLightShadow
+          else
+            Images.tabDarkShadow
+      ),
       aspect = Aspect.Fill
     ).Column(column)
 
@@ -227,14 +266,25 @@ let makeTab column isLast isActive dispatch icon iconActive title =
       padding = Thickness 2.,
       children = [
         View.Image(
-          source = (if isActive then iconActive else icon),
-          aspect = Aspect.AspectFill
+          source = (
+            if isActive && isDarkTheme then
+              iconActive
+             else
+              icon
+          ),
+          opacity = opacity,
+          aspect = Aspect.AspectFill,
+          margin = Thickness 6.,
+          horizontalOptions = LayoutOptions.Center,
+          verticalOptions = LayoutOptions.Center
         )
-        |> horizontalOptions LayoutOptions.Center
-        |> verticalOptions LayoutOptions.Center
-        |> margin (Thickness 6.)
 
-        (makeText FontSizes.xtrasmall Fonts.renogare Opacities.opaque title).Row(1)
+        (makeText
+          FontSizes.xtrasmall
+          Fonts.renogare
+          opacity
+          title
+          ).Row(1)
         |> textColor c
         |> horizontalOptions LayoutOptions.Center
         |> verticalOptions LayoutOptions.Center
@@ -246,122 +296,148 @@ let makeTab column isLast isActive dispatch icon iconActive title =
     ).Column(column)
   ]
 
-let homePage =
-  fix (fun () ->
-    makeScrollStack LayoutOptions.CenterAndExpand [
-      View.Grid(
-        rowSpacing = 0.,
-        columnSpacing = 0.,
-        coldefs = List.replicate 3 Star,
-        margin = Thickness (20., 35., 20., 0.),
-        children = [
-          makeDuoStack
-            (makeCircle2 (screenWidth() * 0.2) (makeInfoText "0,00"))
-            (makeInfoText "last month"
-            |> margin Thicknesses.eight)
-
-          (makeDuoStack
-            ((makeCircle2 (screenWidth() * 0.3) (makeHomeText "0,00")))
-            ((makeInfoText "total")
-            |> margin Thicknesses.eight)).Column(1)
-
-          (makeDuoStack
-            ((makeCircle2 (screenWidth() * 0.2) (makeInfoText "0,00")))
-            ((makeInfoText "current balance")
-            |> margin Thicknesses.eight)).Column(2)
-        ]
-      )
-      
-      View.Image(
-        source = Images.list,
-        aspect = Aspect.AspectFill
-      )
-      |> horizontalOptions LayoutOptions.Center
-      |> margin (Thickness (20., 20., 20., 70.))
-    ]
-  )
-
-let stub =
-  fix (
-    fun () ->
-      makeScrollStack LayoutOptions.CenterAndExpand [
-        makeInfoText "Coming soon..."
-      ]
-  )
-
 let divider =
   makeHorizontalDivider ()
   |> margin (Thickness (20., 0.))
   |> verticalOptions LayoutOptions.Start
 
 let view model (dispatch: Msg -> unit) =
+  let homePage =
+    dependsOn
+      (GlobalSettings.IsDarkTheme)
+      (fun model isDarkTheme ->
+        View.MakeScrollStack(
+          isDarkTheme = isDarkTheme,
+          verticalOptions = LayoutOptions.StartAndExpand,
+          children = [
+            View.Grid(
+              rowSpacing = 0.,
+              columnSpacing = 0.,
+              coldefs = List.replicate 3 Star,
+              margin = Thickness (20., 35., 20., 0.),
+              children = [
+                makeDuoStack
+                  (makeCircle2 (screenWidth() * 0.2) (makeInfoText "0,00"))
+                  (makeInfoText "last month"
+                  |> margin Thicknesses.eight)
+  
+                (makeDuoStack
+                  ((makeCircle2 (screenWidth() * 0.3) (makeHomeText "0,00")))
+                  ((makeInfoText "total")
+                  |> margin Thicknesses.eight)).Column(1)
+  
+                (makeDuoStack
+                  ((makeCircle2 (screenWidth() * 0.2) (makeInfoText "0,00")))
+                  ((makeInfoText "current balance")
+                  |> margin Thicknesses.eight)).Column(2)
+              ]
+            )
+        
+            View.Image(
+              source = Images.list,
+              aspect = Aspect.AspectFill,
+              horizontalOptions = LayoutOptions.Center,
+              margin = (Thickness (20., 20., 20., 70.))
+            )
+          ]
+        )
+      )
+
+  let stub =
+    dependsOn
+      (GlobalSettings.IsDarkTheme)
+      (fun model isDarkTheme ->
+        View.MakeScrollStack(
+          isDarkTheme = isDarkTheme,
+          verticalOptions = LayoutOptions.CenterAndExpand,
+          children = [
+            makeInfoText "Coming soon..."
+          ]
+        )
+      )
+
   let cardStub =
-    dependsOn (model.CardId) (
-      fun model (cardId) ->
-        makeScrollStack LayoutOptions.CenterAndExpand [
-          makeInfoText "Your card id"
-          makeHomeText (String.Format("{0:0000 0000 0000 0000}", Int64.Parse(cardId)))
-        ]
-    )
+    dependsOn
+      (model.CardId, GlobalSettings.IsDarkTheme)
+      (fun model (cardId, isDarkTheme) ->
+        View.MakeScrollStack(
+          isDarkTheme = isDarkTheme,
+          verticalOptions = LayoutOptions.CenterAndExpand,
+          children = [
+            makeInfoText "Your card id"
+            makeHomeText (String.Format("{0:0000 0000 0000 0000}", Int64.Parse(cardId)))
+          ]
+        )
+      )
 
   let profilePage =
     dependsOn
-      (model.CardId, model.FirstName, model.LastName, model.Email)
-      (fun model (cardId, firstName, lastName, email) ->
-        makeScrollStack LayoutOptions.StartAndExpand [
-          View.Grid(
-            rowSpacing = 0.,
-            columnSpacing = 0.,
-            coldefs = [Auto; Star],
-            margin = (Thickness (20., 35., 20., 50.)),
-            children = [
-              QRCode.create cardId
+      (model.CardId, model.FirstName, model.LastName, model.Email, GlobalSettings.IsDarkTheme)
+      (fun model (cardId, firstName, lastName, email, isDarkTheme) ->
+        View.MakeScrollStack(
+          isDarkTheme = isDarkTheme,
+          verticalOptions = LayoutOptions.StartAndExpand,
+          children = [
+            View.Grid(
+              rowSpacing = 0.,
+              columnSpacing = 0.,
+              coldefs = [Auto; Star],
+              margin = (Thickness (20., 35., 20., 50.)),
+              children = [
+                QRCode.create cardId
 
-              View.StackLayout(
-                children = [
-                  (makeHomeText (NameString.value firstName + " " + NameString.value lastName))
-                  |> margin (Thickness 4.)
-                  |> horizontalOptions LayoutOptions.Start
+                View.StackLayout(
+                  children = [
+                    (makeHomeText (NameString.value firstName + " " + NameString.value lastName))
+                    |> margin (Thickness 4.)
+                    |> horizontalOptions LayoutOptions.Start
 
-                  (makeInfoText (EmailAddress.value email))
-                  |> margin (Thickness 4.)
-                  |> horizontalOptions LayoutOptions.Start
-                ]
-              ).Column(1)
-              |> horizontalOptions LayoutOptions.Start
-              |> verticalOptions LayoutOptions.Start
-              |> margin (Thickness (10., 0., 0., 0.))
-            ]
-          )
-          |> verticalOptions LayoutOptions.StartAndExpand
+                    (makeInfoText (EmailAddress.value email))
+                    |> margin (Thickness 4.)
+                    |> horizontalOptions LayoutOptions.Start
+                  ]
+                ).Column(1)
+                |> horizontalOptions LayoutOptions.Start
+                |> verticalOptions LayoutOptions.Start
+                |> margin (Thickness (10., 0., 0., 0.))
+              ]
+            )
 
-          makeProfilePageButton
-            (bindPress dispatch ClickEditProfile)
-            "Edit profile"
+            makeProfilePageButton
+              (bindPress dispatch ClickEditProfile)
+              "Edit profile"
 
-          divider
+            divider
 
-          makeProfilePageButton
-            (bindPress dispatch ClickChangeEmail)
-            "Change email"
+            makeProfilePageButton
+              (bindPress dispatch ClickChangeEmail)
+              "Change email"
 
-          divider
+            divider
 
-          makeProfilePageButton
-            (bindPress dispatch ClickChangePassword)
-            "Change password"
+            makeProfilePageButton
+              (bindPress dispatch ClickChangePassword)
+              "Change password"
 
-          divider
+            divider
+
+            makeProfilePageButton
+              (bindPress dispatch ClickSettings)
+              "Settings"
+
+            divider
           
-          makeProfilePageButton
-            (bindPress dispatch ClickSignOut)
-            "Log out"
-        ])
+            makeProfilePageButton
+              (bindPress dispatch ClickSignOut)
+              "Log out"
+          ]
+        )
+      )
 
   let tabsView =
     dependsOn
-      (model.ActiveTabId)
-      (fun model (activeTabId) ->
+      (model.ActiveTabId, GlobalSettings.IsDarkTheme)
+      (fun model (activeTabId, isDarkTheme) ->
         View.Grid(
           coldefs = List.replicate 5 Star,
           rowSpacing = 0.,
@@ -372,15 +448,16 @@ let view model (dispatch: Msg -> unit) =
             for t
               in List.mapi
                 (
-                  fun i (icon, iconActive, title) ->
+                  fun i (icon, iconLight, iconActive, title) ->
                     makeTab
                       i
                       (tabCount - 1 = i)
                       (activeTabId = i)
                       (fun i () -> i |> ChangeTab |> dispatch)
-                      icon
+                      (if isDarkTheme then icon else iconLight)
                       iconActive
                       title
+                      isDarkTheme
                 ) tabs
               do
               yield! t
@@ -412,12 +489,14 @@ let view model (dispatch: Msg -> unit) =
                 ChangePasswordSubPage.view
                   pm
                   (ChangePasswordPageMsg >> dispatch)
+
+              | ForSettings ->
+                SettingsPage.view (SettingsPageMsg >> dispatch)
             ]
           else
             [
               match model.ActiveTabId with
               | 0 -> homePage
-              | 1 | 3 -> stub
               | 2 -> cardStub
               | 4 -> profilePage
               | _ -> stub

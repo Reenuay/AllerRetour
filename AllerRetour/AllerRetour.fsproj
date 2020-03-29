@@ -19,6 +19,7 @@
     <Compile Include="QRCode.fs" />
     <Compile Include="Views.fs" />
     <Compile Include="Http.fs" />
+    <Compile Include="GlobalSettings.fs" />
     <Compile Include="SignInPage.fs" />
     <Compile Include="SignUpPage.fs" />
     <Compile Include="ForgotPasswordPage.fs" />
@@ -29,6 +30,7 @@
     <Compile Include="EditProfileSubPage.fs" />
     <Compile Include="ChangeEmailSubPage.fs" />
     <Compile Include="ChangePasswordSubPage.fs" />
+    <Compile Include="SettingsPage.fs" />
     <Compile Include="MainPage.fs" />
     <Compile Include="AllerRetour.fs" />
   </ItemGroup>
