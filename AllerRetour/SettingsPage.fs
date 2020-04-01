@@ -13,13 +13,20 @@ let view dispatch =
 
   View.MakeScrollStack(
     isDarkTheme = GlobalSettings.IsDarkTheme,
+    dispatchBack = bindPress dispatch ClickGoBack,
     verticalOptions = LayoutOptions.StartAndExpand,
     children = [
-      makeBackButton (bindPress dispatch ClickGoBack)
+      View.StackLayout(
+        orientation = StackOrientation.Horizontal,
+        margin = Thickness (0., 20.),
+        children = [
+          View.Switch(
+            isToggled = AppTheme.isDark model.Theme,
+            toggled = (fun args -> dispatch (ChangeTheme (AppTheme.trueToDark args.Value)))
+          )
 
-      View.Switch(
-        isToggled = AppTheme.isDark model.Theme,
-        toggled = (fun args -> dispatch (ChangeTheme (AppTheme.trueToDark args.Value)))
+          makeInfoText "Dark theme"
+        ]
       )
     ]
   )

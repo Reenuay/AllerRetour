@@ -245,21 +245,6 @@ let makeHorizontalDivider () =
     horizontalOptions = LayoutOptions.FillAndExpand
   )
 
-let makeBackButton dispatch =
-  View.Image(
-    source = Images.backButton,
-    width = 15.,
-    aspect = Aspect.AspectFit,
-    margin = Thickness(0., 35., 0., 0.),
-    horizontalOptions = LayoutOptions.Start,
-    opacity = Opacities.light,
-    gestureRecognizers = [
-      View.TapGestureRecognizer(
-        command = dispatch
-      )
-    ]
-  )
-
 let makeProfilePageButton command text =
   View.Button(
     fontFamily = Fonts.segoeUiLight,
@@ -291,9 +276,23 @@ type View with
     (
       ?children,
       ?isDarkTheme,
-      ?verticalOptions
+      ?dispatchBack,
+      ?verticalOptions,
+      ?horizontalOptions
     ) =
     let isDarkTheme = Option.defaultValue false isDarkTheme
+    let allowBackButton = Option.isSome dispatchBack
+    let horizontalOptions = Option.defaultValue LayoutOptions.CenterAndExpand horizontalOptions
+
+    let scrollView =
+      View.ScrollView(
+        content =
+          View.StackLayout(
+            horizontalOptions = horizontalOptions,
+            ?verticalOptions = verticalOptions,
+            ?children = children
+          )
+      )
 
     View.AbsoluteLayout(
       verticalOptions = LayoutOptions.FillAndExpand,
@@ -305,13 +304,32 @@ type View with
           .LayoutFlags(AbsoluteLayoutFlags.PositionProportional ||| AbsoluteLayoutFlags.WidthProportional)
           .LayoutBounds(Rectangle(0., 0., 1., screenHeight()))
 
-        View.ScrollView(
-          content =
-            View.StackLayout(
-              horizontalOptions = LayoutOptions.CenterAndExpand,
-              ?verticalOptions = verticalOptions,
-              ?children = children
+        (
+          if allowBackButton then
+            View.Grid(
+              rowdefs = [Auto; Star],
+              rowSpacing = 0.,
+              columnSpacing = 0.,
+              children = [
+                View.Image(
+                  source = Images.backButton,
+                  width = 15.,
+                  aspect = Aspect.AspectFit,
+                  margin = Thickness(20., 35., 0., 0.),
+                  horizontalOptions = LayoutOptions.Start,
+                  opacity = Opacities.light,
+                  gestureRecognizers = [
+                    View.TapGestureRecognizer(
+                      command = Option.get dispatchBack
+                    )
+                  ]
+                )
+
+                scrollView.Row(1)
+              ]
             )
+          else
+            scrollView
         )
           .LayoutFlags(AbsoluteLayoutFlags.All)
           .LayoutBounds(Rectangle(0., 0., 1., 1.))
@@ -322,7 +340,9 @@ type View with
     (
       ?children,
       ?isDarkTheme,
-      ?verticalOptions
+      ?dispatchBack,
+      ?verticalOptions,
+      ?horizontalOptions
     ) =
     let verticalOptions = Option.defaultValue LayoutOptions.FillAndExpand verticalOptions
 
@@ -331,6 +351,8 @@ type View with
       content = View.MakeScrollStack(
         ?children = children,
         ?isDarkTheme = isDarkTheme,
+        ?dispatchBack = dispatchBack,
+        ?horizontalOptions = horizontalOptions,
         verticalOptions = verticalOptions
       )
     )

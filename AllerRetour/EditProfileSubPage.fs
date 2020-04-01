@@ -106,10 +106,9 @@ let update msg (model: Model) =
 let view model dispatch =
   View.MakeScrollStack(
     isDarkTheme = GlobalSettings.IsDarkTheme,
+    dispatchBack = bindPress dispatch ClickGoBack,
     verticalOptions = LayoutOptions.StartAndExpand,
     children = [
-      makeBackButton (bindPress dispatch ClickGoBack)
-
       Images.profile
       |> makeCircle
       |> margin Thicknesses.mediumUpperBigLowerSpace
