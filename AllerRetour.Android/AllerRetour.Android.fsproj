@@ -173,6 +173,8 @@
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />
     <Compile Include="Properties\AssemblyInfo.fs" />
+    <Compile Include="Effects\ShadowEffect.fs" />
+    <Compile Include="Effects\RegisterEffects.fs" />
     <Compile Include="SoftInputAssist.fs" />
     <Compile Include="MainActivity.fs" />
     <None Include="Assets\AboutAssets.txt" />
@@ -199,13 +201,13 @@
     <AndroidResource Include="Resources\drawable\tabLightShadow.png" />
     <AndroidResource Include="Resources\drawable\profileIcon.png" />
     <AndroidResource Include="Resources\drawable\profileIconActive.png" />
-    <AndroidResource Include="Resources\drawable\list.png" />
     <AndroidResource Include="Resources\drawable\backButton.png" />
     <AndroidResource Include="Resources\drawable\profile.png" />
     <AndroidResource Include="Resources\drawable\backgroundLight.png" />
     <AndroidResource Include="Resources\drawable\tabDarkShadow.png" />
     <AndroidResource Include="Resources\drawable\tabDark.png" />
     <AndroidResource Include="Resources\drawable\profileIconLight.png" />
+    <AndroidResource Include="Resources\drawable\star.png" />
     <AndroidResource Include="Resources\layout\Tabbar.axml" />
     <AndroidResource Include="Resources\layout\Toolbar.axml" />
     <AndroidResource Include="Resources\values\styles.xml" />
@@ -223,6 +225,11 @@
     <AndroidResource Include="Resources\mipmap-xxxhdpi\Icon.png" />
     <AndroidResource Include="Resources\mipmap-xxxhdpi\launcher_foreground.png" />
     <None Include="packages.config" />
+    <AndroidResource Include="Resources\drawable\amazon.png" />
+    <AndroidResource Include="Resources\drawable\reebok.png" />
+    <AndroidResource Include="Resources\drawable\aliexpress.png" />
+    <AndroidResource Include="Resources\drawable\zara.png" />
+    <AndroidResource Include="Resources\drawable\asos.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fabulous">

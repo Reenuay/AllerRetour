@@ -6,6 +6,8 @@ open Xamarin.Forms
 module Colors =
   let backgroundDark = Color.FromHex("#141E32")
   let backgroundLight = Color.FromHex("#E2DEE3")
+  let frontDark = Color.FromHex("#1b2e4d")
+  let frontLight = Color.FromHex("#F2F0F2")
   let accent = Color.FromHex("#E52535")
 
 module Images =
@@ -31,6 +33,12 @@ module Images =
   let list = Path "list.png"
   let backButton = Path "backButton.png"
   let profile = Path "profile.png"
+  let star = Path "star.png"
+  let amazon = Path "amazon.png"
+  let reebok = Path "reebok.png"
+  let aliexpress = Path "aliexpress.png"
+  let zara = Path "zara.png"
+  let asos = Path "asos.png"
 
 module Fonts =
   let renogare = "Renogare.ttf#Renogare-Regular"

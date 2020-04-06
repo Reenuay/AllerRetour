@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Effects\ShadowEffect.fs" />
     <Compile Include="Controls\OptionalDatePicker.fs" />
     <Compile Include="Json.fs" />
     <Compile Include="PrimitiveFunctions.fs" />

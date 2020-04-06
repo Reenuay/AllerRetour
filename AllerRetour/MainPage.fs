@@ -314,7 +314,7 @@ let view model (dispatch: Msg -> unit) =
               rowSpacing = 0.,
               columnSpacing = 0.,
               coldefs = List.replicate 3 Star,
-              margin = Thickness (20., 35., 20., 0.),
+              margin = Thickness (20., 50., 20., 0.),
               children = [
                 makeDuoStack
                   (makeCircle2 (screenWidth() * 0.2) (makeInfoText "0,00"))
@@ -333,11 +333,96 @@ let view model (dispatch: Msg -> unit) =
               ]
             )
         
-            View.Image(
-              source = Images.list,
-              aspect = Aspect.AspectFill,
-              horizontalOptions = LayoutOptions.Center,
-              margin = (Thickness (20., 20., 20., 70.))
+            View.CollectionView(
+              margin = Thickness (0., 20., 0., 0.),
+              itemsLayout = GridItemsLayout(ItemsLayoutOrientation.Vertical),
+              items = [
+                for (image, cashback)
+                  in
+                    [
+                      (Images.zara, 5)
+                      (Images.asos, 3)
+                      (Images.amazon, 2)
+                      (Images.reebok, 3)
+                      (Images.aliexpress, 4)
+                    ]
+                  do
+                  yield
+                    View.Grid(
+                      coldefs = [Auto; Star; Auto; Auto],
+                      horizontalOptions = LayoutOptions.Fill,
+                      height = 100.,
+                      margin = Thicknesses.zero,
+                      padding = Thickness (20., 3.),
+                      children = [
+                        View.BoxView(
+                          backgroundColor = (
+                            if isDarkTheme then
+                              Colors.frontDark
+                            else
+                              Colors.frontLight
+                          ),
+                          horizontalOptions = LayoutOptions.Fill,
+                          verticalOptions = LayoutOptions.Fill,
+                          effects = [
+                            View.ShadowEffect(10.)
+                          ]
+                        )
+                          .ColumnSpan(4)
+
+                        View.Image(
+                          source = Images.star,
+                          aspect = Aspect.AspectFill,
+                          margin = Thickness (20., 35., 0., 35.)
+                        )
+
+                        View.Image(
+                          source = image,
+                          aspect = Aspect.AspectFit,
+                          margin = Thickness (20., 35.)
+                        )
+                          .Column(1)
+
+                        View.Label(
+                          text = sprintf "%i" cashback,
+                          fontSize = FontSize 60.,
+                          textColor = Colors.accent,
+                          fontFamily = Fonts.renogare,
+                          horizontalTextAlignment = TextAlignment.Center,
+                          horizontalOptions = LayoutOptions.Center,
+                          verticalOptions = LayoutOptions.End,
+                          margin = Thickness (0., 0., 0., 10.) 
+                        )
+                          .Column(2)
+
+                        View.Label(
+                          text = "%",
+                          fontSize = FontSize 30.,
+                          textColor = Colors.accent,
+                          fontFamily = Fonts.renogare,
+                          horizontalTextAlignment = TextAlignment.Center,
+                          horizontalOptions = LayoutOptions.Center,
+                          verticalOptions = LayoutOptions.End,
+                          margin = Thickness (0., 0., 20., 17.)
+                        )
+                          .Column(3)
+
+                        View.Label(
+                          text = "cashback up to",
+                          fontSize = FontSizes.xtrasmall,
+                          opacity = Opacities.light,
+                          textColor = Colors.accent,
+                          fontFamily = Fonts.renogare,
+                          horizontalTextAlignment = TextAlignment.Center,
+                          horizontalOptions = LayoutOptions.Center,
+                          verticalOptions = LayoutOptions.Start,
+                          margin = Thickness (0., 10., 0., 0.)
+                        )
+                          .Column(2)
+                          .ColumnSpan(2)
+                      ]
+                    )
+              ]
             )
           ]
         )

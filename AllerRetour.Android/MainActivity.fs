@@ -7,8 +7,6 @@ open Android.Runtime
 open Android.Views
 open Android.OS
 open Xamarin.Forms.Platform.Android
-open Xamarin.Forms.PlatformConfiguration
-open Xamarin.Forms.PlatformConfiguration.AndroidSpecific
 
 [<Activity(
   Label = "AllerRetour.Android",
