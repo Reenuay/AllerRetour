@@ -53,8 +53,6 @@ module App =
     Token = None
   }
 
-  let init () = initModel, Cmd.none
-
   let goToSignInCmd =
     SignInPage.initModel
     |> SignInPageModel
@@ -470,6 +468,10 @@ module App =
 
     | MainPageModel model ->
       MainPage.view model (MainPageMsg >> pageDispatch)
+
+  // let init () = initModel, Cmd.ofMsg (SignIn { Email = "reenuay777@gmail.com"; Password = "testtest4" })
+
+  let init () = initModel, Cmd.none
 
   // Note, this declaration is needed if you enable LiveUpdate
   let program = Program.mkProgram init update view

@@ -90,16 +90,16 @@ let view (model: Model) dispatch =
         keyboard = Keyboard.Email,
         image = Images.envelopeIcon
       )
-    
-      makeEntry
-        (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
-        None
-        "Password"
-        (Some Images.lockIcon)
-        Password.value
-        (bindNewText dispatch SetPassword)
-        model.Password
-      |> margin Thicknesses.mediumLowerSpace
+
+      View.MakeEntry(
+        model.Password,
+        "Password",
+        Password.value,
+        (bindNewText dispatch SetPassword),
+        image = Images.lockIcon,
+        passwordOptions = (model.PasswordHidden, bindPress dispatch SwapPasswordHidden),
+        margin = Thicknesses.mediumLowerSpace
+      )
 
       makeButton
         (model.IsValid())

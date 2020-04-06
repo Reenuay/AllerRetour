@@ -90,24 +90,24 @@ let view (model: Model) dispatch =
       |> makeCircle
       |> margin Thicknesses.mediumUpperBigLowerSpace
 
-      makeEntry
-        None
-        (Some Keyboard.Email)
-        "New email"
-        None
-        EmailAddress.value
-        (bindNewText dispatch SetEmail)
-        model.Email
-        
-      makeEntry
-        (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
-        None
-        "Password"
-        None
-        Password.value
-        (bindNewText dispatch SetPassword)
-        model.Password
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeEntry(
+        model.Email,
+        "New email",
+        EmailAddress.value,
+        (bindNewText dispatch SetEmail),
+        keyboard = Keyboard.Email,
+        image = Images.envelopeIcon
+      )
+
+      View.MakeEntry(
+        model.Password,
+        "Password",
+        Password.value,
+        (bindNewText dispatch SetPassword),
+        image = Images.lockIcon,
+        passwordOptions = (model.PasswordHidden, bindPress dispatch SwapPasswordHidden),
+        margin = Thicknesses.mediumLowerSpace
+      )
 
       makeButton
         (model.IsValid())

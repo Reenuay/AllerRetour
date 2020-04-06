@@ -1,6 +1,5 @@
 module AllerRetour.ForgotPasswordPage
 
-open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
@@ -45,15 +44,15 @@ let view (model: Model) dispatch =
 
       makeThinText "We will send a verification code\n to your registered email ID"
 
-      makeEntry
-        None
-        (Some Keyboard.Email)
-        "Email"
-        (Some Images.envelopeIcon)
-        EmailAddress.value
-        (bindNewText dispatch SetEmail)
-        model
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeEntry(
+        model,
+        "Email",
+        EmailAddress.value,
+        (bindNewText dispatch SetEmail),
+        keyboard = Keyboard.Email,
+        image = Images.envelopeIcon,
+        margin = Thicknesses.mediumLowerSpace
+      )
 
       makeButton
         (TwoTrackResult.isSuccess model)

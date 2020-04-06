@@ -113,23 +113,21 @@ let view model dispatch =
       |> makeCircle
       |> margin Thicknesses.mediumUpperBigLowerSpace
 
-      makeEntry
-        None
-        None
-        "First name"
-        None
-        NameString.value
-        (bindNewText dispatch SetFirstName)
-        model.FirstName
-        
-      makeEntry
-        None
-        None
-        "Last name"
-        None
-        NameString.value
-        (bindNewText dispatch SetLastName)
-        model.LastName
+      View.MakeEntry(
+        model.FirstName,
+        "First name",
+        NameString.value,
+        (bindNewText dispatch SetFirstName),
+        image = Images.userIcon
+      )
+
+      View.MakeEntry(
+        model.LastName,
+        "Last name",
+        NameString.value,
+        (bindNewText dispatch SetLastName),
+        image = Images.userIcon
+      )
 
       View.OptionalDatePicker(
         minimumDate = DateTime.Today.AddYears(-120),

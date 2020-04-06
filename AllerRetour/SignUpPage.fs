@@ -114,51 +114,49 @@ let view model dispatch =
       makeThinText "sign up with email"
       |> margin Thicknesses.bigUpperSpace
 
-      makeEntry
-        None
-        None
-        "First name"
-        (Some Images.userIcon)
-        NameString.value
-        (bindNewText dispatch SetFirstName)
-        model.FirstName
-        
-      makeEntry
-        None
-        None
-        "Last name"
-        (Some Images.userIcon)
-        NameString.value
-        (bindNewText dispatch SetLastName)
-        model.LastName
-        
-      makeEntry
-        None
-        (Some Keyboard.Email)
-        "Email"
-        (Some Images.envelopeIcon)
-        EmailAddress.value
-        (bindNewText dispatch SetEmail)
-        model.Email
-        
-      makeEntry
-        (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
-        None
-        "Password"
-        (Some Images.lockIcon)
-        Password.value
-        (bindNewText dispatch SetPassword)
-        model.Password
-        
-      makeEntry
-        (Some (model.PasswordRepeatHidden, bindPress dispatch SwapPasswordRepeatHidden))
-        None
-        "Re-enter password"
-        (Some Images.lockIcon)
-        id
-        (bindNewText dispatch SetRepeatPassword)
-        model.RepeatPassword
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeEntry(
+        model.FirstName,
+        "First name",
+        NameString.value,
+        (bindNewText dispatch SetFirstName),
+        image = Images.userIcon
+      )
+
+      View.MakeEntry(
+        model.LastName,
+        "Last name",
+        NameString.value,
+        (bindNewText dispatch SetLastName),
+        image = Images.userIcon
+      )
+
+      View.MakeEntry(
+        model.Email,
+        "Email",
+        EmailAddress.value,
+        (bindNewText dispatch SetEmail),
+        keyboard = Keyboard.Email,
+        image = Images.envelopeIcon
+      )
+
+      View.MakeEntry(
+        model.Password,
+        "Password",
+        Password.value,
+        (bindNewText dispatch SetPassword),
+        image = Images.lockIcon,
+        passwordOptions = (model.PasswordHidden, bindPress dispatch SwapPasswordHidden)
+      )
+
+      View.MakeEntry(
+        model.RepeatPassword,
+        "Re-enter password",
+        id,
+        (bindNewText dispatch SetRepeatPassword),
+        image = Images.lockIcon,
+        passwordOptions = (model.PasswordRepeatHidden, bindPress dispatch SwapPasswordRepeatHidden),
+        margin = Thicknesses.mediumLowerSpace
+      )
 
       makeButton
         (model.IsValid())

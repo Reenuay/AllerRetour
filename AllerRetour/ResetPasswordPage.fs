@@ -1,7 +1,6 @@
 module AllerRetour.ResetPasswordPage
 
 open System
-open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
@@ -143,15 +142,15 @@ let view model dispatch =
 
           makeThinText (TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss"))
 
-          makeEntry
-            None
-            (Some Keyboard.Numeric)
-            "Code"
-            (Some Images.lockIcon)
-            Pin.value
-            (bindNewText dispatch SetToken)
-            model.Token
-          |> margin (Thicknesses.mediumLowerSpace)
+          View.MakeEntry(
+            model.Token,
+            "Code",
+            Pin.value,
+            (bindNewText dispatch SetToken),
+            keyboard = Keyboard.Numeric,
+            image = Images.lockIcon,
+            margin = Thicknesses.mediumLowerSpace
+          )
 
           makeButton
             (TwoTrackResult.isSuccess model.Token)
@@ -169,24 +168,24 @@ let view model dispatch =
             "Please enter a new password"
           |> margin Thicknesses.mediumLowerSpace
 
-          makeEntry
-            (Some (model.NewPasswordHidden, bindPress dispatch SwapNewPasswordHidden))
-            None
-            "New password"
-            (Some Images.lockIcon)
-            Password.value
-            (bindNewText dispatch SetNewPassword)
-            model.NewPassword
-        
-          makeEntry
-            (Some (model.RepeatNewPasswordHidden, bindPress dispatch SwapRepeatNewPasswordHidden))
-            None
-            "Re-enter password"
-            (Some Images.lockIcon)
-            id
-            (bindNewText dispatch SetRepeatNewPassword)
-            model.RepeatNewPassword
-          |> margin Thicknesses.mediumLowerSpace
+          View.MakeEntry(
+            model.NewPassword,
+            "New password",
+            Password.value,
+            (bindNewText dispatch SetNewPassword),
+            image = Images.lockIcon,
+            passwordOptions = (model.NewPasswordHidden, bindPress dispatch SwapNewPasswordHidden)
+          )
+
+          View.MakeEntry(
+            model.RepeatNewPassword,
+            "Re-enter password",
+            id,
+            (bindNewText dispatch SetRepeatNewPassword),
+            image = Images.lockIcon,
+            passwordOptions = (model.RepeatNewPasswordHidden, bindPress dispatch SwapRepeatNewPasswordHidden),
+            margin = Thicknesses.mediumLowerSpace
+          )
 
           makeButton
             (model.IsValid())

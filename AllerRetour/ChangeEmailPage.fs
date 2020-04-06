@@ -91,24 +91,24 @@ let view (model: Model) dispatch =
       makeInfoText "Please enter new email"
       |> margin Thicknesses.mediumLowerSpace
 
-      makeEntry
-        None
-        (Some Keyboard.Email)
-        "New email"
-        (Some Images.envelopeIcon)
-        EmailAddress.value
-        (bindNewText dispatch SetEmail)
-        model.Email
-        
-      makeEntry
-        (Some (model.PasswordHidden, bindPress dispatch SwapPasswordHidden))
-        None
-        "Password"
-        (Some Images.lockIcon)
-        Password.value
-        (bindNewText dispatch SetPassword)
-        model.Password
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeEntry(
+        model.Email,
+        "New email",
+        EmailAddress.value,
+        (bindNewText dispatch SetEmail),
+        keyboard = Keyboard.Email,
+        image = Images.envelopeIcon
+      )
+
+      View.MakeEntry(
+        model.Password,
+        "Password",
+        Password.value,
+        (bindNewText dispatch SetPassword),
+        image = Images.lockIcon,
+        passwordOptions = (model.PasswordHidden, bindPress dispatch SwapPasswordHidden),
+        margin = Thicknesses.mediumLowerSpace
+      )
 
       makeButton
         (model.IsValid())

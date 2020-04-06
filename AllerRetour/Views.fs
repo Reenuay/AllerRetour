@@ -4,7 +4,6 @@ open System
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
-open PrimitiveTypes
 open Resources
 
 let screenSize () = Device.Info.ScaledScreenSize
@@ -43,80 +42,6 @@ let makeHomeText = makeText FontSizes.medium Fonts.segoeUiLight Opacities.opaque
 let makeInfoText = makeText FontSizes.light Fonts.segoeUiLight Opacities.opaque
 
 let makeThinText = makeText FontSizes.thin Fonts.segoeUiLight Opacities.light
-
-let makeEntry passwordOptions keyboard placeholder image map dispatch v =
-  let isPassword = function
-  | Some (isSet, _) -> isSet
-  | None -> false
-
-  let text, error =
-    match v with
-    | Success x -> map x, ""
-    | Failure (v, l) -> v, foldErrors l
-
-  View.Grid(
-    coldefs = [Auto; Star],
-    rowdefs = [Auto; Auto],
-    rowSpacing = 0.,
-    columnSpacing = 0.,
-    width = screenWidthP 0.8,
-    children = [
-      if Option.isSome image then
-        yield
-          View.Image(
-            source = Option.get image,
-            opacity = Opacities.light,
-            margin = Thicknesses.rightLittleSpace,
-            width = 20.
-          )
-
-      yield
-        View.Entry(
-          text = text,
-          isPassword = isPassword passwordOptions,
-          placeholder = placeholder,
-          textChanged = debounce 500 dispatch,
-          opacity = Opacities.light,
-          placeholderColor = Colors.accent,
-          fontSize = FontSizes.light,
-          textColor = Colors.accent,
-          fontFamily = Fonts.segoeUiLight,
-          keyboard = Option.defaultValue Keyboard.Default keyboard
-        )
-        .Column(1)
-
-      if Option.isSome passwordOptions then
-        yield
-          View.Image(
-            source = (
-              if isPassword passwordOptions then
-                Images.eyeIcon
-              else
-                Images.eyeCrossedIcon
-            ),
-            opacity = Opacities.light,
-            width = 20.,
-            aspect = Aspect.AspectFit,
-            margin = Thicknesses.rightLittleSpace,
-            backgroundColor = Color.Transparent,
-            horizontalOptions = LayoutOptions.End,
-            gestureRecognizers = [
-              View.TapGestureRecognizer(
-                command = (passwordOptions |> Option.get |> snd)
-              )
-            ]
-          )
-          .Column(1)
-
-      if error <> String.Empty then
-        yield
-          (makeThinText error)
-          .Row(1)
-          .Column(1)
-          |> margin Thicknesses.paddingForEntryError
-          |> horizontalTextAlignment TextAlignment.Start
-    ]
-  )
 
 let makeButton isEnabled command text =
   let ifEnabled enabled disabled =
@@ -268,9 +193,82 @@ type View with
       dispatch,
       ?passwordOptions,
       ?keyboard,
-      ?image
+      ?image,
+      ?margin
     ) =
-    makeEntry passwordOptions keyboard placeholder image map dispatch value
+      let isPassword = function
+      | Some (isSet, _) -> isSet
+      | None -> false
+
+      let text, error =
+        match value with
+        | Success x -> map x, ""
+        | Failure (v, l) -> v, foldErrors l
+
+      View.Grid(
+        coldefs = [Auto; Star],
+        rowdefs = [Auto; Auto],
+        rowSpacing = 0.,
+        columnSpacing = 0.,
+        width = screenWidthP 0.8,
+        ?margin = margin,
+        children = [
+          if Option.isSome image then
+            yield
+              View.Image(
+                source = Option.get image,
+                opacity = Opacities.light,
+                margin = Thicknesses.rightLittleSpace,
+                width = 20.
+              )
+
+          yield
+            View.Entry(
+              text = text,
+              isPassword = isPassword passwordOptions,
+              placeholder = placeholder,
+              textChanged = debounce 500 dispatch,
+              opacity = Opacities.light,
+              placeholderColor = Colors.accent,
+              fontSize = FontSizes.light,
+              textColor = Colors.accent,
+              fontFamily = Fonts.segoeUiLight,
+              keyboard = Option.defaultValue Keyboard.Default keyboard
+            )
+            .Column(1)
+
+          if Option.isSome passwordOptions then
+            yield
+              View.Image(
+                source = (
+                  if isPassword passwordOptions then
+                    Images.eyeIcon
+                  else
+                    Images.eyeCrossedIcon
+                ),
+                opacity = Opacities.light,
+                width = 20.,
+                aspect = Aspect.AspectFit,
+                margin = Thicknesses.rightLittleSpace,
+                backgroundColor = Color.Transparent,
+                horizontalOptions = LayoutOptions.End,
+                gestureRecognizers = [
+                  View.TapGestureRecognizer(
+                    command = (passwordOptions |> Option.get |> snd)
+                  )
+                ]
+              )
+              .Column(1)
+
+          if error <> String.Empty then
+            yield
+              (makeThinText error)
+              .Row(1)
+              .Column(1)
+              |> ViewElementExtensions.margin Thicknesses.paddingForEntryError
+              |> horizontalTextAlignment TextAlignment.Start
+        ]
+      )
 
   static member MakeScrollStack
     (

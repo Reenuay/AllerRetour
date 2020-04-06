@@ -108,33 +108,42 @@ let view model dispatch =
       |> makeCircle
       |> margin Thicknesses.mediumUpperBigLowerSpace
 
-      makeEntry
-        (Some (model.NewPasswordHidden, bindPress dispatch SwapNewPasswordHidden))
-        None
-        "New password"
-        None
-        Password.value
-        (bindNewText dispatch SetNewPassword)
-        model.NewPassword
-        
-      makeEntry
-        (Some (model.RepeatNewPasswordHidden, bindPress dispatch SwapRepeatNewPasswordHidden))
-        None
-        "Repeat new password"
-        None
-        id
-        (bindNewText dispatch SetRepeatNewPassword)
-        model.RepeatNewPassword
-        
-      makeEntry
-        (Some (model.OldPasswordHidden, bindPress dispatch SwapOldPasswordHidden))
-        None
-        "Old password"
-        None
-        Password.value
-        (bindNewText dispatch SetOldPassword)
-        model.OldPassword
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeEntry(
+        model.NewPassword,
+        "New password",
+        Password.value,
+        (bindNewText dispatch SetNewPassword),
+        image = Images.lockIcon,
+        passwordOptions = (
+          model.NewPasswordHidden,
+          bindPress dispatch SwapNewPasswordHidden
+        )
+      )
+
+      View.MakeEntry(
+        model.RepeatNewPassword,
+        "Re-enter new password",
+        id,
+        (bindNewText dispatch SetRepeatNewPassword),
+        image = Images.lockIcon,
+        passwordOptions = (
+          model.RepeatNewPasswordHidden,
+          bindPress dispatch SwapRepeatNewPasswordHidden
+        )
+      )
+
+      View.MakeEntry(
+        model.OldPassword,
+        "Old password",
+        Password.value,
+        (bindNewText dispatch SetOldPassword),
+        image = Images.lockIcon,
+        passwordOptions = (
+          model.OldPasswordHidden,
+          bindPress dispatch SwapOldPasswordHidden
+        ),
+        margin = Thicknesses.mediumLowerSpace
+      )
 
       makeButton
         (model.IsValid())
