@@ -27,7 +27,7 @@ type MainActivity() =
 
     base.OnCreate (bundle)
 
-    //global.ZXing.Net.Mobile.Forms.Android.Platform.Init()
+    global.ZXing.Net.Mobile.Forms.Android.Platform.Init()
 
     Xamarin.Essentials.Platform.Init(this, bundle)
     Xamarin.Forms.Forms.Init(this, bundle)
