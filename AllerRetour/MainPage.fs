@@ -54,6 +54,7 @@ type ExternalMsg =
   | UpdateProfile of UpdateProfileRequest
   | ChangeEmail of ChangeEmailRequest
   | ChangePassword of ChangePasswordRequest
+  | SaveSettings
 
 let create (r: ProfileResponse) =
   result {
@@ -209,8 +210,8 @@ let update msg model =
   | SettingsPageMsg sMsg ->
     match sMsg with
     | SettingsPage.ChangeTheme t ->
-      GlobalSettings.Settings := { GlobalSettings.Settings.Value with Theme = t }
-      model, NoOp
+      GlobalSettings.Change({ GlobalSettings.Settings with Theme = t })
+      model, SaveSettings
 
     | SettingsPage.ClickGoBack ->
       { model with PageStack = model.PageStack.Tail }, NoOp

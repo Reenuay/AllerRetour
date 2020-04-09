@@ -47,6 +47,7 @@ module App =
     | ChangePassword of ChangePasswordRequest
     | ResendConfirmEmail
     | ShowMessage of string
+    | LoadSettings
 
   let initModel = {
     PageModel = SignInPageModel SignInPage.initModel
@@ -183,6 +184,14 @@ module App =
       | MainPage.UpdateProfile p -> Cmd.ofMsg (UpdateProfile p)
       | MainPage.ChangeEmail r -> Cmd.ofMsg (ChangeEmail r)
       | MainPage.ChangePassword r -> Cmd.ofMsg (ChangePassword r)
+      | MainPage.SaveSettings ->
+        async {
+          do! GlobalSettings.Save()
+        }
+        |> Async.Start
+
+        Cmd.none
+
     newModel, cmd
 
   let handleTwoTrackHttp model fSuccess =
@@ -441,6 +450,14 @@ module App =
       Application.Current.MainPage.DisplayAlert(String.Empty, err, "Ok") |> ignore
       aModel, Cmd.none
 
+    | LoadSettings ->
+      let cmd =
+        match GlobalSettings.Load() with
+        | Failure _ -> Cmd.ofMsg (ShowMessage "Error loading app settings.")
+        | _ -> Cmd.none
+
+      aModel, cmd
+
   let view appModel dispatch =
     let pageDispatch = PageMsg >> dispatch
 
@@ -471,7 +488,7 @@ module App =
 
   // let init () = initModel, Cmd.ofMsg (SignIn { Email = "reenuay777@gmail.com"; Password = "testtest4" })
 
-  let init () = initModel, Cmd.none
+  let init () = initModel, Cmd.ofMsg LoadSettings
 
   // Note, this declaration is needed if you enable LiveUpdate
   let program = Program.mkProgram init update view

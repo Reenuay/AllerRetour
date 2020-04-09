@@ -9,7 +9,7 @@ type Msg =
   | ClickGoBack
 
 let view dispatch =
-  let model = GlobalSettings.Settings.Value
+  let model = GlobalSettings.Settings
 
   View.MakeScrollStack(
     isDarkTheme = GlobalSettings.IsDarkTheme,
