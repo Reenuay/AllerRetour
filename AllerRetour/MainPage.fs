@@ -217,10 +217,10 @@ let update msg model =
       { model with PageStack = model.PageStack.Tail }, NoOp
 
 let tabs = [
-  Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "home"
-  Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "notifications"
+  Images.mainIcon, Images.mainIconLight, Images.mainIconActive, "home"
+  Images.notificationIcon, Images.notificationIconLight, Images.notificationIconActive, "notifications"
   Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "my card"
-  Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "search"
+  Images.searchIcon, Images.searchIconLight, Images.searchIconActive, "search"
   Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "profile"
 ]
 

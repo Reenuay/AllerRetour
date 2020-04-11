@@ -213,6 +213,15 @@
     <AndroidResource Include="Resources\drawable\aliexpress.png" />
     <AndroidResource Include="Resources\drawable\zara.png" />
     <AndroidResource Include="Resources\drawable\asos.png" />
+    <AndroidResource Include="Resources\drawable\mainIconActive.png" />
+    <AndroidResource Include="Resources\drawable\mainIconLight.png" />
+    <AndroidResource Include="Resources\drawable\notificationIcon.png" />
+    <AndroidResource Include="Resources\drawable\notificationIconActive.png" />
+    <AndroidResource Include="Resources\drawable\notificationIconLight.png" />
+    <AndroidResource Include="Resources\drawable\searchIcon.png" />
+    <AndroidResource Include="Resources\drawable\searchIconActive.png" />
+    <AndroidResource Include="Resources\drawable\searchIconLight.png" />
+    <AndroidResource Include="Resources\drawable\mainIcon.png" />
     <AndroidResource Include="Resources\layout\Tabbar.axml" />
     <AndroidResource Include="Resources\layout\Toolbar.axml" />
     <AndroidResource Include="Resources\values\styles.xml" />
