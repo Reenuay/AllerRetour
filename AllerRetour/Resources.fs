@@ -62,7 +62,7 @@ module FontSizes =
 
 module Thicknesses =
   let zero = Thickness 0.
-  let bigUpperSpace = Thickness (0., 70., 0., 0.)
+  let bigUpperSpace = Thickness (0., 60., 0., 0.)
   let bigLowerSpace = Thickness (0., 0., 0., 50.)
   let mediumLowerSpace = Thickness (0., 0., 0., 35.)
   let mediumUpperBigLowerSpace = Thickness (0., 55., 0., 50.)

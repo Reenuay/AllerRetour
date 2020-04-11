@@ -38,7 +38,7 @@ let view (model: Model) dispatch =
     children = [
       Images.forgotPassword
       |> makeCircle
-      |> margin Thicknesses.mediumUpperBigLowerSpace
+      |> margin Thicknesses.bigLowerSpace
 
       makeInfoText "Please enter your registered email ID"
 

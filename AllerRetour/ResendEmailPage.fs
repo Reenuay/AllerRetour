@@ -30,7 +30,7 @@ let view model dispatch =
     children = [
       Images.verificationCode
       |> makeCircle
-      |> margin Thicknesses.mediumUpperBigLowerSpace
+      |> margin Thicknesses.bigLowerSpace
 
       makeInfoText "Please confirm your registered email ID"
 

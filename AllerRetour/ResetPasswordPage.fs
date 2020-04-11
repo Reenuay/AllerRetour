@@ -133,7 +133,7 @@ let view model dispatch =
         yield! [
           Images.verificationCode
           |> makeCircle
-          |> margin Thicknesses.mediumUpperBigLowerSpace
+          |> margin Thicknesses.bigLowerSpace
 
           makeInfoText
             "Please enter your verification code"

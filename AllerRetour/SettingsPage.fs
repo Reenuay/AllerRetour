@@ -18,7 +18,7 @@ let view dispatch =
     children = [
       View.StackLayout(
         orientation = StackOrientation.Horizontal,
-        margin = Thickness (0., 20.),
+        margin = Thickness (0., 40.),
         children = [
           View.Switch(
             isToggled = AppTheme.isDark model.Theme,

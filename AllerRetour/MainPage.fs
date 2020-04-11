@@ -297,10 +297,33 @@ let makeTab column isLast isActive dispatch icon iconActive title isDarkTheme =
     ).Column(column)
   ]
 
-let divider =
-  makeHorizontalDivider ()
-  |> margin (Thickness (20., 0.))
-  |> verticalOptions LayoutOptions.Start
+let makeProfilePageButton command isDarkTheme text =
+  View.Frame(
+    margin = Thickness(20., 5.),
+    horizontalOptions = LayoutOptions.FillAndExpand,
+    verticalOptions = LayoutOptions.Start,
+    height = 30.,
+    backgroundColor = (
+      if isDarkTheme
+      then Colors.backgroundLight
+      else Colors.accent
+    ),
+    gestureRecognizers = [
+      View.TapGestureRecognizer(command = command)
+    ],
+    content = View.Label(
+      fontFamily = Fonts.segoeUiLight,
+      fontSize = FontSizes.light,
+      text = text,
+      horizontalOptions = LayoutOptions.Center,
+      verticalOptions = LayoutOptions.Center,
+      textColor = (
+        if isDarkTheme
+        then Colors.accent
+        else Colors.backgroundLight
+      )
+    )
+  )
 
 let view model (dispatch: Msg -> unit) =
   let homePage =
@@ -315,7 +338,7 @@ let view model (dispatch: Msg -> unit) =
               rowSpacing = 0.,
               columnSpacing = 0.,
               coldefs = List.replicate 3 Star,
-              margin = Thickness (20., 70., 20., 0.),
+              margin = Thickness (20., 0.),
               children = [
                 makeDuoStack
                   (makeCircle2 (screenWidth() * 0.2) (makeInfoText "0,00"))
@@ -358,10 +381,9 @@ let view model (dispatch: Msg -> unit) =
                       children = [
                         View.BoxView(
                           backgroundColor = (
-                            if isDarkTheme then
-                              Colors.frontDark
-                            else
-                              Colors.frontLight
+                            if isDarkTheme
+                            then Colors.frontDark
+                            else Colors.frontLight
                           ),
                           horizontalOptions = LayoutOptions.Fill,
                           verticalOptions = LayoutOptions.Fill,
@@ -468,7 +490,7 @@ let view model (dispatch: Msg -> unit) =
               rowSpacing = 0.,
               columnSpacing = 0.,
               coldefs = [Auto; Star],
-              margin = (Thickness (20., 70., 20., 50.)),
+              margin = (Thickness (20., 0., 20., 50.)),
               children = [
                 QRCode.create cardId
 
@@ -491,31 +513,29 @@ let view model (dispatch: Msg -> unit) =
 
             makeProfilePageButton
               (bindPress dispatch ClickEditProfile)
+              isDarkTheme
               "Edit profile"
-
-            divider
 
             makeProfilePageButton
               (bindPress dispatch ClickChangeEmail)
+              isDarkTheme
               "Change email"
-
-            divider
 
             makeProfilePageButton
               (bindPress dispatch ClickChangePassword)
+              isDarkTheme
               "Change password"
-
-            divider
 
             makeProfilePageButton
               (bindPress dispatch ClickSettings)
+              isDarkTheme
               "Settings"
-
-            divider
           
             makeProfilePageButton
               (bindPress dispatch ClickSignOut)
+              isDarkTheme
               "Log out"
+            |> margin (Thickness (20., 5., 20., 80.))
           ]
         )
       )
@@ -558,8 +578,8 @@ let view model (dispatch: Msg -> unit) =
       columnSpacing = 0.,
       children = [
         yield!
-          if not model.PageStack.IsEmpty then
-            [
+          if not model.PageStack.IsEmpty
+          then [
               match model.PageStack.Head with
               | ForProfileEdit pm ->
                 EditProfileSubPage.view
@@ -579,8 +599,7 @@ let view model (dispatch: Msg -> unit) =
               | ForSettings ->
                 SettingsPage.view (SettingsPageMsg >> dispatch)
             ]
-          else
-            [
+          else [
               match model.ActiveTabId with
               | 0 -> homePage
               | 2 -> cardStub

@@ -86,7 +86,7 @@ let view (model: Model) dispatch =
     children = [
       Images.passwordChange
       |> makeCircle
-      |> margin Thicknesses.mediumUpperBigLowerSpace
+      |> margin Thicknesses.bigLowerSpace
 
       makeInfoText "Please enter new email"
       |> margin Thicknesses.mediumLowerSpace

@@ -21,8 +21,7 @@ let bindNewText dispatch msg (args: TextChangedEventArgs) =
 let makeLogo () =
   View.Image(
     source = Images.logo,
-    width = screenWidthP 0.5,
-    margin = Thicknesses.bigUpperSpace
+    width = screenWidthP 0.5
   )
 
 let makeText fontSize fontFamily opacity text =
@@ -163,27 +162,6 @@ let makeDuoStack first second =
     ]
   )
 
-let makeHorizontalDivider () =
-  View.BoxView(
-    height = 1.,
-    backgroundColor = Colors.accent,
-    horizontalOptions = LayoutOptions.FillAndExpand
-  )
-
-let makeProfilePageButton command text =
-  View.Button(
-    fontFamily = Fonts.segoeUiLight,
-    fontSize = FontSizes.light,
-    margin = Thickness(20., 0.),
-    padding = Thickness(0., 10.),
-    horizontalOptions = LayoutOptions.FillAndExpand,
-    verticalOptions = LayoutOptions.Start,
-    command = command,
-    text = text,
-    backgroundColor = Color.Transparent,
-    textColor = Colors.accent
-  )
-
 type View with
   static member MakeEntry
     (
@@ -287,6 +265,7 @@ type View with
         content =
           View.StackLayout(
             horizontalOptions = horizontalOptions,
+            padding = Thicknesses.bigUpperSpace,
             ?verticalOptions = verticalOptions,
             ?children = children
           )
@@ -309,21 +288,25 @@ type View with
               rowSpacing = 0.,
               columnSpacing = 0.,
               children = [
+                scrollView
+                  .RowSpan(2)
+
                 View.Image(
                   source = Images.backButton,
                   width = 15.,
                   aspect = Aspect.AspectFit,
-                  margin = Thickness(20., 35., 0., 0.),
+                  margin = Thickness(30., 50., 0., 0.),
                   horizontalOptions = LayoutOptions.Start,
                   opacity = Opacities.light,
                   gestureRecognizers = [
                     View.TapGestureRecognizer(
                       command = Option.get dispatchBack
                     )
+                  ],
+                  effects = [
+                    View.ShadowEffect(10.)
                   ]
                 )
-
-                scrollView.Row(1)
               ]
             )
           else

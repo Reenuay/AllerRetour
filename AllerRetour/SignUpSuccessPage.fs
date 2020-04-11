@@ -22,7 +22,7 @@ let view model dispatch =
     children = [
       Images.success
       |> makeCircle
-      |> margin Thicknesses.mediumUpperBigLowerSpace
+      |> margin Thicknesses.bigLowerSpace
 
       makeInfoText "Success!"
 
