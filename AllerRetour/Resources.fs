@@ -62,10 +62,10 @@ module FontSizes =
 
 module Thicknesses =
   let zero = Thickness 0.
-  let bigUpperSpace = Thickness (0., 50., 0., 0.)
+  let bigUpperSpace = Thickness (0., 70., 0., 0.)
   let bigLowerSpace = Thickness (0., 0., 0., 50.)
   let mediumLowerSpace = Thickness (0., 0., 0., 35.)
-  let mediumUpperBigLowerSpace = Thickness (0., 35., 0., 50.)
+  let mediumUpperBigLowerSpace = Thickness (0., 55., 0., 50.)
   let paddingForEntryError = Thickness (4., -15., 4., 0.)
   let rightLittleSpace = Thickness (0., 0., 5., 0.)
   let paddingForButton = Thickness (40., 0., 40., -4.)

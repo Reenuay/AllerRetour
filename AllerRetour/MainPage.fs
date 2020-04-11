@@ -315,7 +315,7 @@ let view model (dispatch: Msg -> unit) =
               rowSpacing = 0.,
               columnSpacing = 0.,
               coldefs = List.replicate 3 Star,
-              margin = Thickness (20., 50., 20., 0.),
+              margin = Thickness (20., 70., 20., 0.),
               children = [
                 makeDuoStack
                   (makeCircle2 (screenWidth() * 0.2) (makeInfoText "0,00"))
@@ -468,7 +468,7 @@ let view model (dispatch: Msg -> unit) =
               rowSpacing = 0.,
               columnSpacing = 0.,
               coldefs = [Auto; Star],
-              margin = (Thickness (20., 35., 20., 50.)),
+              margin = (Thickness (20., 70., 20., 50.)),
               children = [
                 QRCode.create cardId
 
