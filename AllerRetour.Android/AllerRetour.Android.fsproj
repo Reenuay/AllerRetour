@@ -222,6 +222,9 @@
     <AndroidResource Include="Resources\drawable\searchIconActive.png" />
     <AndroidResource Include="Resources\drawable\searchIconLight.png" />
     <AndroidResource Include="Resources\drawable\mainIcon.png" />
+    <AndroidResource Include="Resources\drawable\cardIcon.png" />
+    <AndroidResource Include="Resources\drawable\cardIconActive.png" />
+    <AndroidResource Include="Resources\drawable\cardIconLight.png" />
     <AndroidResource Include="Resources\layout\Tabbar.axml" />
     <AndroidResource Include="Resources\layout\Toolbar.axml" />
     <AndroidResource Include="Resources\values\styles.xml" />

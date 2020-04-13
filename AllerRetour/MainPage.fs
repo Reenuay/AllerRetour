@@ -219,7 +219,7 @@ let update msg model =
 let tabs = [
   Images.mainIcon, Images.mainIconLight, Images.mainIconActive, "home"
   Images.notificationIcon, Images.notificationIconLight, Images.notificationIconActive, "notifications"
-  Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "my card"
+  Images.cardIcon, Images.cardIconLight, Images.cardIconActive, "my card"
   Images.searchIcon, Images.searchIconLight, Images.searchIconActive, "search"
   Images.profileIcon, Images.profileIconLight, Images.profileIconActive, "profile"
 ]
