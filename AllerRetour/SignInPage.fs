@@ -72,10 +72,20 @@ let view (model: Model) dispatch =
   View.MakeScrollStackPage(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
-      makeLogo ()
+      View.Image(
+        source = Images.logo,
+        width = screenWidthP 0.5
+      )
 
-      makeLabel "justCash"
-      |> margin Thicknesses.bigUpperSpace
+      View.Label(
+        text = "justCash",
+        margin = Thicknesses.bigUpperSpace,
+        padding = Thickness 5.,
+        fontSize = FontSizes.big,
+        textColor = Colors.accent,
+        fontFamily = Fonts.renogare,
+        horizontalTextAlignment = TextAlignment.Center
+      )
 
       makeThinText "save on shopping\nsimply and tastefully"
       |> margin Thicknesses.bigLowerSpace

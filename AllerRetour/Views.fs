@@ -17,12 +17,6 @@ let bindNewText dispatch msg (args: TextChangedEventArgs) =
   args.NewTextValue
   |> msg
   |> dispatch
-  
-let makeLogo () =
-  View.Image(
-    source = Images.logo,
-    width = screenWidthP 0.5
-  )
 
 let makeText fontSize fontFamily opacity text =
   View.Label(
@@ -33,8 +27,6 @@ let makeText fontSize fontFamily opacity text =
     fontFamily = fontFamily,
     horizontalTextAlignment = TextAlignment.Center
   )
-
-let makeLabel = makeText FontSizes.big Fonts.renogare Opacities.opaque
 
 let makeHomeText = makeText FontSizes.medium Fonts.segoeUiLight Opacities.opaque
 

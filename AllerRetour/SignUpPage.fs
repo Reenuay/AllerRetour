@@ -109,7 +109,10 @@ let view model dispatch =
   View.MakeScrollStackPage(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
-      makeLogo ()
+      View.Image(
+        source = Images.logo,
+        width = screenWidthP 0.5
+      )
 
       makeThinText "sign up with email"
       |> margin Thicknesses.bigUpperSpace

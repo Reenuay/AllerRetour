@@ -280,12 +280,14 @@ let makeTab column isLast isActive dispatch icon iconActive title isDarkTheme =
           verticalOptions = LayoutOptions.Center
         )
 
-        (makeText
-          FontSizes.xtrasmall
-          Fonts.renogare
-          opacity
-          title
-          ).Row(1)
+        View.Label(
+          text = title,
+          opacity = opacity,
+          fontSize = FontSizes.xtrasmall,
+          textColor = Colors.accent,
+          fontFamily = Fonts.renogare,
+          horizontalTextAlignment = TextAlignment.Center
+        ).Row(1)
         |> textColor c
         |> horizontalOptions LayoutOptions.Center
         |> verticalOptions LayoutOptions.Center
