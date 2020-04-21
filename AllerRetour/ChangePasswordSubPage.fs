@@ -104,9 +104,10 @@ let view model dispatch =
     dispatchBack = bindPress dispatch ClickGoBack,
     verticalOptions = LayoutOptions.StartAndExpand,
     children = [
-      Images.passwordChange
-      |> makeCircle
-      |> margin Thicknesses.mediumUpperBigLowerSpace
+      View.MakeAvatar(
+        source = Images.passwordChange,
+        margin = Thicknesses.mediumUpperBigLowerSpace
+      )
 
       View.MakeEntry(
         model.NewPassword,
@@ -145,10 +146,11 @@ let view model dispatch =
         margin = Thicknesses.mediumLowerSpace
       )
 
-      makeButton
-        (model.IsValid())
-        (bindPress dispatch ClickChange)
-        "change"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeButton(
+        text = "change",
+        command = bindPress dispatch ClickChange,
+        isEnabled = model.IsValid(),
+        margin = Thicknesses.mediumLowerSpace
+      )
     ]
   )

@@ -87,10 +87,12 @@ let view (model: Model) dispatch =
         horizontalTextAlignment = TextAlignment.Center
       )
 
-      makeThinText "save on shopping\nsimply and tastefully"
-      |> margin Thicknesses.bigLowerSpace
+      View.MakeThinText(
+        text = "save on shopping\nsimply and tastefully",
+        margin = Thicknesses.bigLowerSpace
+      )
 
-      makeThinText "login with email"
+      View.MakeThinText("login with email")
 
       View.MakeEntry(
         model.Email,
@@ -111,16 +113,37 @@ let view (model: Model) dispatch =
         margin = Thicknesses.mediumLowerSpace
       )
 
-      makeButton
-        (model.IsValid())
-        (bindPress dispatch ClickSignIn)
-        "log in"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeButton(
+        text = "log in",
+        command = bindPress dispatch ClickSignIn,
+        isEnabled = model.IsValid(),
+        margin = Thicknesses.mediumLowerSpace
+      )
 
-      makeDuoGrid
-        (makeLink (bindPress dispatch ClickToForgotPassword) "forgot password?"
-        |> margin Thicknesses.duoGridCentering)
-        (makeNavButton (bindPress dispatch ClickGoToSignUp) "sign up")
-      |> margin Thicknesses.mediumLowerSpace
+      View.Grid(
+        coldefs = [Star; Star],
+        rowSpacing = 0.,
+        columnSpacing = 0.,
+        width = screenWidthP 0.8,
+        margin = Thicknesses.mediumLowerSpace,
+        horizontalOptions = LayoutOptions.CenterAndExpand,
+        children = [
+          View.MakeTextButton(
+            text = "forgot password?",
+            command = bindPress dispatch ClickToForgotPassword,
+            margin = Thickness (0.,-8., 0., 0.),
+            horizontalOptions = LayoutOptions.Start
+          )
+            .Column(0)
+
+          View.MakeTextButton(
+            text = "sign up",
+            command = bindPress dispatch ClickGoToSignUp,
+            fontFamily = Fonts.renogare,
+            horizontalOptions = LayoutOptions.End
+          )
+            .Column(1)
+        ]
+      )
     ]
   )

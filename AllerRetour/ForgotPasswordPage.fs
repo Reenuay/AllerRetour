@@ -36,13 +36,14 @@ let view (model: Model) dispatch =
   View.MakeScrollStackPage(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
-      Images.forgotPassword
-      |> makeCircle
-      |> margin Thicknesses.bigLowerSpace
+      View.MakeAvatar(
+        source = Images.forgotPassword,
+        margin = Thicknesses.bigLowerSpace
+      )
 
-      makeInfoText "Please enter your registered email ID"
+      View.MakeText("Please enter your registered email ID")
 
-      makeThinText "We will send a verification code\n to your registered email ID"
+      View.MakeThinText("We will send a verification code\n to your registered email ID")
 
       View.MakeEntry(
         model,
@@ -54,15 +55,18 @@ let view (model: Model) dispatch =
         margin = Thicknesses.mediumLowerSpace
       )
 
-      makeButton
-        (TwoTrackResult.isSuccess model)
-        (bindPress dispatch ClickSend)
-        "send"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeButton(
+        text = "send",
+        command = bindPress dispatch ClickSend,
+        isEnabled = TwoTrackResult.isSuccess model,
+        margin = Thicknesses.mediumLowerSpace
+      )
 
-      makeNavButton
-        (bindPress dispatch ClickGoToSignIn)
-        "log in"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeTextButton(
+        text = "log in",
+        command = bindPress dispatch ClickGoToSignIn,
+        margin = Thicknesses.mediumLowerSpace,
+        fontFamily = Fonts.renogare
+      )
     ]
   )

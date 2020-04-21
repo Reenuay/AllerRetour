@@ -28,28 +28,51 @@ let view model dispatch =
   View.MakeScrollStackPage(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
-      Images.verificationCode
-      |> makeCircle
-      |> margin Thicknesses.bigLowerSpace
-
-      makeInfoText "Please confirm your registered email ID"
-
-      makeThinText (
-        sprintf "We sent a confirmation link to your email %s.\n" model
-        + "Use it to confirm your ID.\nIt will be valid for 12 hours."
+      View.MakeAvatar(
+        source = Images.verificationCode,
+        margin = Thicknesses.bigLowerSpace
       )
-      |> margin Thicknesses.mediumLowerSpace
 
-      makeButton
-        true
-        (bindPress dispatch ClickResendEmail)
-        "send again"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeText("Please confirm your registered email ID")
 
-      makeDuoGrid
-        (makeLink (bindPress dispatch ClickGoToChangeEmail) "change email"
-        |> margin (Thicknesses.duoGridCentering))
-        (makeNavButton (bindPress dispatch ClickGoToSignIn) "log in")
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeThinText(
+        text =
+          sprintf "We sent a confirmation link to your email %s.\n" model
+          + "Use it to confirm your ID.\nIt will be valid for 12 hours.",
+
+        margin = Thicknesses.mediumLowerSpace
+      )
+
+      View.MakeButton(
+        text = "send again",
+        command = bindPress dispatch ClickResendEmail,
+        margin = Thicknesses.mediumLowerSpace
+      )
+
+      View.Grid(
+        coldefs = [Star; Star],
+        rowSpacing = 0.,
+        columnSpacing = 0.,
+        width = screenWidthP 0.8,
+        margin = Thicknesses.mediumLowerSpace,
+        horizontalOptions = LayoutOptions.CenterAndExpand,
+        children = [
+          View.MakeTextButton(
+            text = "log in",
+            command = bindPress dispatch ClickGoToSignIn,
+            margin = Thickness (0.,-8., 0., 0.),
+            fontFamily = Fonts.renogare,
+            horizontalOptions = LayoutOptions.Start
+          )
+            .Column(0)
+
+          View.MakeTextButton(
+            text = "change email",
+            command = bindPress dispatch ClickGoToChangeEmail,
+            horizontalOptions = LayoutOptions.End
+          )
+            .Column(1)
+        ]
+      )
     ]
   )

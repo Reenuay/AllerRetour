@@ -25,7 +25,7 @@ let view dispatch =
             toggled = (fun args -> dispatch (ChangeTheme (AppTheme.trueToDark args.Value)))
           )
 
-          makeInfoText "Dark mode"
+          View.MakeText("Dark mode")
         ]
       )
     ]

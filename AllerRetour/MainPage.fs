@@ -282,16 +282,16 @@ let makeTab column isLast isActive dispatch icon iconActive title isDarkTheme =
 
         View.Label(
           text = title,
+          margin = Thickness (2., 0., 2., 10.),
           opacity = opacity,
           fontSize = FontSizes.xtrasmall,
-          textColor = Colors.accent,
+          textColor = c,
           fontFamily = Fonts.renogare,
+          verticalOptions = LayoutOptions.Center,
+          horizontalOptions = LayoutOptions.Center,
           horizontalTextAlignment = TextAlignment.Center
-        ).Row(1)
-        |> textColor c
-        |> horizontalOptions LayoutOptions.Center
-        |> verticalOptions LayoutOptions.Center
-        |> margin (Thickness (2., 0., 2., 10.))
+        )
+          .Row(1)
       ],
       gestureRecognizers = [
         View.TapGestureRecognizer(command = dispatch column)
@@ -337,25 +337,50 @@ let view model (dispatch: Msg -> unit) =
           verticalOptions = LayoutOptions.StartAndExpand,
           children = [
             View.Grid(
-              rowSpacing = 0.,
-              columnSpacing = 0.,
-              coldefs = List.replicate 3 Star,
+              columnSpacing = 20.,
+              coldefs = [Star; Stars 1.5; Star],
               margin = Thickness (20., 0.),
               children = [
-                makeDuoStack
-                  (makeCircle2 (screenWidth() * 0.2) (makeInfoText "0,00"))
-                  (makeInfoText "last month"
-                  |> margin Thicknesses.eight)
-  
-                (makeDuoStack
-                  ((makeCircle2 (screenWidth() * 0.3) (makeHomeText "0,00")))
-                  ((makeInfoText "total")
-                  |> margin Thicknesses.eight)).Column(1)
-  
-                (makeDuoStack
-                  ((makeCircle2 (screenWidth() * 0.2) (makeInfoText "0,00")))
-                  ((makeInfoText "current balance")
-                  |> margin Thicknesses.eight)).Column(2)
+                View.StackLayout(
+                  children = [
+                    View.MakeCircle(
+                      content = View.MakeText(
+                        text = "0,00",
+                        verticalOptions = LayoutOptions.Center,
+                        horizontalOptions = LayoutOptions.Center
+                      )
+                    )
+                    View.MakeText("last month")
+                  ]
+                )
+
+                View.StackLayout(
+                  children = [
+                    View.MakeCircle(
+                      content = View.MakeText(
+                        text = "0,00",
+                        verticalOptions = LayoutOptions.Center,
+                        horizontalOptions = LayoutOptions.Center
+                      )
+                    )
+                    View.MakeText("total")
+                  ]
+                )
+                  .Column(1)
+
+                View.StackLayout(
+                  children = [
+                    View.MakeCircle(
+                      content = View.MakeText(
+                        text = "0,00",
+                        verticalOptions = LayoutOptions.Center,
+                        horizontalOptions = LayoutOptions.Center
+                      )
+                    )
+                    View.MakeText("current balance")
+                  ]
+                )
+                  .Column(2)
               ]
             )
         
@@ -461,7 +486,7 @@ let view model (dispatch: Msg -> unit) =
           isDarkTheme = isDarkTheme,
           verticalOptions = LayoutOptions.CenterAndExpand,
           children = [
-            makeInfoText "Coming soon..."
+            View.MakeText("Coming soon...")
           ]
         )
       )
@@ -474,8 +499,14 @@ let view model (dispatch: Msg -> unit) =
           isDarkTheme = isDarkTheme,
           verticalOptions = LayoutOptions.CenterAndExpand,
           children = [
-            makeInfoText "Your card id"
-            makeHomeText (String.Format("{0:0000 0000 0000 0000}", Int64.Parse(cardId)))
+            View.MakeText("Your card id")
+            View.Label(
+              text = String.Format("{0:0000 0000 0000 0000}", Int64.Parse(cardId)),
+              fontSize = FontSizes.medium,
+              textColor = Colors.accent,
+              fontFamily = Fonts.segoeUiLight,
+              horizontalTextAlignment = TextAlignment.Center
+            )
           ]
         )
       )
@@ -498,13 +529,21 @@ let view model (dispatch: Msg -> unit) =
 
                 View.StackLayout(
                   children = [
-                    (makeHomeText (NameString.value firstName + " " + NameString.value lastName))
-                    |> margin (Thickness 4.)
-                    |> horizontalOptions LayoutOptions.Start
+                    View.Label(
+                      text = NameString.value firstName + " " + NameString.value lastName,
+                      margin = Thickness 4.,
+                      fontSize = FontSizes.medium,
+                      textColor = Colors.accent,
+                      fontFamily = Fonts.segoeUiLight,
+                      horizontalOptions = LayoutOptions.Start,
+                      horizontalTextAlignment = TextAlignment.Center
+                    )
 
-                    (makeInfoText (EmailAddress.value email))
-                    |> margin (Thickness 4.)
-                    |> horizontalOptions LayoutOptions.Start
+                    View.MakeText(
+                      text = EmailAddress.value email,
+                      margin = Thickness 4.,
+                      horizontalOptions = LayoutOptions.Start
+                    )
                   ]
                 ).Column(1)
                 |> horizontalOptions LayoutOptions.Start

@@ -20,21 +20,26 @@ let view model dispatch =
   View.MakeScrollStackPage(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
-      Images.success
-      |> makeCircle
-      |> margin Thicknesses.bigLowerSpace
-
-      makeInfoText "Success!"
-
-      makeThinText (
-        sprintf "We sent a confirmation link to your email %s." model
-        + "Use it to confirm your ID.\nIt will be valid for 12 hours."
+      View.MakeAvatar(
+        source = Images.success,
+        margin = Thicknesses.bigLowerSpace
       )
-      |> margin Thicknesses.mediumLowerSpace
 
-      makeNavButton
-        (bindPress dispatch ClickGoToSignIn)
-        "log in"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeText("Success!")
+
+      View.MakeThinText(
+        text =
+          sprintf "We sent a confirmation link to your email %s." model
+          + "Use it to confirm your ID.\nIt will be valid for 12 hours.",
+
+        margin = Thicknesses.mediumLowerSpace
+      )
+
+      View.MakeTextButton(
+        text = "log in",
+        command = bindPress dispatch ClickGoToSignIn,
+        margin = Thicknesses.mediumLowerSpace,
+        fontFamily = Fonts.renogare
+      )
     ]
   )

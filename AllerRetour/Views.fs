@@ -18,143 +18,101 @@ let bindNewText dispatch msg (args: TextChangedEventArgs) =
   |> msg
   |> dispatch
 
-let makeText fontSize fontFamily opacity text =
-  View.Label(
-    text = text,
-    opacity = opacity,
-    fontSize = fontSize,
-    textColor = Colors.accent,
-    fontFamily = fontFamily,
-    horizontalTextAlignment = TextAlignment.Center
-  )
-
-let makeHomeText = makeText FontSizes.medium Fonts.segoeUiLight Opacities.opaque
-
-let makeInfoText = makeText FontSizes.light Fonts.segoeUiLight Opacities.opaque
-
-let makeThinText = makeText FontSizes.thin Fonts.segoeUiLight Opacities.light
-
-let makeButton isEnabled command text =
-  let ifEnabled enabled disabled =
-    if isEnabled then enabled else disabled
-
-  View.Button(
-    text = text,
-    height = 32.,
-    command = command,
-    cornerRadius = 32,
-    fontSize = FontSizes.light,
-    fontFamily = Fonts.renogare,
-    borderColor = Colors.accent,
-    padding = Thicknesses.paddingForButton,
-    horizontalOptions = LayoutOptions.Center,
-    textColor = ifEnabled Colors.backgroundLight Colors.accent,
-    backgroundColor = ifEnabled Colors.accent Color.Transparent,
-    opacity = ifEnabled Opacities.opaque Opacities.light,
-    borderWidth = ifEnabled 0. 1.
-  )
-
-let makeTextButton font fontSize margin horizontalOptions command text =
-  View.Label(
-    text = text,
-    fontFamily = font,
-    fontSize = fontSize,
-    textColor = Colors.accent,
-    padding = Thicknesses.zero,
-    horizontalOptions = horizontalOptions,
-    margin = margin,
-    gestureRecognizers = [
-      View.TapGestureRecognizer(
-        command = command
-      )
-    ]
-  )
-
-let makeLink =
-  makeTextButton
-    Fonts.segoeUiLight
-    FontSizes.light
-    Thicknesses.zero
-    LayoutOptions.Center
-
-let makeNavButton =
-  makeTextButton
-    Fonts.renogare
-    FontSizes.light
-    Thicknesses.zero
-    LayoutOptions.Center
-
-let makeDuoGrid (v1: ViewElement) (v2: ViewElement) =
-  View.Grid(
-    coldefs = [Star; Star],
-    rowSpacing = 0.,
-    columnSpacing = 0.,
-    width = screenWidthP 0.8,
-    horizontalOptions = LayoutOptions.CenterAndExpand,
-    children = [
-      v1.Column(0)
-        |> horizontalOptions LayoutOptions.Start
-        |> verticalOptions LayoutOptions.Center
-
-      v2.Column(1)
-        |> horizontalOptions LayoutOptions.End
-        |> verticalOptions LayoutOptions.Center
-    ]
-  )
-
-let makeCircle path =
-  let bigRadius = screenWidthP 0.6
-  let littleRadius = bigRadius * 0.75
-  let a = Colors.accent
-
-  let circle radius content =
-    View.Frame(
-      backgroundColor = Color.FromRgba(a.R, a.G, a.B, Opacities.ten),
-      width = radius,
-      height = radius,
-      cornerRadius = radius,
-      horizontalOptions = LayoutOptions.Center,
-      verticalOptions = LayoutOptions.Center,
-      padding = Thicknesses.zero,
-      margin = Thicknesses.zero,
-      content = content
-    )
-
-  View.Image(source = path)
-  |> widthRequest (littleRadius * 0.65)
-  |> horizontalOptions LayoutOptions.Center
-  |> verticalOptions LayoutOptions.Center
-  |> circle littleRadius
-  |> circle bigRadius
-
-let makeCircle2 radius content =
-  View.Frame(
-    backgroundColor = Color.Transparent,
-    width = radius,
-    height = radius,
-    cornerRadius = radius,
-    borderColor = Colors.accent,
-    horizontalOptions = LayoutOptions.Center,
-    verticalOptions = LayoutOptions.Center,
-    padding = Thicknesses.zero,
-    margin = Thicknesses.zero,
-    content = (
-      content
-      |> horizontalOptions LayoutOptions.Center
-      |> verticalOptions LayoutOptions.Center
-    )
-  )
-  |> borderWidth 1.
-
-let makeDuoStack first second =
-  View.StackLayout(
-    children = [
-      first
-      second
-    ]
-  )
-
 type View with
+  static member MakeText
+    (
+      text,
+      ?margin,
+      ?opacity,
+      ?fontSize,
+      ?verticalOptions,
+      ?horizontalOptions,
+      ?horizontalTextAlignment
+    ) =
+    let fontSize = Option.defaultValue FontSizes.light fontSize
+    let horizontalTextAlignment = Option.defaultValue TextAlignment.Center horizontalTextAlignment
+
+    View.Label(
+      text = text,
+      ?margin = margin,
+      ?opacity = opacity,
+      fontSize = fontSize,
+      textColor = Colors.accent,
+      fontFamily = Fonts.segoeUiLight,
+      ?verticalOptions = verticalOptions,
+      ?horizontalOptions = horizontalOptions,
+      horizontalTextAlignment = horizontalTextAlignment
+    )
+
+  static member MakeThinText
+    (
+      text,
+      ?margin,
+      ?horizontalTextAlignment
+    ) =
+    View.MakeText(
+      text = text,
+      ?margin = margin,
+      opacity = Opacities.light,
+      fontSize = FontSizes.thin,
+      ?horizontalTextAlignment = horizontalTextAlignment
+    )
+
+  static member MakeButton
+    (
+      text,
+      command,
+      ?isEnabled,
+      ?margin
+    ) =
+      let isEnabled = Option.defaultValue true isEnabled
+
+      let ifEnabled enabled disabled =
+         if isEnabled then enabled else disabled
+
+      View.Button(
+        text = text,
+        height = 32.,
+        command = command,
+        cornerRadius = 32,
+        fontSize = FontSizes.light,
+        fontFamily = Fonts.renogare,
+        borderColor = Colors.accent,
+        padding = Thickness (40., 0., 40., -4.),
+        horizontalOptions = LayoutOptions.Center,
+        textColor = ifEnabled Colors.backgroundLight Colors.accent,
+        backgroundColor = ifEnabled Colors.accent Color.Transparent,
+        opacity = ifEnabled Opacities.opaque Opacities.light,
+        borderWidth = ifEnabled 0. 1.,
+        ?margin = margin
+      )
+
+  static member MakeTextButton
+    (
+      text,
+      command,
+      ?margin,
+      ?fontFamily,
+      ?horizontalOptions
+    ) =
+    let fontFamily = Option.defaultValue Fonts.segoeUiLight fontFamily
+    let horizontalOptions = Option.defaultValue LayoutOptions.Center horizontalOptions
+
+    View.Label(
+      text = text,
+      ?margin = margin,
+      padding = Thicknesses.zero,
+      textColor = Colors.accent,
+      fontSize = FontSizes.light,
+      fontFamily = fontFamily,
+      horizontalOptions = horizontalOptions,
+      gestureRecognizers = [
+        View.TapGestureRecognizer(
+          command = command
+        )
+      ]
+    )
+
   static member MakeEntry
     (
       value,
@@ -188,7 +146,7 @@ type View with
               View.Image(
                 source = Option.get image,
                 opacity = Opacities.light,
-                margin = Thicknesses.rightLittleSpace,
+                margin = Thickness (0., 0., 5., 0.),
                 width = 20.
               )
 
@@ -219,7 +177,7 @@ type View with
                 opacity = Opacities.light,
                 width = 20.,
                 aspect = Aspect.AspectFit,
-                margin = Thicknesses.rightLittleSpace,
+                margin = Thickness (0., 0., 5., 0.),
                 backgroundColor = Color.Transparent,
                 horizontalOptions = LayoutOptions.End,
                 gestureRecognizers = [
@@ -232,13 +190,69 @@ type View with
 
           if error <> String.Empty then
             yield
-              (makeThinText error)
+              View.MakeThinText(
+                text = error,
+                margin = Thickness (4., -15., 4., 0.),
+                horizontalTextAlignment = TextAlignment.Start
+              )
               .Row(1)
               .Column(1)
-              |> ViewElementExtensions.margin Thicknesses.paddingForEntryError
-              |> horizontalTextAlignment TextAlignment.Start
         ]
       )
+
+  static member MakeAvatar
+    (
+      source,
+      ?margin
+    ) =
+    let bigRadius = screenWidthP 0.6
+    let littleRadius = bigRadius * 0.75
+    let c = Colors.accent
+
+    let circle radius content =
+      View.Frame(
+        width = radius,
+        height = radius,
+        ?margin = margin,
+        content = content,
+        padding = Thicknesses.zero,
+        cornerRadius = radius,
+        verticalOptions = LayoutOptions.Center,
+        backgroundColor = Color.FromRgba(c.R, c.G, c.B, Opacities.ten),
+        horizontalOptions = LayoutOptions.Center
+      )
+
+    View.Image(
+      source = source,
+      horizontalOptions = LayoutOptions.Center,
+      verticalOptions = LayoutOptions.Center
+    )
+    |> widthRequest (littleRadius * 0.65)
+    |> circle littleRadius
+    |> circle bigRadius
+
+  static member MakeCircle
+    (
+      content
+    ) =
+    View.Frame(
+      margin = Thicknesses.zero,
+      content = content,
+      padding = Thicknesses.zero,
+      borderColor = Colors.accent,
+      cornerRadius = 1000.,
+      backgroundColor = Color.Transparent,
+      verticalOptions = LayoutOptions.Fill,
+      horizontalOptions = LayoutOptions.Fill,
+      created =
+        fun frame ->
+          frame.SizeChanged.Add(
+            fun _ ->
+              if frame.Width <> frame.Height then
+                frame.HeightRequest <- frame.Width
+          )
+    )
+    |> borderWidth 1.
 
   static member MakeScrollStack
     (

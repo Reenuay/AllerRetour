@@ -84,12 +84,16 @@ let view (model: Model) dispatch =
   View.MakeScrollStackPage(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
-      Images.passwordChange
-      |> makeCircle
-      |> margin Thicknesses.bigLowerSpace
+      
+      View.MakeAvatar(
+        source = Images.passwordChange,
+        margin = Thicknesses.bigLowerSpace
+      )
 
-      makeInfoText "Please enter new email"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeText(
+        text = "Please enter new email",
+        margin = Thicknesses.mediumLowerSpace
+      )
 
       View.MakeEntry(
         model.Email,
@@ -110,15 +114,18 @@ let view (model: Model) dispatch =
         margin = Thicknesses.mediumLowerSpace
       )
 
-      makeButton
-        (model.IsValid())
-        (bindPress dispatch ClickChange)
-        "change"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeButton(
+        text = "change",
+        command = bindPress dispatch ClickChange,
+        isEnabled = model.IsValid(),
+        margin = Thicknesses.mediumLowerSpace
+      )
 
-      makeNavButton
-        (bindPress dispatch ClickGoToSignIn)
-        "log in"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeTextButton(
+        text = "log in",
+        command = bindPress dispatch ClickGoToSignIn,
+        margin = Thicknesses.mediumLowerSpace,
+        fontFamily = Fonts.renogare
+      )
     ]
   )

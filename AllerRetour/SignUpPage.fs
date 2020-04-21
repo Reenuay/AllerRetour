@@ -114,8 +114,10 @@ let view model dispatch =
         width = screenWidthP 0.5
       )
 
-      makeThinText "sign up with email"
-      |> margin Thicknesses.bigUpperSpace
+      View.MakeThinText(
+        text = "sign up with email",
+        margin = Thicknesses.bigUpperSpace
+      )
 
       View.MakeEntry(
         model.FirstName,
@@ -161,15 +163,17 @@ let view model dispatch =
         margin = Thicknesses.mediumLowerSpace
       )
 
-      makeButton
-        (model.IsValid())
-        (bindPress dispatch ClickSignUp)
-        "sign up"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeButton(
+        text = "sign up",
+        command = bindPress dispatch ClickSignUp,
+        isEnabled = model.IsValid(),
+        margin = Thicknesses.mediumLowerSpace
+      )
 
-      makeLink
-        (bindPress dispatch ClickGoToSignIn)
-        "already registered?"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeTextButton(
+        text = "already registered?",
+        command = bindPress dispatch ClickGoToSignIn,
+        margin = Thicknesses.mediumLowerSpace
+      )
     ]
   )

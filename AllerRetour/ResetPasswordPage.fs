@@ -131,16 +131,16 @@ let view model dispatch =
     children = [
       if not model.TokenEntered then
         yield! [
-          Images.verificationCode
-          |> makeCircle
-          |> margin Thicknesses.bigLowerSpace
+          View.MakeAvatar(
+            source = Images.verificationCode,
+            margin = Thicknesses.bigLowerSpace
+          )
 
-          makeInfoText
-            "Please enter your verification code"
+          View.MakeText("Please enter your verification code")
 
-          makeThinText "We sent a verification code\nto your registered email ID"
+          View.MakeThinText("We sent a verification code\nto your registered email ID")
 
-          makeThinText (TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss"))
+          View.MakeThinText(TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss"))
 
           View.MakeEntry(
             model.Token,
@@ -152,21 +152,24 @@ let view model dispatch =
             margin = Thicknesses.mediumLowerSpace
           )
 
-          makeButton
-            (TwoTrackResult.isSuccess model.Token)
-            (bindPress dispatch ClickConfirm)
-            "confirm"
-          |> margin (Thicknesses.mediumLowerSpace)
+          View.MakeButton(
+            text = "confirm",
+            command = bindPress dispatch ClickConfirm,
+            isEnabled = TwoTrackResult.isSuccess model.Token,
+            margin = Thicknesses.mediumLowerSpace
+          )
         ]
       else
         yield! [
-          Images.passwordChange
-          |> makeCircle
-          |> margin Thicknesses.mediumUpperBigLowerSpace
+          View.MakeAvatar(
+            source = Images.passwordChange,
+            margin = Thicknesses.mediumUpperBigLowerSpace
+          )
         
-          makeInfoText
-            "Please enter a new password"
-          |> margin Thicknesses.mediumLowerSpace
+          View.MakeText(
+            text = "Please enter a new password",
+            margin = Thicknesses.mediumLowerSpace
+          )
 
           View.MakeEntry(
             model.NewPassword,
@@ -187,17 +190,20 @@ let view model dispatch =
             margin = Thicknesses.mediumLowerSpace
           )
 
-          makeButton
-            (model.IsValid())
-            (bindPress dispatch ClickReset)
-            "change password"
-          |> margin Thicknesses.mediumLowerSpace
+          View.MakeButton(
+            text = "change password",
+            command = bindPress dispatch ClickReset,
+            isEnabled = model.IsValid(),
+            margin = Thicknesses.mediumLowerSpace
+          )
         ]
 
       yield
-        makeNavButton
-          (bindPress dispatch ClickGoToSignIn)
-          "log in"
-        |> margin Thicknesses.mediumLowerSpace
+        View.MakeTextButton(
+          text = "log in",
+          command = bindPress dispatch ClickGoToSignIn,
+          margin = Thicknesses.mediumLowerSpace,
+          fontFamily = Fonts.renogare
+        )
     ]
   )

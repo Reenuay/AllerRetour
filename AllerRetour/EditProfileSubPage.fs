@@ -109,9 +109,10 @@ let view model dispatch =
     dispatchBack = bindPress dispatch ClickGoBack,
     verticalOptions = LayoutOptions.StartAndExpand,
     children = [
-      Images.profile
-      |> makeCircle
-      |> margin Thicknesses.mediumUpperBigLowerSpace
+      View.MakeAvatar(
+        source = Images.profile,
+        margin = Thicknesses.mediumUpperBigLowerSpace
+      )
 
       View.MakeEntry(
         model.FirstName,
@@ -153,10 +154,11 @@ let view model dispatch =
       )
       |> margin Thicknesses.mediumLowerSpace
 
-      makeButton
-        (model.IsValid())
-        (bindPress dispatch ClickSave)
-        "save"
-      |> margin Thicknesses.mediumLowerSpace
+      View.MakeButton(
+        text = "save",
+        command = bindPress dispatch ClickSave,
+        isEnabled = model.IsValid(),
+        margin = Thicknesses.mediumLowerSpace
+      )
     ]
   )

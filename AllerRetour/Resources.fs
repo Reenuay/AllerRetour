@@ -69,11 +69,6 @@ module Thicknesses =
   let bigLowerSpace = Thickness (0., 0., 0., 50.)
   let mediumLowerSpace = Thickness (0., 0., 0., 35.)
   let mediumUpperBigLowerSpace = Thickness (0., 55., 0., 50.)
-  let paddingForEntryError = Thickness (4., -15., 4., 0.)
-  let rightLittleSpace = Thickness (0., 0., 5., 0.)
-  let paddingForButton = Thickness (40., 0., 40., -4.)
-  let duoGridCentering = Thickness (0.,-8., 0., 0.)
-  let eight = Thickness 8.
 
 module Opacities =
   let opaque = 1.
