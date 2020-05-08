@@ -1,15 +1,17 @@
+[<RequireQualifiedAccess>]
 module AllerRetour.Http
 
 open FSharp.Data
 open RequestTypes
 open ResponseTypes
 
-type AsyncT<'a> = Async<TwoTrackResult<'a, string list>>
+type Result<'a> = TwoTrackResult<'a, string list>
+type AsyncT<'a> = Async<Result<'a>>
 
 let baseUrl = "http://46.101.209.128/api/customer"
 let routeTo route = baseUrl + route
 
-let inline makeRequest (f: unit -> Async<HttpResponse>) =
+let inline private makeRequest (f: unit -> Async<HttpResponse>) =
   async {
     do! Async.SwitchToThreadPool()
 
@@ -32,10 +34,10 @@ let inline makeRequest (f: unit -> Async<HttpResponse>) =
             | Choice2Of2 _ -> body
           Failure [ e ]
     with
-    | ex -> return Failure [ "No internet connection" ]
+    | _ -> return Failure [ "No internet connection" ]
   }
 
-let inline get route query headers =
+let inline private get route query headers =
   let f () =
     Http.AsyncRequest (
       routeTo route,
@@ -47,7 +49,7 @@ let inline get route query headers =
 
   makeRequest f
 
-let inline post route body headers =
+let inline private post route body headers =
   let f () =
     Http.AsyncRequest (
       routeTo route,
@@ -59,7 +61,7 @@ let inline post route body headers =
 
   makeRequest f
 
-let inline put route body headers =
+let inline private put route body headers =
   let f () =
     Http.AsyncRequest (
       routeTo route,
@@ -71,7 +73,7 @@ let inline put route body headers =
 
   makeRequest f
 
-let bearer token = HttpRequestHeaders.Authorization (sprintf "Bearer %s" token)
+let private bearer token = HttpRequestHeaders.Authorization (sprintf "Bearer %s" token)
 
 let signIn (r: SignInRequest) : AsyncT<SignInResponse> =
   post "/signin" r []
