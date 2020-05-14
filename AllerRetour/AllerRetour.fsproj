@@ -21,6 +21,7 @@
     <Compile Include="Views.fs" />
     <Compile Include="Http.fs" />
     <Compile Include="GlobalSettings.fs" />
+    <Compile Include="GlobalCommands.fs" />
     <Compile Include="SignInPage.fs" />
     <Compile Include="SignUpPage.fs" />
     <Compile Include="ForgotPasswordPage.fs" />

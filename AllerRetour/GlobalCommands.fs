@@ -11,7 +11,7 @@ type Route =
   | SignUp
   | ForgotPassword
   | ResendEmail of string
-  | Main of ProfileResponse
+  | Main of SignInResponse * ProfileResponse
 
 [<RequireQualifiedAccess>]
 module Route =
@@ -29,17 +29,17 @@ module AppMessage =
     Application
       .Current
       .MainPage
-      .DisplayAlert(String.Empty, msg, "Ok")
+      .DisplayAlert( String.Empty, msg, "Ok" )
     |> ignore
 
     Cmd.none
 
 [<RequireQualifiedAccess>]
-module Auth =
-  let private event = new Event<SignInResponse>()
+module Authentication =
+  let private event = new Event<SignInResponse option>()
   
-  let Authenticated = event.Publish
+  let StateChanged = event.Publish
   
-  let authenticate token =
+  let changeState token =
     event.Trigger(token)
     Cmd.none

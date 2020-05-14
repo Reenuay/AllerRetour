@@ -1,13 +1,15 @@
 module AllerRetour.SignInPage
 
+open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
 open RequestTypes
+open ResponseTypes
 open Resources
 open Views
 
-type Model = {
+type Model = private {
   Email: Validatable<EmailAddress, string>
   Password: Validatable<Password, string>
   PasswordHidden: bool
@@ -32,18 +34,15 @@ with
   }
 
 type Msg =
+  private
   | SetEmail of string
   | SetPassword of string
-  | SwapPasswordHidden
-  | ClickSignIn
-  | ClickGoToSignUp
-  | ClickToForgotPassword
-
-type ExternalMsg =
-  | NoOp
-  | SignIn of SignInRequest
-  | GoToSignUp
-  | GoToForgotPassword
+  | TogglePasswordHidden
+  | SignIn
+  | SignUp
+  | ForgotPassword
+  | SignedIn of Http.Result<SignInResponse>
+  | ProfileReceived of SignInResponse * Http.Result<ProfileResponse>
 
 let initModel = {
   Email = emptyString
@@ -51,24 +50,71 @@ let initModel = {
   PasswordHidden = true
 }
 
-let update msg (model: Model) =
+let update msg model : Model * Cmd<Msg> =
   match msg with
   | SetEmail e ->
-    { model with Email = adaptV EmailAddress.create e }, NoOp
-  | SetPassword p ->
-    { model with Password = adaptV Password.create p }, NoOp
-  | SwapPasswordHidden ->
-    { model with PasswordHidden = not model.PasswordHidden }, NoOp
-  | ClickSignIn ->
-    match model.ToDto() with
-    | Some d -> model, SignIn d
-    | None -> model.Revalidate(), NoOp
-  | ClickGoToSignUp ->
-    model, GoToSignUp
-  | ClickToForgotPassword ->
-    model, GoToForgotPassword
+    ( { model with Email = adaptV EmailAddress.create e }, Cmd.none )
 
-let view (model: Model) dispatch =
+  | SetPassword p ->
+    ( { model with Password = adaptV Password.create p }, Cmd.none )
+
+  | TogglePasswordHidden ->
+    ( { model with PasswordHidden = not model.PasswordHidden }, Cmd.none )
+
+  | SignIn ->
+    match model.ToDto() with
+    | Some d ->
+      let
+        cmd =
+          async {
+            let! tokenR = Http.signIn d
+            return SignedIn tokenR
+          }
+          |> Cmd.ofAsyncMsg
+      in
+      ( model, cmd )
+
+    | None ->
+      ( model.Revalidate (), Cmd.none )
+
+  | SignUp ->
+    ( model, Route.push Route.SignUp )
+
+  | ForgotPassword ->
+    ( model, Route.push Route.ForgotPassword )
+
+  | SignedIn (Success token) ->
+    let
+      cmd =
+        if
+          token.EmailConfirmed
+        then
+          Cmd.ofAsyncMsg <|
+            async {
+              let! profileR = Http.getProfile token.Token
+              return ProfileReceived ( token, profileR )
+            }
+        else
+          model.Email
+          |> underV EmailAddress.value
+          |> Route.ResendEmail
+          |> Route.push
+    in
+    ( model, cmd )
+
+  | ProfileReceived ( token, Success profile ) ->
+    let
+      cmd =
+        Route.Main ( token, profile )
+        |> Route.push
+    in
+    ( model, cmd )
+
+  | SignedIn (Failure errors)
+  | ProfileReceived ( _, Failure errors ) ->
+    ( model, AppMessage.show <| foldErrors errors )
+
+let view model dispatch =
   View.MakeScrollStackPage(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
@@ -98,7 +144,7 @@ let view (model: Model) dispatch =
         model.Email,
         "Email",
         EmailAddress.value,
-        (bindNewText dispatch SetEmail),
+        bindNewText dispatch SetEmail,
         keyboard = Keyboard.Email,
         image = Images.envelopeIcon
       )
@@ -107,21 +153,21 @@ let view (model: Model) dispatch =
         model.Password,
         "Password",
         Password.value,
-        (bindNewText dispatch SetPassword),
+        bindNewText dispatch SetPassword,
         image = Images.lockIcon,
-        passwordOptions = (model.PasswordHidden, bindPress dispatch SwapPasswordHidden),
+        passwordOptions = ( model.PasswordHidden, bindPress dispatch TogglePasswordHidden ),
         margin = Thicknesses.mediumLowerSpace
       )
 
       View.MakeButton(
         text = "log in",
-        command = bindPress dispatch ClickSignIn,
-        isEnabled = model.IsValid(),
+        command = bindPress dispatch SignIn,
+        isEnabled = model.IsValid (),
         margin = Thicknesses.mediumLowerSpace
       )
 
       View.Grid(
-        coldefs = [Star; Star],
+        coldefs = [ Star; Star ],
         rowSpacing = 0.,
         columnSpacing = 0.,
         width = screenWidthP 0.8,
@@ -130,15 +176,15 @@ let view (model: Model) dispatch =
         children = [
           View.MakeTextButton(
             text = "forgot password?",
-            command = bindPress dispatch ClickToForgotPassword,
-            margin = Thickness (0.,-8., 0., 0.),
+            command = bindPress dispatch ForgotPassword,
+            margin = Thickness ( 0., -8., 0., 0. ),
             horizontalOptions = LayoutOptions.Start
           )
             .Column(0)
 
           View.MakeTextButton(
             text = "sign up",
-            command = bindPress dispatch ClickGoToSignUp,
+            command = bindPress dispatch SignUp,
             fontFamily = Fonts.renogare,
             horizontalOptions = LayoutOptions.End
           )

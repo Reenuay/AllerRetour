@@ -7,6 +7,7 @@ open Fabulous.XamarinForms.LiveUpdate
 open Xamarin.Forms
 open TwoTrackResult
 open RequestTypes
+open ResponseTypes
 
 module App =
   type PageModel =
@@ -21,6 +22,7 @@ module App =
 
   type Model = {
     PageModel: PageModel
+    Route: Route
     Token: string option
   }
 
@@ -37,7 +39,6 @@ module App =
   type Msg =
     | PageMsg of PageMsg
     | NavigateTo of PageModel
-    | SignIn of SignInRequest
     | SignUp of SignUpRequest
     | SignOut
     | SendPasswordResetEmail of PasswordResetEmailRequest
@@ -48,9 +49,12 @@ module App =
     | ResendConfirmEmail
     | ShowMessage of string
     | LoadSettings
+    | RefreshToken of string
+    | RouteChanged of Route
 
   let initModel = {
     PageModel = SignInPageModel SignInPage.initModel
+    Route = Route.SignIn
     Token = None
   }
 
@@ -61,28 +65,10 @@ module App =
     |> Cmd.ofMsg
 
   let handleSignInMsg msg model =
-    let newModel, eMsg = SignInPage.update msg model
-    let cmd =
-      match eMsg with
-      | SignInPage.NoOp ->
-        Cmd.none
-
-      | SignInPage.SignIn r ->
-        Cmd.ofMsg (SignIn r)
-
-      | SignInPage.GoToSignUp ->
-        SignUpPage.initModel
-        |> SignUpPageModel
-        |> NavigateTo
-        |> Cmd.ofMsg
-
-      | SignInPage.GoToForgotPassword ->
-        ForgotPasswordPage.initModel
-        |> ForgotPasswordPageModel
-        |> NavigateTo
-        |> Cmd.ofMsg
-
-    newModel, cmd
+    let
+      ( newModel, cmd ) = SignInPage.update msg model
+    in
+    ( newModel, Cmd.map (SignInPageMsg >> PageMsg) cmd )
 
   let handleSignUpMsg msg model =
     let newModel, eMsg = SignUpPage.update msg model
@@ -203,44 +189,6 @@ module App =
         |> foldErrors
         |> ShowMessage
         |> Cmd.ofMsg)
-
-  let expireTokenCmd date =
-    async {
-      do! Async.SwitchToThreadPool()
-      do! (date - DateTime.UtcNow).TotalMilliseconds
-        |> int
-        |> Async.Sleep
-
-      return SignOut
-    }
-    |> Cmd.ofAsyncMsg
-
-  let signIn (model: Model) request =
-    request
-    |> Http.signIn
-    |> Async.RunSynchronously
-    |> handleTwoTrackHttp
-      model
-      (fun t ->
-        let navCmd =
-          if t.EmailConfirmed then
-            t.Token
-            |> Http.getProfile
-            |> Async.RunSynchronously
-            |> bind MainPage.create
-            |> either
-              (MainPageModel >> NavigateTo)
-              ("Can not open main page: server sent invalid data" |> ShowMessage |> ignore2)
-            |> Cmd.ofMsg 
-          else
-            request.Email
-            |> ResendEmailPageModel
-            |> NavigateTo
-            |> Cmd.ofMsg
-      
-        let timerCmd = expireTokenCmd t.Expires
-      
-        { model with Token = Some t.Token }, Cmd.batch [navCmd; timerCmd])
 
   let signUp model request =
     request
@@ -418,9 +366,6 @@ module App =
 
     | NavigateTo pModel ->
       { aModel with PageModel = pModel }, Cmd.none
-
-    | SignIn r ->
-      signIn aModel r
           
     | SignUp r ->
       signUp aModel r
@@ -456,7 +401,93 @@ module App =
         | Failure _ -> Cmd.ofMsg (ShowMessage "Error loading app settings.")
         | _ -> Cmd.none
 
-      aModel, cmd
+      ( aModel, cmd )
+
+    | RefreshToken token ->
+      match aModel.Token with
+      | Some t when t = token ->
+        let
+          cmd =
+            Route.push Route.SignIn
+        in
+        ( { aModel with Token = None }, cmd )
+
+      | _ ->
+        ( aModel, Cmd.none )
+
+    | RouteChanged route ->
+      match route with
+      | Route.SignIn ->
+        let
+          newModel =
+            {
+              aModel with
+                PageModel = SignInPageModel SignInPage.initModel
+                Route = route
+            }
+        in
+        ( newModel, Cmd.none )
+
+      | Route.SignUp ->
+        let
+          newModel =
+            {
+              aModel with
+                PageModel = SignUpPageModel SignUpPage.initModel
+                Route = route
+            }
+        in
+        ( newModel, Cmd.none )
+
+      | Route.ForgotPassword ->
+        let
+          newModel =
+            {
+              aModel with
+                PageModel = ForgotPasswordPageModel ForgotPasswordPage.initModel
+                Route = route
+            }
+        in
+        ( newModel, Cmd.none )
+
+      | Route.ResendEmail email ->
+        let
+          newModel =
+            {
+              aModel with
+                PageModel = ResendEmailPageModel email
+                Route = route
+            }
+        in
+        ( newModel, Cmd.none )
+
+      | Route.Main ( token, profile ) ->
+        match MainPage.create profile with
+        | Success mainModel ->
+          let
+            newModel =
+              { aModel with
+                  PageModel = MainPageModel mainModel
+                  Route = route
+                  Token = Some token.Token
+              }
+          let
+            cmd =
+              async {
+                do! Async.SwitchToThreadPool ()
+
+                do!
+                  Async.Sleep <|
+                  int (token.Expires - DateTime.UtcNow).TotalMilliseconds
+
+                return RefreshToken token.Token
+              }
+              |> Cmd.ofAsyncMsg
+          in
+          ( newModel, cmd )
+
+        | Failure errors ->
+          ( aModel, AppMessage.show <| foldErrors errors )
 
   let view appModel dispatch =
     let pageDispatch = PageMsg >> dispatch
@@ -493,6 +524,12 @@ module App =
   // Note, this declaration is needed if you enable LiveUpdate
   let program = Program.mkProgram init update view
 
+  let routeSub dispatch =
+    Route.Changed.Add(
+      fun route ->
+        dispatch <| RouteChanged route
+    )
+
 type App () as app =
   inherit Application ()
 
@@ -501,6 +538,7 @@ type App () as app =
 #if DEBUG
       |> Program.withConsoleTrace
 #endif
+      |> Program.withSubscription(fun _ ->  Cmd.ofSub App.routeSub)
       |> XamarinFormsProgram.run app
 
 #if DEBUG
