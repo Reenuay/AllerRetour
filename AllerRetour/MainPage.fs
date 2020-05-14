@@ -612,43 +612,40 @@ let view model (dispatch: Msg -> unit) =
         )
       )
 
-  View.ContentPage(
-    useSafeArea = true,
-    content = View.Grid(
-      rowSpacing = 0.,
-      columnSpacing = 0.,
-      children = [
-        yield!
-          if not model.PageStack.IsEmpty
-          then [
-              match model.PageStack.Head with
-              | ForProfileEdit pm ->
-                EditProfileSubPage.view
-                  pm
-                  (EditProfilePageMsg >> dispatch)
+  View.Grid(
+    rowSpacing = 0.,
+    columnSpacing = 0.,
+    children = [
+      yield!
+        if not model.PageStack.IsEmpty
+        then [
+            match model.PageStack.Head with
+            | ForProfileEdit pm ->
+              EditProfileSubPage.view
+                pm
+                (EditProfilePageMsg >> dispatch)
 
-              | ForEmailChange em ->
-                ChangeEmailSubPage.view
-                  em
-                  (ChangeEmailPageMsg >> dispatch)
+            | ForEmailChange em ->
+              ChangeEmailSubPage.view
+                em
+                (ChangeEmailPageMsg >> dispatch)
 
-              | ForPasswordChange pm ->
-                ChangePasswordSubPage.view
-                  pm
-                  (ChangePasswordPageMsg >> dispatch)
+            | ForPasswordChange pm ->
+              ChangePasswordSubPage.view
+                pm
+                (ChangePasswordPageMsg >> dispatch)
 
-              | ForSettings ->
-                SettingsPage.view (SettingsPageMsg >> dispatch)
-            ]
-          else [
-              match model.ActiveTabId with
-              | 0 -> homePage
-              | 2 -> cardStub
-              | 4 -> profilePage
-              | _ -> stub
+            | ForSettings ->
+              SettingsPage.view (SettingsPageMsg >> dispatch)
+          ]
+        else [
+            match model.ActiveTabId with
+            | 0 -> homePage
+            | 2 -> cardStub
+            | 4 -> profilePage
+            | _ -> stub
 
-              tabsView
-            ]
-      ]
-    )
+            tabsView
+          ]
+    ]
   )

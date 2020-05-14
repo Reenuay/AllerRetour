@@ -492,30 +492,36 @@ module App =
   let view appModel dispatch =
     let pageDispatch = PageMsg >> dispatch
 
-    match appModel.PageModel with
-    | SignInPageModel model ->
-      SignInPage.view model (SignInPageMsg >> pageDispatch)
+    let layout =
+      match appModel.PageModel with
+      | SignInPageModel model ->
+        SignInPage.view model (SignInPageMsg >> pageDispatch)
 
-    | SignUpPageModel model ->
-      SignUpPage.view model (SignUpPageMsg >> pageDispatch)
+      | SignUpPageModel model ->
+        SignUpPage.view model (SignUpPageMsg >> pageDispatch)
 
-    | ForgotPasswordPageModel model ->
-      ForgotPasswordPage.view model (ForgotPasswordPageMsg >> pageDispatch)
+      | ForgotPasswordPageModel model ->
+        ForgotPasswordPage.view model (ForgotPasswordPageMsg >> pageDispatch)
 
-    | ResetPasswordPageModel model ->
-      ResetPasswordPage.view model (ResetPasswordPageMsg >> pageDispatch)
+      | ResetPasswordPageModel model ->
+        ResetPasswordPage.view model (ResetPasswordPageMsg >> pageDispatch)
 
-    | SignUpSuccessPageModel model ->
-      SignUpSuccessPage.view model (SignUpSuccessPageMsg >> pageDispatch)
+      | SignUpSuccessPageModel model ->
+        SignUpSuccessPage.view model (SignUpSuccessPageMsg >> pageDispatch)
 
-    | ResendEmailPageModel model ->
-      ResendEmailPage.view model (ResendEmailPageMsg >> pageDispatch)
+      | ResendEmailPageModel model ->
+        ResendEmailPage.view model (ResendEmailPageMsg >> pageDispatch)
 
-    | ChangeEmailPageModel model ->
-      ChangeEmailPage.view model (ChangeEmailPageMsg >> pageDispatch)
+      | ChangeEmailPageModel model ->
+        ChangeEmailPage.view model (ChangeEmailPageMsg >> pageDispatch)
 
-    | MainPageModel model ->
-      MainPage.view model (MainPageMsg >> pageDispatch)
+      | MainPageModel model ->
+        MainPage.view model (MainPageMsg >> pageDispatch)
+
+    View.ContentPage(
+      useSafeArea = true,
+      content = layout
+    )
 
   // let init () = initModel, Cmd.ofMsg (SignIn { Email = "reenuay777@gmail.com"; Password = "testtest4" })
 

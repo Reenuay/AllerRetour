@@ -1,7 +1,6 @@
 module AllerRetour.Views
 
 open System
-open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 open Resources
@@ -321,25 +320,4 @@ type View with
           .LayoutFlags(AbsoluteLayoutFlags.All)
           .LayoutBounds(Rectangle(0., 0., 1., 1.))
       ]
-    )
-
-  static member MakeScrollStackPage
-    (
-      ?children,
-      ?isDarkTheme,
-      ?dispatchBack,
-      ?verticalOptions,
-      ?horizontalOptions
-    ) =
-    let verticalOptions = Option.defaultValue LayoutOptions.FillAndExpand verticalOptions
-
-    View.ContentPage(
-      useSafeArea = true,
-      content = View.MakeScrollStack(
-        ?children = children,
-        ?isDarkTheme = isDarkTheme,
-        ?dispatchBack = dispatchBack,
-        ?horizontalOptions = horizontalOptions,
-        verticalOptions = verticalOptions
-      )
     )

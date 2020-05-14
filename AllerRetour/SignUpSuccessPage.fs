@@ -17,7 +17,7 @@ let update msg (model: Model) =
   | ClickGoToSignIn -> model, GoToSignIn
 
 let view model dispatch =
-  View.MakeScrollStackPage(
+  View.MakeScrollStack(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
       View.MakeAvatar(

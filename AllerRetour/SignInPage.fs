@@ -126,7 +126,7 @@ let update msg model : Model * Cmd<Msg> =
     ( model, AppMessage.show <| foldErrors errors )
 
 let view model dispatch =
-  View.MakeScrollStackPage(
+  View.MakeScrollStack(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
       View.Image(

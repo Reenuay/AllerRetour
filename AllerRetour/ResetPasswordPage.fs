@@ -126,7 +126,7 @@ let update msg (model: Model) =
     
 
 let view model dispatch =
-  View.MakeScrollStackPage(
+  View.MakeScrollStack(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
       if not model.TokenEntered then
