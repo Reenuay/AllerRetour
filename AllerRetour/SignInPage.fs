@@ -14,24 +14,35 @@ type Model = private {
   Password: Validatable<Password, string>
   PasswordHidden: bool
 }
-with
-  member this.ToDto() : SignInRequest option =
-    match this.Email, this.Password with
-    | Success e, Success p ->
-      Some { Email = EmailAddress.value e; Password = Password.value p }
+
+[<RequireQualifiedAccess>]
+module Model =
+  let toDto model =
+    match ( model.Email, model.Password ) with
+    | ( Success e, Success p ) ->
+      Some
+        {
+          Email = EmailAddress.value e
+          Password = Password.value p
+        }
+
     | _ ->
       None
 
-  member this.IsValid() =
-    match this.Email, this.Password with
-    | Success _, Success _ -> true
-    | _ -> false
+  let isValid model =
+    match ( model.Email, model.Password ) with
+    | ( Success _, Success _ ) ->
+      true
 
-  member this.Revalidate() = {
-    this with
-      Email = adaptV EmailAddress.create (underV EmailAddress.value this.Email)
-      Password = adaptV Password.create (underV Password.value this.Password)
-  }
+    | _ ->
+      false
+
+  let revalidate (model: Model) =
+    {
+      model with
+        Email = adaptV EmailAddress.create (underV EmailAddress.value model.Email)
+        Password = adaptV Password.create (underV Password.value model.Password)
+    }
 
 type Msg =
   private
@@ -62,20 +73,20 @@ let update msg model : Model * Cmd<Msg> =
     ( { model with PasswordHidden = not model.PasswordHidden }, Cmd.none )
 
   | SignIn ->
-    match model.ToDto() with
+    match Model.toDto model with
     | Some d ->
       let
         cmd =
-          async {
-            let! tokenR = Http.signIn d
-            return SignedIn tokenR
-          }
-          |> Cmd.ofAsyncMsg
+          Cmd.ofAsyncMsg <|
+            async {
+              let! tokenR = Http.signIn d
+              return SignedIn tokenR
+            }
       in
       ( model, cmd )
 
     | None ->
-      ( model.Revalidate (), Cmd.none )
+      ( Model.revalidate model, Cmd.none )
 
   | SignUp ->
     ( model, Route.push Route.SignUp )
@@ -141,28 +152,28 @@ let view model dispatch =
       View.MakeThinText("login with email")
 
       View.MakeEntry(
-        model.Email,
-        "Email",
-        EmailAddress.value,
-        bindNewText dispatch SetEmail,
+        map = EmailAddress.value,
+        value = model.Email,
+        image = Images.envelopeIcon,
         keyboard = Keyboard.Email,
-        image = Images.envelopeIcon
+        placeholder = "Email",
+        textChanged = bindNewText dispatch SetEmail
       )
 
       View.MakeEntry(
-        model.Password,
-        "Password",
-        Password.value,
-        bindNewText dispatch SetPassword,
+        map = Password.value,
+        value = model.Password,
         image = Images.lockIcon,
-        passwordOptions = ( model.PasswordHidden, bindPress dispatch TogglePasswordHidden ),
-        margin = Thicknesses.mediumLowerSpace
+        margin = Thicknesses.mediumLowerSpace,
+        placeholder = "Password",
+        textChanged = bindNewText dispatch SetPassword,
+        passwordOptions = ( model.PasswordHidden, bindPress dispatch TogglePasswordHidden )
       )
 
       View.MakeButton(
         text = "log in",
         command = bindPress dispatch SignIn,
-        isEnabled = model.IsValid (),
+        isEnabled = Model.isValid model,
         margin = Thicknesses.mediumLowerSpace
       )
 
