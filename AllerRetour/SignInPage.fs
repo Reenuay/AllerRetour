@@ -49,10 +49,17 @@ module Model =
       false
 
   let revalidate (model: Model) =
+    let
+      email =
+        adaptV EmailAddress.create (underV EmailAddress.value model.Email)
+    let
+      password =
+        adaptV Password.create (underV Password.value model.Password)
+    in
     {
       model with
-        Email = adaptV EmailAddress.create (underV EmailAddress.value model.Email)
-        Password = adaptV Password.create (underV Password.value model.Password)
+        Email = email
+        Password = password
     }
 
 let initModel = {

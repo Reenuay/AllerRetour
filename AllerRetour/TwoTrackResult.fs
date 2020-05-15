@@ -62,7 +62,7 @@ module TwoTrackResult =
     x
     |> map
     |> switch
-    |> either (succeed x |> ignore2) fail
+    |> either (succeed x |> always) fail
 
   let failIfNone rFailure = function
   | Some x -> Success x

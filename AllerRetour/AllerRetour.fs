@@ -277,7 +277,7 @@ module App =
             |> MainPage.updateModel m
             |> either
               (MainPageModel >> NavigateTo)
-              ("Can not open main page: server sent invalid data" |> ShowMessage |> ignore2)
+              ("Can not open main page: server sent invalid data" |> ShowMessage |> always)
             |> Cmd.ofMsg
 
           | _ ->

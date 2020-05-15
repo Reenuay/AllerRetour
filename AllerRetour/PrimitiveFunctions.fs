@@ -13,4 +13,4 @@ let tryCatch fSuccess fError f x =
   with
   | ex -> fError ex.Message
 
-let ignore2 x _ = x
+let always x _ = x
