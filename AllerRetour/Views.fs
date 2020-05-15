@@ -277,7 +277,7 @@ type View with
       )
 
     View.AbsoluteLayout(
-      verticalOptions = LayoutOptions.FillAndExpand,
+      verticalOptions = LayoutOptions.Fill,
       children = [
         View.Image(
           source = (if isDarkTheme then Images.backgroundDark else Images.backgroundLight),

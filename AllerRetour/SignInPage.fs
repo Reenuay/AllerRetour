@@ -15,6 +15,17 @@ type Model = private {
   PasswordHidden: bool
 }
 
+type Msg =
+  private
+  | SetEmail of string
+  | SetPassword of string
+  | TogglePasswordHidden
+  | SignIn
+  | SignUp
+  | ForgotPassword
+  | SignedIn of Http.Result<SignInResponse>
+  | ProfileReceived of SignInResponse * Http.Result<ProfileResponse>
+
 [<RequireQualifiedAccess>]
 module Model =
   let toDto model =
@@ -44,17 +55,6 @@ module Model =
         Password = adaptV Password.create (underV Password.value model.Password)
     }
 
-type Msg =
-  private
-  | SetEmail of string
-  | SetPassword of string
-  | TogglePasswordHidden
-  | SignIn
-  | SignUp
-  | ForgotPassword
-  | SignedIn of Http.Result<SignInResponse>
-  | ProfileReceived of SignInResponse * Http.Result<ProfileResponse>
-
 let initModel = {
   Email = emptyString
   Password = emptyString
@@ -77,11 +77,15 @@ let update msg model : Model * Cmd<Msg> =
     | Some d ->
       let
         cmd =
-          Cmd.ofAsyncMsg <|
-            async {
-              let! tokenR = Http.signIn d
-              return SignedIn tokenR
-            }
+          Cmd.batch [
+            Loader.start ()
+
+            Cmd.ofAsyncMsg <|
+              async {
+                let! tokenR = Http.signIn d
+                return SignedIn tokenR
+              }
+          ]
       in
       ( model, cmd )
 
@@ -116,8 +120,12 @@ let update msg model : Model * Cmd<Msg> =
   | ProfileReceived ( token, Success profile ) ->
     let
       cmd =
-        Route.Main ( token, profile )
-        |> Route.push
+        Cmd.batch [
+          Route.Main ( token, profile )
+          |> Route.push
+
+          Loader.stop ()
+        ]
     in
     ( model, cmd )
 

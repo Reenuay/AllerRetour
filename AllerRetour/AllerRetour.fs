@@ -8,6 +8,8 @@ open Xamarin.Forms
 open TwoTrackResult
 open RequestTypes
 open ResponseTypes
+open Resources
+open Views
 
 module App =
   type PageModel =
@@ -24,6 +26,7 @@ module App =
     PageModel: PageModel
     Route: Route
     Token: string option
+    LoaderIsActive: bool
   }
 
   type PageMsg =
@@ -51,11 +54,13 @@ module App =
     | LoadSettings
     | RefreshToken of string
     | RouteChanged of Route
+    | LoaderStateChanged of bool
 
   let initModel = {
     PageModel = SignInPageModel SignInPage.initModel
     Route = Route.SignIn
     Token = None
+    LoaderIsActive = false
   }
 
   let goToSignInCmd =
@@ -489,38 +494,81 @@ module App =
         | Failure errors ->
           ( aModel, AppMessage.show <| foldErrors errors )
 
-  let view appModel dispatch =
+    | LoaderStateChanged state ->
+      ( { aModel with LoaderIsActive = state }, Cmd.none )
+
+  let view model dispatch =
     let pageDispatch = PageMsg >> dispatch
 
-    let layout =
-      match appModel.PageModel with
-      | SignInPageModel model ->
-        SignInPage.view model (SignInPageMsg >> pageDispatch)
+    let pageLayout =
+      match model.PageModel with
+      | SignInPageModel pageModel ->
+        SignInPage.view pageModel (SignInPageMsg >> pageDispatch)
 
-      | SignUpPageModel model ->
-        SignUpPage.view model (SignUpPageMsg >> pageDispatch)
+      | SignUpPageModel pageModel ->
+        SignUpPage.view pageModel (SignUpPageMsg >> pageDispatch)
 
-      | ForgotPasswordPageModel model ->
-        ForgotPasswordPage.view model (ForgotPasswordPageMsg >> pageDispatch)
+      | ForgotPasswordPageModel pageModel ->
+        ForgotPasswordPage.view pageModel (ForgotPasswordPageMsg >> pageDispatch)
 
-      | ResetPasswordPageModel model ->
-        ResetPasswordPage.view model (ResetPasswordPageMsg >> pageDispatch)
+      | ResetPasswordPageModel pageModel ->
+        ResetPasswordPage.view pageModel (ResetPasswordPageMsg >> pageDispatch)
 
-      | SignUpSuccessPageModel model ->
-        SignUpSuccessPage.view model (SignUpSuccessPageMsg >> pageDispatch)
+      | SignUpSuccessPageModel pageModel ->
+        SignUpSuccessPage.view pageModel (SignUpSuccessPageMsg >> pageDispatch)
 
-      | ResendEmailPageModel model ->
-        ResendEmailPage.view model (ResendEmailPageMsg >> pageDispatch)
+      | ResendEmailPageModel pageModel ->
+        ResendEmailPage.view pageModel (ResendEmailPageMsg >> pageDispatch)
 
-      | ChangeEmailPageModel model ->
-        ChangeEmailPage.view model (ChangeEmailPageMsg >> pageDispatch)
+      | ChangeEmailPageModel pageModel ->
+        ChangeEmailPage.view pageModel (ChangeEmailPageMsg >> pageDispatch)
 
-      | MainPageModel model ->
-        MainPage.view model (MainPageMsg >> pageDispatch)
+      | MainPageModel pageModel ->
+        MainPage.view pageModel (MainPageMsg >> pageDispatch)
 
+    let
+      whiteBoxSize =
+        screenWidthP 0.3
+    let
+      indicatorSize =
+        whiteBoxSize * 0.6
+    let
+      activityIndicator =
+        if model.LoaderIsActive then
+          [
+            View.BoxView(
+              backgroundColor = Colors.activity,
+              opacity = 0.8
+            )
+              .LayoutFlags(AbsoluteLayoutFlags.All)
+              .LayoutBounds(Rectangle(0., 0., 1., 1.))
+
+            View.BoxView(
+              backgroundColor = Color.White
+            )
+              .LayoutFlags(AbsoluteLayoutFlags.PositionProportional)
+              .LayoutBounds(Rectangle(0.5, 0.5, whiteBoxSize, whiteBoxSize))
+
+            View.ActivityIndicator(
+              isRunning = true,
+              color = Colors.accent
+            )
+              .LayoutFlags(AbsoluteLayoutFlags.PositionProportional)
+              .LayoutBounds(Rectangle(0.5, 0.5, indicatorSize, indicatorSize))
+          ]
+        else
+          []
+    in
     View.ContentPage(
       useSafeArea = true,
-      content = layout
+      content = View.AbsoluteLayout(
+        children = [
+          pageLayout
+            .LayoutFlags(AbsoluteLayoutFlags.All)
+            .LayoutBounds(Rectangle(0., 0., 1., 1.))
+        ]
+        @ activityIndicator
+      )
     )
 
   // let init () = initModel, Cmd.ofMsg (SignIn { Email = "reenuay777@gmail.com"; Password = "testtest4" })
@@ -536,6 +584,21 @@ module App =
         dispatch <| RouteChanged route
     )
 
+  let loaderSub dispatch =
+    Loader.StateChanged.Add(
+      fun state ->
+        let
+          hasActivity =
+            match state with
+            | LoaderState.Started ->
+              true
+
+            | LoaderState.Stopped ->
+              false
+        in
+        dispatch <| LoaderStateChanged hasActivity
+    )
+
 type App () as app =
   inherit Application ()
 
@@ -545,6 +608,7 @@ type App () as app =
       |> Program.withConsoleTrace
 #endif
       |> Program.withSubscription(fun _ ->  Cmd.ofSub App.routeSub)
+      |> Program.withSubscription(fun _ ->  Cmd.ofSub App.loaderSub)
       |> XamarinFormsProgram.run app
 
 #if DEBUG

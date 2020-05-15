@@ -9,6 +9,7 @@ module Colors =
   let frontDark = Color.FromHex("#1b2e4d")
   let frontLight = Color.FromHex("#F2F0F2")
   let accent = Color.FromHex("#E52535")
+  let activity = Color.FromRgb(0.1, 0.1, 0.1)
 
 module Images =
   let backgroundDark = Path "background_dark.png"

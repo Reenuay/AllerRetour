@@ -33,13 +33,3 @@ module AppMessage =
     |> ignore
 
     Cmd.none
-
-[<RequireQualifiedAccess>]
-module Authentication =
-  let private event = new Event<SignInResponse option>()
-  
-  let StateChanged = event.Publish
-  
-  let changeState token =
-    event.Trigger(token)
-    Cmd.none
