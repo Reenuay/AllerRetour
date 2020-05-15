@@ -20,7 +20,7 @@ type Model = {
 with
   member this.IsValid() =
     match this.FirstName, this.LastName with
-    | Success f, Success l ->
+    | Ok f, Ok l ->
       f <> this.PreviousProfile.FirstName
       || l <> this.PreviousProfile.LastName
       || this.Gender <> this.PreviousProfile.Gender
@@ -32,8 +32,8 @@ with
     match this.IsValid() with
     | true ->
       Some {
-        FirstName = TwoTrackResult.getSuccess this.FirstName
-        LastName = TwoTrackResult.getSuccess this.LastName
+        FirstName = Result.getOk this.FirstName
+        LastName = Result.getOk this.LastName
         Birthday = this.Birthday
         Gender = this.Gender
       }
@@ -69,8 +69,8 @@ let fromGenderOption = function
 | None -> -1
 
 let create (profile: Profile) = {
-  FirstName = Success profile.FirstName
-  LastName = Success profile.LastName
+  FirstName = Ok profile.FirstName
+  LastName = Ok profile.LastName
   Birthday = profile.Birthday
   Gender = profile.Gender
   PreviousProfile = profile

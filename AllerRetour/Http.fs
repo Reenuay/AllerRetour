@@ -5,7 +5,7 @@ open FSharp.Data
 open RequestTypes
 open ResponseTypes
 
-type Result<'a> = TwoTrackResult<'a, string list>
+type Result<'a> = Result<'a, string list>
 type AsyncT<'a> = Async<Result<'a>>
 
 let baseUrl = "http://46.101.209.128/api/customer"
@@ -25,16 +25,16 @@ let inline private makeRequest (f: unit -> Async<HttpResponse>) =
       return
         if res.StatusCode = 200 then
           match Json.deserialize body with
-          | Choice1Of2 t -> Success t
-          | Choice2Of2 e -> Failure [ "Parsing error: server returned invalid data" ]
+          | Choice1Of2 t -> Ok t
+          | Choice2Of2 e -> Error [ "Parsing error: server returned invalid data" ]
         else
           let e =
             match Json.deserialize body with
             | Choice1Of2 s -> s
             | Choice2Of2 _ -> body
-          Failure [ e ]
+          Error [ e ]
     with
-    | _ -> return Failure [ "No internet connection" ]
+    | _ -> return Error [ "No internet connection" ]
   }
 
 let inline private get route query headers =

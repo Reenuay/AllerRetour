@@ -129,8 +129,8 @@ type View with
 
       let text, error =
         match value with
-        | Success x -> map x, ""
-        | Failure (v, l) -> v, foldErrors l
+        | Ok x -> map x, ""
+        | Error (v, l) -> v, foldErrors l
 
       View.Grid(
         coldefs = [Auto; Star],

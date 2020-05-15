@@ -17,24 +17,24 @@ type Model = {
 with
   member this.ToDto() : EmailAndPassword option =
     match this.Email, this.Password with
-    | Success e, Success p ->
+    | Ok e, Ok p ->
       Some { Email = e; Password = p }
     | _ ->
       None
 
   member this.IsValid() =
     match this.Email, this.Password with
-    | Success _, Success _ -> true
+    | Ok _, Ok _ -> true
     | _ -> false
 
   member this.CreateEmail(email) =
     match EmailAddress.create email with
-    | Failure x -> Failure x
-    | Success e ->
+    | Error x -> Error x
+    | Ok e ->
       if e = this.PreviousEmail then
-        Failure ["This is the old value"]
+        Error ["This is the old value"]
       else
-        Success e
+        Ok e
 
   member this.Revalidate() = {
     this with

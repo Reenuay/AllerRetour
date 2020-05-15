@@ -21,12 +21,12 @@ type Model = {
 with
   member this.CheckRepeatPassword(r) =
     match underV Password.value this.NewPassword with
-    | x when x <> "" && x = r -> Success r
-    | _ -> Failure ["Passwords must be the same"]
+    | x when x <> "" && x = r -> Ok r
+    | _ -> Error ["Passwords must be the same"]
 
   member this.ToDto() : PasswordResetRequest option =
     match this.NewPassword, this.RepeatNewPassword, this.Token with
-    | Success n, Success _, Success p ->
+    | Ok n, Ok _, Ok p ->
       Some {
         Email = this.Email
         NewPassword = Password.value n
@@ -37,7 +37,7 @@ with
 
   member this.IsValid() =
     match this.NewPassword, this.RepeatNewPassword, this.Token with
-    | Success _, Success _, Success _ -> true
+    | Ok _, Ok _, Ok _ -> true
     | _ -> false
 
   member this.Revalidate() = {
@@ -115,7 +115,7 @@ let update msg (model: Model) =
 
   | ClickConfirm ->
     (
-      if TwoTrackResult.isSuccess model.Token then
+      if Result.isOk model.Token then
         { model with TokenEntered = true }
       else
         { model with Token = adaptV Pin.create (underV Pin.value model.Token) }
@@ -155,7 +155,7 @@ let view model dispatch =
           View.MakeButton(
             text = "confirm",
             command = bindClick dispatch ClickConfirm,
-            isEnabled = TwoTrackResult.isSuccess model.Token,
+            isEnabled = Result.isOk model.Token,
             margin = Thicknesses.mediumLowerSpace
           )
         ]

@@ -19,12 +19,12 @@ type Model = {
 with
   member this.CheckRepeatPassword(r) =
     match underV Password.value this.Password with
-    | x when x <> "" && x = r -> Success r
-    | _ -> Failure ["Passwords must be the same"]
+    | x when x <> "" && x = r -> Ok r
+    | _ -> Error ["Passwords must be the same"]
 
   member this.ToDto() : SignUpRequest option =
     match this.FirstName, this.LastName, this.Email, this.Password, this.RepeatPassword with
-    | Success f, Success l, Success e, Success p, Success _ ->
+    | Ok f, Ok l, Ok e, Ok p, Ok _ ->
       Some {
         FirstName = NameString.value f
         LastName = NameString.value l
@@ -36,7 +36,7 @@ with
 
   member this.IsValid() =
     match this.FirstName, this.LastName, this.Email, this.Password, this.RepeatPassword with
-    | Success _, Success _, Success _, Success _, Success _ -> true
+    | Ok _, Ok _, Ok _, Ok _, Ok _ -> true
     | _ -> false
 
   member this.Revalidate() = {

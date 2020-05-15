@@ -49,9 +49,9 @@ type GlobalSettings private () =
       match Json.deserialize (value :?> string) with
       | Choice1Of2 s ->
         _settings := s
-        Success ()
+        Ok ()
 
       | Choice2Of2 s ->
-        Failure s
+        Error s
     else
-      Success ()
+      Ok ()

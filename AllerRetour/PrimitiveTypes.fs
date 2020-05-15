@@ -1,31 +1,13 @@
 module AllerRetour.PrimitiveTypes
 
 open System
-open TwoTrackResult
-open ValidationPredicates
+open System.Net.Mail
+open System.Text.RegularExpressions
 
+// -------------- GENDER
 type Gender = Male | Female
 
-type EmailAddress = private EmailAddress of string
-
-type Password = private Password of string
-
-type NameString = private NameString of string
-
-type Pin = private Pin of string
-
-type Profile = {
-  FirstName: NameString
-  LastName: NameString
-  Birthday: DateTime option
-  Gender: Gender option
-}
-
-type EmailAndPassword = {
-  Email: EmailAddress
-  Password: Password
-}
-
+[<RequireQualifiedAccess>]
 module Gender =
   let fromString = function
   | "Male" -> Some Male
@@ -42,43 +24,92 @@ module Gender =
   | Some g -> toString g
   | None -> ""
 
+// -------------- EMAIL ADDRESS
+type EmailAddress = private EmailAddress of string
+
+[<RequireQualifiedAccess>]
 module EmailAddress =
   let maxLength = 100
 
-  let create
-    =  chain (isValidEmail) ["Bad format"]
-    ++ chain (hasMaxLengthOf maxLength) [sprintf "Maximum length is %i" maxLength]
-    >> map EmailAddress
+  let create e =
+    if String.length e > maxLength then
+      Error [sprintf "Maximum length is %i" maxLength]
+    else if MailAddress(e).Address <> e then
+      Error ["Bad format"]
+    else
+      Ok <| EmailAddress e
 
   let value (EmailAddress s) = s
 
+// -------------- PASSWORD
+type Password = private Password of string
+
+[<RequireQualifiedAccess>]
 module Password =
   let minLength = 8
   let maxLength = 100
-  let restrictedWords = ["aller"; "retour"]
 
-  let create
-    =  chain (hasMinLengthOf minLength) [sprintf "Minimum length is %i" minLength]
-    ++ chain (hasMaxLengthOf maxLength) [sprintf "Maximum length is %i" maxLength]
-    ++ chain (containsWords restrictedWords >> not) ["App name is not allowed in password"]
-    >> map Password
+  let private hasRestrictedWords p =
+    Regex.IsMatch(
+      p,
+      "(aller|retour)",
+      RegexOptions.IgnoreCase
+    )
+
+  let create p =
+    if String.length p < minLength then
+      Error [sprintf "Minimum length is %i" minLength]
+    else if String.length p > maxLength then
+      Error [sprintf "Maximum length is %i" maxLength]
+    else if hasRestrictedWords p then
+      Error ["App name is not allowed in password"]
+    else
+      Ok <| Password p
 
   let value (Password s) = s
 
+// -------------- NAME STRING
+type NameString = private NameString of string
+
+[<RequireQualifiedAccess>]
 module NameString =
   let minLength = 1
   let maxLength = 100
   
-  let create
-    =  chain (hasMinLengthOf minLength) [sprintf "Minimum length is %i" minLength]
-    ++ chain (hasMaxLengthOf maxLength) [sprintf "Maximum length is %i" maxLength]
-    >> map NameString
+  let create n =
+    if String.length n < minLength then
+      Error [sprintf "Minimum length is %i" minLength]
+    else if String.length n > maxLength then
+      Error [sprintf "Maximum length is %i" maxLength]
+    else
+      Ok <| NameString n
   
   let value (NameString s) = s
 
+// -------------- PIN
+type Pin = private Pin of string
+
+[<RequireQualifiedAccess>]
 module Pin =
-  let create
-    =  chain isValidPin ["Bad format"]
-    >> map Pin
+  let private isValid p =
+    Regex.IsMatch(p, "\d{6}")
+
+  let create p =
+    if isValid p then
+      Ok <| Pin p
+    else
+      Error ["Bad format"] 
 
   let value (Pin s) = s
+
+type EmailAndPassword = {
+  Email: EmailAddress
+  Password: Password
+}
+
+type Profile = {
+  FirstName: NameString
+  LastName: NameString
+  Birthday: DateTime option
+  Gender: Gender option
+}

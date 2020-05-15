@@ -5,7 +5,6 @@ open Fabulous
 open Fabulous.XamarinForms
 open Fabulous.XamarinForms.LiveUpdate
 open Xamarin.Forms
-open TwoTrackResult
 open RequestTypes
 open ResponseTypes
 open Resources
@@ -186,7 +185,7 @@ module App =
     newModel, cmd
 
   let handleTwoTrackHttp model fSuccess =
-    either
+    Result.either
       fSuccess
       (fun es ->
         model,
@@ -275,7 +274,7 @@ module App =
             model,
             r
             |> MainPage.updateModel m
-            |> either
+            |> Result.either
               (MainPageModel >> NavigateTo)
               ("Can not open main page: server sent invalid data" |> ShowMessage |> always)
             |> Cmd.ofMsg
@@ -403,7 +402,7 @@ module App =
     | LoadSettings ->
       let cmd =
         match GlobalSettings.Load() with
-        | Failure _ -> Cmd.ofMsg (ShowMessage "Error loading app settings.")
+        | Error _ -> Cmd.ofMsg (ShowMessage "Error loading app settings.")
         | _ -> Cmd.none
 
       ( aModel, cmd )
@@ -468,7 +467,7 @@ module App =
 
       | Route.Main ( token, profile ) ->
         match MainPage.create profile with
-        | Success mainModel ->
+        | Ok mainModel ->
           let
             newModel =
               { aModel with
@@ -491,7 +490,7 @@ module App =
           in
           ( newModel, cmd )
 
-        | Failure errors ->
+        | Error errors ->
           ( aModel, AppMessage.show <| foldErrors errors )
 
     | LoaderStateChanged isActive ->

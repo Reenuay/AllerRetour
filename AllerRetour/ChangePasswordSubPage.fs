@@ -19,14 +19,14 @@ type Model = {
 with
   member this.CheckRepeatPassword(r) =
     match this.NewPassword with
-    | Success p when Password.value p <> r ->
-      Failure ["Passwords must be the same"]
+    | Ok p when Password.value p <> r ->
+      Error ["Passwords must be the same"]
     | _ ->
-      Success r
+      Ok r
 
   member this.ToDto() : ChangePasswordRequest option =
     match this.NewPassword, this.RepeatNewPassword, this.OldPassword with
-    | Success n, Success _, Success o ->
+    | Ok n, Ok _, Ok o ->
       Some {
         NewPassword = Password.value n
         OldPassword = Password.value o
@@ -36,7 +36,7 @@ with
 
   member this.IsValid() =
     match this.NewPassword, this.RepeatNewPassword, this.OldPassword with
-    | Success _, Success _, Success _ -> true
+    | Ok _, Ok _, Ok _ -> true
     | _ -> false
 
   member this.Revalidate() = {

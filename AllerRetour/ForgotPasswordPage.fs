@@ -27,8 +27,8 @@ let update msg (model: Model) =
 
   | ClickSend ->
     match model with
-    | Success e -> model, Send { Email = EmailAddress.value e }
-    | Failure (x, _) -> adaptV EmailAddress.create x, NoOp
+    | Ok e -> model, Send { Email = EmailAddress.value e }
+    | Error (x, _) -> adaptV EmailAddress.create x, NoOp
 
   | ClickGoToSignIn -> model, GoToSignIn
 
@@ -58,7 +58,7 @@ let view (model: Model) dispatch =
       View.MakeButton(
         text = "send",
         command = bindClick dispatch ClickSend,
-        isEnabled = TwoTrackResult.isSuccess model,
+        isEnabled = Result.isOk model,
         margin = Thicknesses.mediumLowerSpace
       )
 

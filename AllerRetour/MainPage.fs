@@ -4,7 +4,6 @@ open System
 open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
-open TwoTrackResult
 open PrimitiveTypes
 open RequestTypes
 open ResponseTypes

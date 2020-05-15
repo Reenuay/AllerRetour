@@ -30,7 +30,7 @@ type Msg =
 module Model =
   let toDto model =
     match ( model.Email, model.Password ) with
-    | ( Success e, Success p ) ->
+    | ( Ok e, Ok p ) ->
       Some
         {
           Email = EmailAddress.value e
@@ -42,7 +42,7 @@ module Model =
 
   let isValid model =
     match ( model.Email, model.Password ) with
-    | ( Success _, Success _ ) ->
+    | ( Ok _, Ok _ ) ->
       true
 
     | _ ->
@@ -105,7 +105,7 @@ let update msg model : Model * Cmd<Msg> =
   | ForgotPassword ->
     ( model, Route.push Route.ForgotPassword )
 
-  | SignedIn (Success token) ->
+  | SignedIn (Ok token) ->
     let
       cmd =
         if
@@ -124,7 +124,7 @@ let update msg model : Model * Cmd<Msg> =
     in
     ( model, cmd )
 
-  | ProfileReceived ( token, Success profile ) ->
+  | ProfileReceived ( token, Ok profile ) ->
     let
       cmd =
         Cmd.batch [
@@ -136,8 +136,8 @@ let update msg model : Model * Cmd<Msg> =
     in
     ( model, cmd )
 
-  | SignedIn (Failure errors)
-  | ProfileReceived ( _, Failure errors ) ->
+  | SignedIn (Error errors)
+  | ProfileReceived ( _, Error errors ) ->
     ( model, AppMessage.show <| foldErrors errors )
 
 let view model dispatch =
