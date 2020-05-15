@@ -150,7 +150,7 @@ let view model dispatch =
         Password.value,
         (bindNewText dispatch SetPassword),
         image = Images.lockIcon,
-        passwordOptions = (model.PasswordHidden, bindPress dispatch SwapPasswordHidden)
+        passwordOptions = (model.PasswordHidden, bindClick dispatch SwapPasswordHidden)
       )
 
       View.MakeEntry(
@@ -159,20 +159,20 @@ let view model dispatch =
         id,
         (bindNewText dispatch SetRepeatPassword),
         image = Images.lockIcon,
-        passwordOptions = (model.PasswordRepeatHidden, bindPress dispatch SwapPasswordRepeatHidden),
+        passwordOptions = (model.PasswordRepeatHidden, bindClick dispatch SwapPasswordRepeatHidden),
         margin = Thicknesses.mediumLowerSpace
       )
 
       View.MakeButton(
         text = "sign up",
-        command = bindPress dispatch ClickSignUp,
+        command = bindClick dispatch ClickSignUp,
         isEnabled = model.IsValid(),
         margin = Thicknesses.mediumLowerSpace
       )
 
       View.MakeTextButton(
         text = "already registered?",
-        command = bindPress dispatch ClickGoToSignIn,
+        command = bindClick dispatch ClickGoToSignIn,
         margin = Thicknesses.mediumLowerSpace
       )
     ]

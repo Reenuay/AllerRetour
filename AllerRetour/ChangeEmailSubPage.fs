@@ -83,7 +83,7 @@ let update msg (model: Model) =
 let view (model: Model) dispatch =
   View.MakeScrollStack(
     isDarkTheme = GlobalSettings.IsDarkTheme,
-    dispatchBack = bindPress dispatch ClickGoBack,
+    dispatchBack = bindClick dispatch ClickGoBack,
     verticalOptions = LayoutOptions.StartAndExpand,
     children = [
       View.MakeAvatar(
@@ -106,13 +106,13 @@ let view (model: Model) dispatch =
         Password.value,
         (bindNewText dispatch SetPassword),
         image = Images.lockIcon,
-        passwordOptions = (model.PasswordHidden, bindPress dispatch SwapPasswordHidden),
+        passwordOptions = (model.PasswordHidden, bindClick dispatch SwapPasswordHidden),
         margin = Thicknesses.mediumLowerSpace
       )
 
       View.MakeButton(
         text = "change",
-        command = bindPress dispatch ClickChange,
+        command = bindClick dispatch ClickChange,
         isEnabled = model.IsValid(),
         margin = Thicknesses.mediumLowerSpace
       )

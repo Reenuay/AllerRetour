@@ -494,8 +494,8 @@ module App =
         | Failure errors ->
           ( aModel, AppMessage.show <| foldErrors errors )
 
-    | LoaderStateChanged state ->
-      ( { aModel with LoaderIsActive = state }, Cmd.none )
+    | LoaderStateChanged isActive ->
+      ( { aModel with LoaderIsActive = isActive }, Cmd.none )
 
   let view model dispatch =
     let pageDispatch = PageMsg >> dispatch
@@ -588,7 +588,7 @@ module App =
     Loader.StateChanged.Add(
       fun state ->
         let
-          hasActivity =
+          isActive =
             match state with
             | LoaderState.Started ->
               true
@@ -596,7 +596,7 @@ module App =
             | LoaderState.Stopped ->
               false
         in
-        dispatch <| LoaderStateChanged hasActivity
+        dispatch <| LoaderStateChanged isActive
     )
 
 type App () as app =

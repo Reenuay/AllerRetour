@@ -10,7 +10,7 @@ let screenWidth () = (screenSize ()).Width
 let screenHeight () = (screenSize ()).Height
 let screenWidthP percent = screenWidth () * percent
 
-let bindPress dispatch msg () = dispatch msg
+let bindClick dispatch msg () = dispatch msg
 
 let bindNewText dispatch msg (args: TextChangedEventArgs) =
   args.NewTextValue

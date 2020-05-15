@@ -37,7 +37,7 @@ let view model dispatch =
 
       View.MakeTextButton(
         text = "log in",
-        command = bindPress dispatch ClickGoToSignIn,
+        command = bindClick dispatch ClickGoToSignIn,
         margin = Thicknesses.mediumLowerSpace,
         fontFamily = Fonts.renogare
       )

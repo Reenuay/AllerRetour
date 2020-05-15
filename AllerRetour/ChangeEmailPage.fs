@@ -110,20 +110,20 @@ let view (model: Model) dispatch =
         Password.value,
         (bindNewText dispatch SetPassword),
         image = Images.lockIcon,
-        passwordOptions = (model.PasswordHidden, bindPress dispatch SwapPasswordHidden),
+        passwordOptions = (model.PasswordHidden, bindClick dispatch SwapPasswordHidden),
         margin = Thicknesses.mediumLowerSpace
       )
 
       View.MakeButton(
         text = "change",
-        command = bindPress dispatch ClickChange,
+        command = bindClick dispatch ClickChange,
         isEnabled = model.IsValid(),
         margin = Thicknesses.mediumLowerSpace
       )
 
       View.MakeTextButton(
         text = "log in",
-        command = bindPress dispatch ClickGoToSignIn,
+        command = bindClick dispatch ClickGoToSignIn,
         margin = Thicknesses.mediumLowerSpace,
         fontFamily = Fonts.renogare
       )

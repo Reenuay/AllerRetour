@@ -175,12 +175,12 @@ let view model dispatch =
         margin = Thicknesses.mediumLowerSpace,
         placeholder = "Password",
         textChanged = bindNewText dispatch SetPassword,
-        passwordOptions = ( model.PasswordHidden, bindPress dispatch TogglePasswordHidden )
+        passwordOptions = ( model.PasswordHidden, bindClick dispatch TogglePasswordHidden )
       )
 
       View.MakeButton(
         text = "log in",
-        command = bindPress dispatch SignIn,
+        command = bindClick dispatch SignIn,
         isEnabled = Model.isValid model,
         margin = Thicknesses.mediumLowerSpace
       )
@@ -195,7 +195,7 @@ let view model dispatch =
         children = [
           View.MakeTextButton(
             text = "forgot password?",
-            command = bindPress dispatch ForgotPassword,
+            command = bindClick dispatch ForgotPassword,
             margin = Thickness ( 0., -8., 0., 0. ),
             horizontalOptions = LayoutOptions.Start
           )
@@ -203,7 +203,7 @@ let view model dispatch =
 
           View.MakeTextButton(
             text = "sign up",
-            command = bindPress dispatch SignUp,
+            command = bindClick dispatch SignUp,
             fontFamily = Fonts.renogare,
             horizontalOptions = LayoutOptions.End
           )

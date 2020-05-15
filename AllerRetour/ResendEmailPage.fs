@@ -45,7 +45,7 @@ let view model dispatch =
 
       View.MakeButton(
         text = "send again",
-        command = bindPress dispatch ClickResendEmail,
+        command = bindClick dispatch ClickResendEmail,
         margin = Thicknesses.mediumLowerSpace
       )
 
@@ -59,7 +59,7 @@ let view model dispatch =
         children = [
           View.MakeTextButton(
             text = "log in",
-            command = bindPress dispatch ClickGoToSignIn,
+            command = bindClick dispatch ClickGoToSignIn,
             margin = Thickness (0.,-8., 0., 0.),
             fontFamily = Fonts.renogare,
             horizontalOptions = LayoutOptions.Start
@@ -68,7 +68,7 @@ let view model dispatch =
 
           View.MakeTextButton(
             text = "change email",
-            command = bindPress dispatch ClickGoToChangeEmail,
+            command = bindClick dispatch ClickGoToChangeEmail,
             horizontalOptions = LayoutOptions.End
           )
             .Column(1)

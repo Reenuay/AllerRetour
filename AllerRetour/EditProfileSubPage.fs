@@ -106,7 +106,7 @@ let update msg (model: Model) =
 let view model dispatch =
   View.MakeScrollStack(
     isDarkTheme = GlobalSettings.IsDarkTheme,
-    dispatchBack = bindPress dispatch ClickGoBack,
+    dispatchBack = bindClick dispatch ClickGoBack,
     verticalOptions = LayoutOptions.StartAndExpand,
     children = [
       View.MakeAvatar(
@@ -156,7 +156,7 @@ let view model dispatch =
 
       View.MakeButton(
         text = "save",
-        command = bindPress dispatch ClickSave,
+        command = bindClick dispatch ClickSave,
         isEnabled = model.IsValid(),
         margin = Thicknesses.mediumLowerSpace
       )

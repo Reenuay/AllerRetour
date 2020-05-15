@@ -57,14 +57,14 @@ let view (model: Model) dispatch =
 
       View.MakeButton(
         text = "send",
-        command = bindPress dispatch ClickSend,
+        command = bindClick dispatch ClickSend,
         isEnabled = TwoTrackResult.isSuccess model,
         margin = Thicknesses.mediumLowerSpace
       )
 
       View.MakeTextButton(
         text = "log in",
-        command = bindPress dispatch ClickGoToSignIn,
+        command = bindClick dispatch ClickGoToSignIn,
         margin = Thicknesses.mediumLowerSpace,
         fontFamily = Fonts.renogare
       )

@@ -154,7 +154,7 @@ let view model dispatch =
 
           View.MakeButton(
             text = "confirm",
-            command = bindPress dispatch ClickConfirm,
+            command = bindClick dispatch ClickConfirm,
             isEnabled = TwoTrackResult.isSuccess model.Token,
             margin = Thicknesses.mediumLowerSpace
           )
@@ -177,7 +177,7 @@ let view model dispatch =
             Password.value,
             (bindNewText dispatch SetNewPassword),
             image = Images.lockIcon,
-            passwordOptions = (model.NewPasswordHidden, bindPress dispatch SwapNewPasswordHidden)
+            passwordOptions = (model.NewPasswordHidden, bindClick dispatch SwapNewPasswordHidden)
           )
 
           View.MakeEntry(
@@ -186,13 +186,13 @@ let view model dispatch =
             id,
             (bindNewText dispatch SetRepeatNewPassword),
             image = Images.lockIcon,
-            passwordOptions = (model.RepeatNewPasswordHidden, bindPress dispatch SwapRepeatNewPasswordHidden),
+            passwordOptions = (model.RepeatNewPasswordHidden, bindClick dispatch SwapRepeatNewPasswordHidden),
             margin = Thicknesses.mediumLowerSpace
           )
 
           View.MakeButton(
             text = "change password",
-            command = bindPress dispatch ClickReset,
+            command = bindClick dispatch ClickReset,
             isEnabled = model.IsValid(),
             margin = Thicknesses.mediumLowerSpace
           )
@@ -201,7 +201,7 @@ let view model dispatch =
       yield
         View.MakeTextButton(
           text = "log in",
-          command = bindPress dispatch ClickGoToSignIn,
+          command = bindClick dispatch ClickGoToSignIn,
           margin = Thicknesses.mediumLowerSpace,
           fontFamily = Fonts.renogare
         )

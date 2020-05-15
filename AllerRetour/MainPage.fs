@@ -553,27 +553,27 @@ let view model (dispatch: Msg -> unit) =
             )
 
             makeProfilePageButton
-              (bindPress dispatch ClickEditProfile)
+              (bindClick dispatch ClickEditProfile)
               isDarkTheme
               "Edit profile"
 
             makeProfilePageButton
-              (bindPress dispatch ClickChangeEmail)
+              (bindClick dispatch ClickChangeEmail)
               isDarkTheme
               "Change email"
 
             makeProfilePageButton
-              (bindPress dispatch ClickChangePassword)
+              (bindClick dispatch ClickChangePassword)
               isDarkTheme
               "Change password"
 
             makeProfilePageButton
-              (bindPress dispatch ClickSettings)
+              (bindClick dispatch ClickSettings)
               isDarkTheme
               "Settings"
           
             makeProfilePageButton
-              (bindPress dispatch ClickSignOut)
+              (bindClick dispatch ClickSignOut)
               isDarkTheme
               "Log out"
             |> margin (Thickness (20., 5., 20., 80.))

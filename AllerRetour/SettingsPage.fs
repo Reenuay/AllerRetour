@@ -13,7 +13,7 @@ let view dispatch =
 
   View.MakeScrollStack(
     isDarkTheme = GlobalSettings.IsDarkTheme,
-    dispatchBack = bindPress dispatch ClickGoBack,
+    dispatchBack = bindClick dispatch ClickGoBack,
     verticalOptions = LayoutOptions.StartAndExpand,
     children = [
       View.StackLayout(
