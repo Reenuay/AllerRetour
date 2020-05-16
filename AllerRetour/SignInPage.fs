@@ -9,11 +9,13 @@ open ResponseTypes
 open Resources
 open Views
 
-type Model = private {
-  Email: Validatable<EmailAddress, string>
-  Password: Validatable<Password, string>
-  PasswordHidden: bool
-}
+type Model =
+  private
+    {
+      Email: Validatable<EmailAddress, string>
+      Password: Validatable<Password, string>
+      PasswordHidden: bool
+    }
 
 type Msg =
   private
@@ -66,11 +68,12 @@ module Model =
         Password = password
     }
 
-let initModel = {
-  Email = Validatable.emptyString
-  Password = Validatable.emptyString
-  PasswordHidden = true
-}
+let initModel =
+  {
+    Email = Validatable.emptyString
+    Password = Validatable.emptyString
+    PasswordHidden = true
+  }
 
 let update msg model : Model * Cmd<Msg> =
   match msg with

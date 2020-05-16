@@ -8,15 +8,17 @@ open RequestTypes
 open Resources
 open Views
 
-type Model = private {
-  FirstName: Validatable<NameString, string>
-  LastName: Validatable<NameString, string>
-  Email: Validatable<EmailAddress, string>
-  Password: Validatable<Password, string>
-  RepeatPassword: Validatable<string, string>
-  PasswordHidden: bool
-  PasswordRepeatHidden: bool
-}
+type Model =
+  private
+    {
+      FirstName: Validatable<NameString, string>
+      LastName: Validatable<NameString, string>
+      Email: Validatable<EmailAddress, string>
+      Password: Validatable<Password, string>
+      RepeatPassword: Validatable<string, string>
+      PasswordHidden: bool
+      PasswordRepeatHidden: bool
+    }
 
 type Msg =
   | SetFirstName of string
@@ -118,15 +120,16 @@ module Model =
         RepeatPassword = repeatPassword
     }
 
-let initModel = {
-  FirstName = Validatable.emptyString
-  LastName = Validatable.emptyString
-  Email = Validatable.emptyString
-  Password = Validatable.emptyString
-  RepeatPassword = Validatable.emptyString
-  PasswordHidden = true
-  PasswordRepeatHidden = true
-}
+let initModel =
+  {
+    FirstName = Validatable.emptyString
+    LastName = Validatable.emptyString
+    Email = Validatable.emptyString
+    Password = Validatable.emptyString
+    RepeatPassword = Validatable.emptyString
+    PasswordHidden = true
+    PasswordRepeatHidden = true
+  }
 
 let update msg (model: Model) =
   match msg with

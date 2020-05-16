@@ -41,7 +41,6 @@ module App =
   type Msg =
     | PageMsg of PageMsg
     | NavigateTo of PageModel
-    | SignUp of SignUpRequest
     | SignOut
     | SendPasswordResetEmail of PasswordResetEmailRequest
     | ResetPassword of PasswordResetRequest
@@ -55,12 +54,13 @@ module App =
     | RouteChanged of Route
     | LoaderStateChanged of bool
 
-  let initModel = {
-    PageModel = SignInPageModel SignInPage.initModel
-    Route = Route.SignIn
-    Token = None
-    LoaderIsActive = false
-  }
+  let initModel =
+    {
+      PageModel = SignInPageModel SignInPage.initModel
+      Route = Route.SignIn
+      Token = None
+      LoaderIsActive = false
+    }
 
   let goToSignInCmd =
     SignInPage.initModel
@@ -70,13 +70,15 @@ module App =
 
   let handleSignInMsg msg model =
     let
-      ( newModel, cmd ) = SignInPage.update msg model
+      ( newModel, cmd ) =
+        SignInPage.update msg model
     in
     ( newModel, Cmd.map (SignInPageMsg >> PageMsg) cmd )
 
   let handleSignUpMsg msg model =
     let
-      ( newModel, cmd ) = SignUpPage.update msg model
+      ( newModel, cmd ) =
+        SignUpPage.update msg model
     in
     ( newModel, Cmd.map (SignUpPageMsg >> PageMsg) cmd )
 
@@ -189,19 +191,6 @@ module App =
         es
         |> Message.foldErrors
         |> ShowMessage
-        |> Cmd.ofMsg)
-
-  let signUp model request =
-    request
-    |> Http.signUp
-    |> Async.RunSynchronously
-    |> handleTwoTrackHttp
-      model
-      (fun _ ->
-        model,
-        request.Email
-        |> SignUpSuccessPageModel
-        |> NavigateTo
         |> Cmd.ofMsg)
 
   let sendPin model request =
@@ -367,9 +356,6 @@ module App =
 
     | NavigateTo pModel ->
       { aModel with PageModel = pModel }, Cmd.none
-          
-    | SignUp r ->
-      signUp aModel r
 
     | SignOut ->
       { aModel with Token = None }, goToSignInCmd
