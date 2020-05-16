@@ -20,7 +20,7 @@ type Model = {
 }
 with
   member this.CheckRepeatPassword(r) =
-    match underV Password.value this.NewPassword with
+    match Validatable.value Password.value this.NewPassword with
     | x when x <> "" && x = r -> Ok r
     | _ -> Error ["Passwords must be the same"]
 
@@ -42,9 +42,9 @@ with
 
   member this.Revalidate() = {
     this with
-      NewPassword = adaptV Password.create (underV Password.value this.NewPassword)
-      RepeatNewPassword = adaptV this.CheckRepeatPassword (underV id this.RepeatNewPassword)
-      Token = adaptV Pin.create (underV Pin.value this.Token)
+      NewPassword = Validatable.bindR Password.create (Validatable.value Password.value this.NewPassword)
+      RepeatNewPassword = Validatable.bindR this.CheckRepeatPassword (Validatable.value id this.RepeatNewPassword)
+      Token = Validatable.bindR Pin.create (Validatable.value Pin.value this.Token)
   }
 
 type Msg =
@@ -70,9 +70,9 @@ let initModel email =
   let fifteenMinutes = 15 * 60
 
   {
-    NewPassword = emptyString
-    RepeatNewPassword = emptyString
-    Token = emptyString
+    NewPassword = Validatable.emptyString
+    RepeatNewPassword = Validatable.emptyString
+    Token = Validatable.emptyString
     Email = email
     Timer = fifteenMinutes
     TokenEntered = false
@@ -83,13 +83,13 @@ let initModel email =
 let update msg (model: Model) =
   match msg with
   | SetNewPassword p ->
-    { model with NewPassword = adaptV Password.create p }, NoOp
+    { model with NewPassword = Validatable.bindR Password.create p }, NoOp
 
   | SetRepeatNewPassword p ->
-    { model with RepeatNewPassword = adaptV model.CheckRepeatPassword p }, NoOp
+    { model with RepeatNewPassword = Validatable.bindR model.CheckRepeatPassword p }, NoOp
 
   | SetToken p ->
-    { model with Token = adaptV Pin.create p }, NoOp
+    { model with Token = Validatable.bindR Pin.create p }, NoOp
 
   | TimerTick ->
     if model.TokenEntered then
@@ -118,7 +118,7 @@ let update msg (model: Model) =
       if Result.isOk model.Token then
         { model with TokenEntered = true }
       else
-        { model with Token = adaptV Pin.create (underV Pin.value model.Token) }
+        { model with Token = Validatable.bindR Pin.create (Validatable.value Pin.value model.Token) }
     ), NoOp
 
   | ClickGoToSignIn ->

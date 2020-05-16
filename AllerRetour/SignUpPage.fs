@@ -18,7 +18,7 @@ type Model = {
 }
 with
   member this.CheckRepeatPassword(r) =
-    match underV Password.value this.Password with
+    match Validatable.value Password.value this.Password with
     | x when x <> "" && x = r -> Ok r
     | _ -> Error ["Passwords must be the same"]
 
@@ -41,11 +41,11 @@ with
 
   member this.Revalidate() = {
     this with
-      FirstName = adaptV NameString.create (underV NameString.value this.FirstName)
-      LastName = adaptV (NameString.create) (underV NameString.value this.LastName)
-      Email = adaptV EmailAddress.create (underV EmailAddress.value this.Email)
-      Password = adaptV Password.create (underV Password.value this.Password)
-      RepeatPassword = adaptV this.CheckRepeatPassword (underV id this.RepeatPassword)
+      FirstName = Validatable.bindR NameString.create (Validatable.value NameString.value this.FirstName)
+      LastName = Validatable.bindR (NameString.create) (Validatable.value NameString.value this.LastName)
+      Email = Validatable.bindR EmailAddress.create (Validatable.value EmailAddress.value this.Email)
+      Password = Validatable.bindR Password.create (Validatable.value Password.value this.Password)
+      RepeatPassword = Validatable.bindR this.CheckRepeatPassword (Validatable.value id this.RepeatPassword)
   }
 
 type Msg =
@@ -65,11 +65,11 @@ type ExternalMsg =
   | GoToSignIn
 
 let initModel = {
-  FirstName = emptyString
-  LastName = emptyString
-  Email = emptyString
-  Password = emptyString
-  RepeatPassword = emptyString
+  FirstName = Validatable.emptyString
+  LastName = Validatable.emptyString
+  Email = Validatable.emptyString
+  Password = Validatable.emptyString
+  RepeatPassword = Validatable.emptyString
   PasswordHidden = true
   PasswordRepeatHidden = true
 }
@@ -77,19 +77,19 @@ let initModel = {
 let update msg (model: Model) =
   match msg with
   | SetFirstName f ->
-    { model with FirstName = adaptV NameString.create f }, NoOp
+    { model with FirstName = Validatable.bindR NameString.create f }, NoOp
 
   | SetLastName l ->
-    { model with LastName = adaptV NameString.create l }, NoOp
+    { model with LastName = Validatable.bindR NameString.create l }, NoOp
 
   | SetEmail e ->
-    { model with Email = adaptV EmailAddress.create e }, NoOp
+    { model with Email = Validatable.bindR EmailAddress.create e }, NoOp
 
   | SetPassword p ->
-    { model with Password = adaptV Password.create p }, NoOp
+    { model with Password = Validatable.bindR Password.create p }, NoOp
 
   | SetRepeatPassword r ->
-    { model with RepeatPassword = adaptV model.CheckRepeatPassword r }, NoOp
+    { model with RepeatPassword = Validatable.bindR model.CheckRepeatPassword r }, NoOp
 
   | SwapPasswordHidden ->
     { model with PasswordHidden = not model.PasswordHidden }, NoOp

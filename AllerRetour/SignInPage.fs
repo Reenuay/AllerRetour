@@ -51,10 +51,14 @@ module Model =
   let revalidate (model: Model) =
     let
       email =
-        adaptV EmailAddress.create (underV EmailAddress.value model.Email)
+        Validatable.bindR
+          EmailAddress.create
+          (Validatable.value EmailAddress.value model.Email)
     let
       password =
-        adaptV Password.create (underV Password.value model.Password)
+        Validatable.bindR
+          Password.create
+          (Validatable.value Password.value model.Password)
     in
     {
       model with
@@ -63,18 +67,22 @@ module Model =
     }
 
 let initModel = {
-  Email = emptyString
-  Password = emptyString
+  Email = Validatable.emptyString
+  Password = Validatable.emptyString
   PasswordHidden = true
 }
 
 let update msg model : Model * Cmd<Msg> =
   match msg with
   | SetEmail e ->
-    ( { model with Email = adaptV EmailAddress.create e }, Cmd.none )
+    let
+      email =
+        Validatable.bindR EmailAddress.create e
+    in
+    ( { model with Email = email }, Cmd.none )
 
   | SetPassword p ->
-    ( { model with Password = adaptV Password.create p }, Cmd.none )
+    ( { model with Password = Validatable.bindR Password.create p }, Cmd.none )
 
   | TogglePasswordHidden ->
     ( { model with PasswordHidden = not model.PasswordHidden }, Cmd.none )
@@ -117,10 +125,13 @@ let update msg model : Model * Cmd<Msg> =
               return ProfileReceived ( token, profileR )
             }
         else
-          model.Email
-          |> underV EmailAddress.value
-          |> Route.ResendEmail
-          |> Route.push
+          let
+            emailString =
+              Validatable.value
+                EmailAddress.value
+                model.Email
+          in
+          Route.push <| Route.ResendEmail emailString
     in
     ( model, cmd )
 

@@ -19,16 +19,16 @@ type ExternalMsg =
   | Send of PasswordResetEmailRequest
   | GoToSignIn
 
-let initModel = emptyString
+let initModel = Validatable.emptyString
 
 let update msg (model: Model) =
   match msg with
-  | SetEmail e -> adaptV EmailAddress.create e, NoOp
+  | SetEmail e -> Validatable.bindR EmailAddress.create e, NoOp
 
   | ClickSend ->
     match model with
     | Ok e -> model, Send { Email = EmailAddress.value e }
-    | Error (x, _) -> adaptV EmailAddress.create x, NoOp
+    | Error (x, _) -> Validatable.bindR EmailAddress.create x, NoOp
 
   | ClickGoToSignIn -> model, GoToSignIn
 

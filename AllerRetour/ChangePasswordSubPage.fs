@@ -41,9 +41,9 @@ with
 
   member this.Revalidate() = {
     this with
-      NewPassword = adaptV Password.create (underV Password.value this.NewPassword)
-      RepeatNewPassword = adaptV this.CheckRepeatPassword (underV id this.RepeatNewPassword)
-      OldPassword = adaptV Password.create (underV Password.value this.OldPassword)
+      NewPassword = Validatable.bindR Password.create (Validatable.value Password.value this.NewPassword)
+      RepeatNewPassword = Validatable.bindR this.CheckRepeatPassword (Validatable.value id this.RepeatNewPassword)
+      OldPassword = Validatable.bindR Password.create (Validatable.value Password.value this.OldPassword)
   }
 
 type Msg =
@@ -62,9 +62,9 @@ type ExternalMsg =
   | GoBack
 
 let initModel = {
-  NewPassword = emptyString
-  RepeatNewPassword = emptyString
-  OldPassword = emptyString
+  NewPassword = Validatable.emptyString
+  RepeatNewPassword = Validatable.emptyString
+  OldPassword = Validatable.emptyString
   NewPasswordHidden = true
   RepeatNewPasswordHidden = true
   OldPasswordHidden = true
@@ -73,13 +73,13 @@ let initModel = {
 let update msg (model: Model) =
   match msg with
   | SetNewPassword p ->
-    { model with NewPassword = adaptV Password.create p }, NoOp
+    { model with NewPassword = Validatable.bindR Password.create p }, NoOp
 
   | SetRepeatNewPassword p ->
-    { model with RepeatNewPassword = adaptV model.CheckRepeatPassword p }, NoOp
+    { model with RepeatNewPassword = Validatable.bindR model.CheckRepeatPassword p }, NoOp
 
   | SetOldPassword p ->
-    { model with OldPassword = adaptV Password.create p }, NoOp
+    { model with OldPassword = Validatable.bindR Password.create p }, NoOp
 
   | SwapNewPasswordHidden ->
     { model with NewPasswordHidden = not model.NewPasswordHidden }, NoOp

@@ -38,8 +38,8 @@ with
 
   member this.Revalidate() = {
     this with
-      Email = adaptV this.CreateEmail (underV EmailAddress.value this.Email)
-      Password = adaptV Password.create (underV Password.value this.Password)
+      Email = Validatable.bindR this.CreateEmail (Validatable.value EmailAddress.value this.Email)
+      Password = Validatable.bindR Password.create (Validatable.value Password.value this.Password)
   }
 
 type Msg =
@@ -55,19 +55,19 @@ type ExternalMsg =
   | GoToSignIn
 
 let create email = {
-  Email = emptyString
+  Email = Validatable.emptyString
   PreviousEmail = email
-  Password = emptyString
+  Password = Validatable.emptyString
   PasswordHidden = true
 }
 
 let update msg (model: Model) =
   match msg with
   | SetEmail e ->
-    { model with Email = adaptV model.CreateEmail e }, NoOp
+    { model with Email = Validatable.bindR model.CreateEmail e }, NoOp
 
   | SetPassword p ->
-    { model with Password = adaptV Password.create p }, NoOp
+    { model with Password = Validatable.bindR Password.create p }, NoOp
 
   | SwapPasswordHidden ->
     { model with PasswordHidden = not model.PasswordHidden }, NoOp

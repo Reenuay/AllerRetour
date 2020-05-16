@@ -42,8 +42,8 @@ with
 
   member this.Revalidate() = {
     this with
-      FirstName = adaptV NameString.create (underV NameString.value this.FirstName)
-      LastName = adaptV (NameString.create) (underV NameString.value this.LastName)
+      FirstName = Validatable.bindR NameString.create (Validatable.value NameString.value this.FirstName)
+      LastName = Validatable.bindR (NameString.create) (Validatable.value NameString.value this.LastName)
   }
 
 type Msg =
@@ -80,10 +80,10 @@ let create (profile: Profile) = {
 let update msg (model: Model) =
   match msg with
   | SetFirstName f ->
-    { model with FirstName = adaptV NameString.create f }, NoOp
+    { model with FirstName = Validatable.bindR NameString.create f }, NoOp
 
   | SetLastName l ->
-    { model with LastName = adaptV NameString.create l }, NoOp
+    { model with LastName = Validatable.bindR NameString.create l }, NoOp
 
   | SetBirthday b ->
     { model with Birthday = b }, NoOp
