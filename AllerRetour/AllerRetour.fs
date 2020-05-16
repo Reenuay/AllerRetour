@@ -75,13 +75,10 @@ module App =
     ( newModel, Cmd.map (SignInPageMsg >> PageMsg) cmd )
 
   let handleSignUpMsg msg model =
-    let newModel, eMsg = SignUpPage.update msg model
-    let cmd =
-      match eMsg with
-      | SignUpPage.NoOp -> Cmd.none
-      | SignUpPage.SignUp r -> Cmd.ofMsg (SignUp r)
-      | SignUpPage.GoToSignIn -> goToSignInCmd
-    newModel, cmd
+    let
+      ( newModel, cmd ) = SignUpPage.update msg model
+    in
+    ( newModel, Cmd.map (SignUpPageMsg >> PageMsg) cmd )
 
   let handleForgotPasswordMsg msg model =
     let newModel, eMsg = ForgotPasswordPage.update msg model
@@ -190,7 +187,7 @@ module App =
       (fun es ->
         model,
         es
-        |> foldErrors
+        |> Message.foldErrors
         |> ShowMessage
         |> Cmd.ofMsg)
 
@@ -454,12 +451,23 @@ module App =
         in
         ( newModel, Cmd.none )
 
-      | Route.ResendEmail email ->
+      | Route.SignUpSuccess emailString ->
         let
           newModel =
             {
               aModel with
-                PageModel = ResendEmailPageModel email
+                PageModel = SignUpSuccessPageModel emailString
+                Route = route
+            }
+        in
+        ( newModel, Cmd.none )
+
+      | Route.ResendEmail emailString ->
+        let
+          newModel =
+            {
+              aModel with
+                PageModel = ResendEmailPageModel emailString
                 Route = route
             }
         in
@@ -491,7 +499,7 @@ module App =
           ( newModel, cmd )
 
         | Error errors ->
-          ( aModel, AppMessage.show <| foldErrors errors )
+          ( aModel, Message.showErrors errors )
 
     | LoaderStateChanged isActive ->
       ( { aModel with LoaderIsActive = isActive }, Cmd.none )

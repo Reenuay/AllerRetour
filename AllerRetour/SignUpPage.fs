@@ -1,13 +1,14 @@
 module AllerRetour.SignUpPage
 
+open Fabulous
 open Fabulous.XamarinForms
 open Xamarin.Forms
 open PrimitiveTypes
 open RequestTypes
-open Views
 open Resources
+open Views
 
-type Model = {
+type Model = private {
   FirstName: Validatable<NameString, string>
   LastName: Validatable<NameString, string>
   Email: Validatable<EmailAddress, string>
@@ -16,37 +17,6 @@ type Model = {
   PasswordHidden: bool
   PasswordRepeatHidden: bool
 }
-with
-  member this.CheckRepeatPassword(r) =
-    match Validatable.value Password.value this.Password with
-    | x when x <> "" && x = r -> Ok r
-    | _ -> Error ["Passwords must be the same"]
-
-  member this.ToDto() : SignUpRequest option =
-    match this.FirstName, this.LastName, this.Email, this.Password, this.RepeatPassword with
-    | Ok f, Ok l, Ok e, Ok p, Ok _ ->
-      Some {
-        FirstName = NameString.value f
-        LastName = NameString.value l
-        Email = EmailAddress.value e
-        Password = Password.value p
-      }
-    | _ ->
-      None
-
-  member this.IsValid() =
-    match this.FirstName, this.LastName, this.Email, this.Password, this.RepeatPassword with
-    | Ok _, Ok _, Ok _, Ok _, Ok _ -> true
-    | _ -> false
-
-  member this.Revalidate() = {
-    this with
-      FirstName = Validatable.bindR NameString.create (Validatable.value NameString.value this.FirstName)
-      LastName = Validatable.bindR (NameString.create) (Validatable.value NameString.value this.LastName)
-      Email = Validatable.bindR EmailAddress.create (Validatable.value EmailAddress.value this.Email)
-      Password = Validatable.bindR Password.create (Validatable.value Password.value this.Password)
-      RepeatPassword = Validatable.bindR this.CheckRepeatPassword (Validatable.value id this.RepeatPassword)
-  }
 
 type Msg =
   | SetFirstName of string
@@ -56,13 +26,97 @@ type Msg =
   | SetRepeatPassword of string
   | SwapPasswordHidden
   | SwapPasswordRepeatHidden
-  | ClickSignUp
-  | ClickGoToSignIn
+  | SignUp
+  | SignIn
+  | SignedUp of Http.Result<string>
 
-type ExternalMsg =
-  | NoOp
-  | SignUp of SignUpRequest
-  | GoToSignIn
+[<RequireQualifiedAccess>]
+module Model =
+  let checkRepeatPassword model p =
+    match Validatable.value Password.value model.Password with
+    | x when x <> "" && x = p ->
+      Ok p
+
+    | _ ->
+      Error ["Passwords must be the same"]
+
+  let toDto model =
+    let
+      fields =
+        (
+          model.FirstName,
+          model.LastName,
+          model.Email,
+          model.Password,
+          model.RepeatPassword
+        )
+    in
+    match fields with
+    | ( Ok f, Ok l, Ok e, Ok p, Ok _ ) ->
+      Some
+        {
+          FirstName = NameString.value f
+          LastName = NameString.value l
+          Email = EmailAddress.value e
+          Password = Password.value p
+        }
+
+    | _ ->
+      None
+
+  let isValid model =
+    let
+      fields =
+        (
+          model.FirstName,
+          model.LastName,
+          model.Email,
+          model.Password,
+          model.RepeatPassword
+        )
+    in
+    match fields with
+    | ( Ok _, Ok _, Ok _, Ok _, Ok _ ) ->
+      true
+
+    | _ ->
+      false
+
+  let revalidate model =
+    let
+      firstName =
+        Validatable.bindR
+          NameString.create
+          (Validatable.value NameString.value model.FirstName)
+    let
+      lastName =
+        Validatable.bindR
+          NameString.create
+          (Validatable.value NameString.value model.LastName)
+    let
+      email =
+        Validatable.bindR
+          EmailAddress.create
+          (Validatable.value EmailAddress.value model.Email)
+    let
+      password =
+        Validatable.bindR
+          Password.create
+          (Validatable.value Password.value model.Password)
+    let
+      repeatPassword =
+        Validatable.bindR
+          (checkRepeatPassword model)
+          (Validatable.value id model.RepeatPassword)
+    in
+    {
+      model with
+        Email = email
+        LastName = lastName
+        Password = password
+        FirstName = firstName
+        RepeatPassword = repeatPassword
+    }
 
 let initModel = {
   FirstName = Validatable.emptyString
@@ -76,34 +130,103 @@ let initModel = {
 
 let update msg (model: Model) =
   match msg with
-  | SetFirstName f ->
-    { model with FirstName = Validatable.bindR NameString.create f }, NoOp
+  | SetFirstName firstNameString ->
+    let
+      firstName =
+        Validatable.bindR NameString.create firstNameString
+    in
+    ( { model with FirstName = firstName }, Cmd.none )
 
-  | SetLastName l ->
-    { model with LastName = Validatable.bindR NameString.create l }, NoOp
+  | SetLastName lastNameString ->
+    let
+      lastName =
+        Validatable.bindR NameString.create lastNameString
+    in
+    ( { model with LastName = lastName }, Cmd.none )
 
-  | SetEmail e ->
-    { model with Email = Validatable.bindR EmailAddress.create e }, NoOp
+  | SetEmail emailString ->
+    let
+      email =
+        Validatable.bindR EmailAddress.create emailString
+    in
+    { model with Email = email }, Cmd.none
 
-  | SetPassword p ->
-    { model with Password = Validatable.bindR Password.create p }, NoOp
+  | SetPassword passwordString ->
+    let
+      password =
+        Validatable.bindR Password.create passwordString
+    in
+    ( { model with Password = password }, Cmd.none)
 
-  | SetRepeatPassword r ->
-    { model with RepeatPassword = Validatable.bindR model.CheckRepeatPassword r }, NoOp
+  | SetRepeatPassword repeatPasswordString ->
+    let
+      repeatPassword =
+        Validatable.bindR (Model.checkRepeatPassword model) repeatPasswordString
+    in
+    ( { model with RepeatPassword = repeatPassword }, Cmd.none )
 
   | SwapPasswordHidden ->
-    { model with PasswordHidden = not model.PasswordHidden }, NoOp
+    let
+      passwordHidden =
+        not model.PasswordHidden
+    in
+    ( { model with PasswordHidden = passwordHidden }, Cmd.none )
 
   | SwapPasswordRepeatHidden ->
-    { model with PasswordRepeatHidden = not model.PasswordRepeatHidden }, NoOp
+    let
+      repeatPasswordHidden =
+        not model.PasswordHidden
+    in
+    ( { model with PasswordRepeatHidden = repeatPasswordHidden }, Cmd.none )
 
-  | ClickSignUp ->
-    match model.ToDto() with
-    | Some d -> model, SignUp d
-    | None -> model.Revalidate(), NoOp
+  | SignUp ->
+    match Model.toDto model with
+    | Some request ->
+      let
+        cmd =
+          Cmd.batch [
+            Loader.start ()
 
-  | ClickGoToSignIn ->
-    model, GoToSignIn
+            Cmd.ofAsyncMsg <|
+              async {
+                let! response = Http.signUp request
+                return SignedUp response
+              }
+          ]
+      in
+      ( model, cmd )
+
+    | None ->
+      ( Model.revalidate model, Cmd.none )
+
+  | SignIn ->
+    ( model, Route.push Route.SignIn )
+
+  | SignedUp (Ok _) ->
+    let
+      emailString =
+        Validatable.value EmailAddress.value model.Email
+    let
+      cmd =
+        Cmd.batch [
+          Route.SignUpSuccess emailString
+          |> Route.push
+
+          Loader.stop ()
+        ]
+    in
+    ( model, cmd )
+
+  | SignedUp (Error errors) ->
+    let
+      cmd =
+        Cmd.batch [
+          Loader.stop ()
+
+          Message.showErrors errors
+        ]
+    in
+    ( model, cmd )
 
 let view model dispatch =
   View.MakeScrollStack(
@@ -165,14 +288,14 @@ let view model dispatch =
 
       View.MakeButton(
         text = "sign up",
-        command = bindClick dispatch ClickSignUp,
-        isEnabled = model.IsValid(),
+        command = bindClick dispatch SignUp,
+        isEnabled = Model.isValid model,
         margin = Thicknesses.mediumLowerSpace
       )
 
       View.MakeTextButton(
         text = "already registered?",
-        command = bindClick dispatch ClickGoToSignIn,
+        command = bindClick dispatch SignIn,
         margin = Thicknesses.mediumLowerSpace
       )
     ]

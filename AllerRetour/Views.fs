@@ -124,13 +124,23 @@ type View with
       ?margin
     ) =
       let isPassword = function
-      | Some (isSet, _) -> isSet
-      | None -> false
+      | Some (isSet, _) ->
+        isSet
+
+      | None ->
+        false
 
       let text, error =
         match value with
-        | Ok x -> map x, ""
-        | Error (v, l) -> v, foldErrors l
+        | Ok x ->
+          ( map x, "" )
+
+        | Error (v, l) ->
+          let
+            errorString =
+              List.fold (fun s v -> s + "\n" + v) "" l
+          in
+          ( v, errorString )
 
       View.Grid(
         coldefs = [Auto; Star],
@@ -162,7 +172,7 @@ type View with
               fontFamily = Fonts.segoeUiLight,
               keyboard = Option.defaultValue Keyboard.Default keyboard
             )
-            .Column(1)
+              .Column(1)
 
           if Option.isSome passwordOptions then
             yield
@@ -185,7 +195,7 @@ type View with
                   )
                 ]
               )
-              .Column(1)
+                .Column(1)
 
           if error <> String.Empty then
             yield
@@ -194,8 +204,8 @@ type View with
                 margin = Thickness (4., -15., 4., 0.),
                 horizontalTextAlignment = TextAlignment.Start
               )
-              .Row(1)
-              .Column(1)
+                .Row(1)
+                .Column(1)
         ]
       )
 

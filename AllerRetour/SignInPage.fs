@@ -74,18 +74,26 @@ let initModel = {
 
 let update msg model : Model * Cmd<Msg> =
   match msg with
-  | SetEmail e ->
+  | SetEmail emailString ->
     let
       email =
-        Validatable.bindR EmailAddress.create e
+        Validatable.bindR EmailAddress.create emailString
     in
     ( { model with Email = email }, Cmd.none )
 
-  | SetPassword p ->
-    ( { model with Password = Validatable.bindR Password.create p }, Cmd.none )
+  | SetPassword passwordString ->
+    let
+      password =
+        Validatable.bindR Password.create passwordString
+    in
+    ( { model with Password = password }, Cmd.none )
 
   | TogglePasswordHidden ->
-    ( { model with PasswordHidden = not model.PasswordHidden }, Cmd.none )
+    let
+      passwordHidden =
+        not model.PasswordHidden
+    in
+    ( { model with PasswordHidden = passwordHidden }, Cmd.none )
 
   | SignIn ->
     match Model.toDto model with
@@ -115,23 +123,30 @@ let update msg model : Model * Cmd<Msg> =
 
   | SignedIn (Ok token) ->
     let
+      confirmedCmd =
+        Cmd.ofAsyncMsg <|
+          async {
+            let! profileR = Http.getProfile token.Token
+            return ProfileReceived ( token, profileR )
+          }
+    let
+      emailString =
+        Validatable.value
+          EmailAddress.value
+          model.Email
+    let
+      unconfirmedCmd =
+        Cmd.batch [
+          Route.ResendEmail emailString
+          |> Route.push
+
+          Loader.stop ()
+        ]
+    let
       cmd =
-        if
-          token.EmailConfirmed
-        then
-          Cmd.ofAsyncMsg <|
-            async {
-              let! profileR = Http.getProfile token.Token
-              return ProfileReceived ( token, profileR )
-            }
-        else
-          let
-            emailString =
-              Validatable.value
-                EmailAddress.value
-                model.Email
-          in
-          Route.push <| Route.ResendEmail emailString
+        if token.EmailConfirmed
+        then confirmedCmd
+        else unconfirmedCmd
     in
     ( model, cmd )
 
@@ -149,7 +164,15 @@ let update msg model : Model * Cmd<Msg> =
 
   | SignedIn (Error errors)
   | ProfileReceived ( _, Error errors ) ->
-    ( model, AppMessage.show <| foldErrors errors )
+    let
+      cmd =
+        Cmd.batch [
+          Loader.stop ()
+
+          Message.showErrors errors
+        ]
+    in
+    ( model, cmd )
 
 let view model dispatch =
   View.MakeScrollStack(

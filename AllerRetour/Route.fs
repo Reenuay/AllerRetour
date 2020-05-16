@@ -1,8 +1,6 @@
 namespace AllerRetour
 
-open System
 open Fabulous
-open Xamarin.Forms
 open ResponseTypes
 
 [<RequireQualifiedAccess>]
@@ -10,6 +8,7 @@ type Route =
   | SignIn
   | SignUp
   | ForgotPassword
+  | SignUpSuccess of string
   | ResendEmail of string
   | Main of SignInResponse * ProfileResponse
 
@@ -21,15 +20,4 @@ module Route =
 
   let push route =
     event.Trigger(route)
-    Cmd.none
-
-[<RequireQualifiedAccess>]
-module AppMessage =
-  let show msg =
-    Application
-      .Current
-      .MainPage
-      .DisplayAlert( String.Empty, msg, "Ok" )
-    |> ignore
-
     Cmd.none
