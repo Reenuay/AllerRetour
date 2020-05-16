@@ -246,47 +246,61 @@ let view model dispatch =
       )
 
       View.MakeEntry(
-        model.FirstName,
-        "First name",
-        NameString.value,
-        (bindNewText dispatch SetFirstName),
-        image = Images.userIcon
+        map = NameString.value,
+        value = model.FirstName,
+        image = Images.userIcon,
+        placeholder = "First name",
+        textChanged = bindNewText dispatch SetFirstName
       )
 
       View.MakeEntry(
-        model.LastName,
-        "Last name",
-        NameString.value,
-        (bindNewText dispatch SetLastName),
-        image = Images.userIcon
+        map = NameString.value,
+        value = model.LastName,
+        image = Images.userIcon,
+        placeholder = "Last name",
+        textChanged = bindNewText dispatch SetLastName
       )
 
       View.MakeEntry(
-        model.Email,
-        "Email",
-        EmailAddress.value,
-        (bindNewText dispatch SetEmail),
+        map = EmailAddress.value,
+        value = model.Email,
+        image = Images.envelopeIcon,
         keyboard = Keyboard.Email,
-        image = Images.envelopeIcon
+        placeholder = "Email",
+        textChanged = bindNewText dispatch SetEmail
       )
 
+      let
+        passwordOptions =
+          (
+            model.PasswordHidden,
+            bindClick dispatch SwapPasswordHidden
+          )
+      in
       View.MakeEntry(
-        model.Password,
-        "Password",
-        Password.value,
-        (bindNewText dispatch SetPassword),
+        map = Password.value,
+        value = model.Password,
         image = Images.lockIcon,
-        passwordOptions = (model.PasswordHidden, bindClick dispatch SwapPasswordHidden)
+        placeholder = "Password",
+        textChanged = bindNewText dispatch SetPassword,
+        passwordOptions = passwordOptions
       )
 
+      let
+        passwordOptions =
+          (
+            model.PasswordRepeatHidden,
+            bindClick dispatch SwapPasswordRepeatHidden
+          )
+      in
       View.MakeEntry(
-        model.RepeatPassword,
-        "Re-enter password",
-        id,
-        (bindNewText dispatch SetRepeatPassword),
+        map = id,
+        value = model.RepeatPassword,
         image = Images.lockIcon,
-        passwordOptions = (model.PasswordRepeatHidden, bindClick dispatch SwapPasswordRepeatHidden),
-        margin = Thicknesses.mediumLowerSpace
+        margin = Thicknesses.mediumLowerSpace,
+        placeholder = "Re-enter password",
+        textChanged = bindNewText dispatch SetRepeatPassword,
+        passwordOptions = passwordOptions
       )
 
       View.MakeButton(
