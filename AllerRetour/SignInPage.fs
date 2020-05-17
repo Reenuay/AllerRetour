@@ -42,13 +42,9 @@ module Model =
     | _ ->
       None
 
-  let isValid model =
-    match ( model.Email, model.Password ) with
-    | ( Ok _, Ok _ ) ->
-      true
-
-    | _ ->
-      false
+  let isValid model
+    =  Validatable.isValid model.Email
+    && Validatable.isValid model.Password
 
   let revalidate (model: Model) =
     let

@@ -21,6 +21,7 @@ type Model =
     }
 
 type Msg =
+  private
   | SetFirstName of string
   | SetLastName of string
   | SetEmail of string
@@ -66,23 +67,12 @@ module Model =
     | _ ->
       None
 
-  let isValid model =
-    let
-      fields =
-        (
-          model.FirstName,
-          model.LastName,
-          model.Email,
-          model.Password,
-          model.RepeatPassword
-        )
-    in
-    match fields with
-    | ( Ok _, Ok _, Ok _, Ok _, Ok _ ) ->
-      true
-
-    | _ ->
-      false
+  let isValid model
+    =  Validatable.isValid model.FirstName
+    && Validatable.isValid model.LastName
+    && Validatable.isValid model.Email
+    && Validatable.isValid model.Password
+    && Validatable.isValid model.RepeatPassword
 
   let revalidate model =
     let
@@ -236,8 +226,8 @@ let view model dispatch =
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
       View.Image(
-        source = Images.logo,
-        width = screenWidthP 0.5
+        width = screenWidthP 0.5,
+        source = Images.logo
       )
 
       View.MakeThinText(
@@ -305,15 +295,15 @@ let view model dispatch =
 
       View.MakeButton(
         text = "sign up",
+        margin = Thicknesses.mediumLowerSpace,
         command = bindClick dispatch SignUp,
-        isEnabled = Model.isValid model,
-        margin = Thicknesses.mediumLowerSpace
+        isEnabled = Model.isValid model
       )
 
       View.MakeTextButton(
         text = "already registered?",
-        command = bindClick dispatch SignIn,
-        margin = Thicknesses.mediumLowerSpace
+        margin = Thicknesses.mediumLowerSpace,
+        command = bindClick dispatch SignIn
       )
     ]
   )

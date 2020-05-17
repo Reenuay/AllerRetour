@@ -21,3 +21,10 @@ module Validatable =
 
   | Error (v, _) ->
     v
+
+  let isValid = function
+  | Ok _ ->
+    true
+
+  | Error _ ->
+    false
