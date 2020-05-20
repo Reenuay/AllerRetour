@@ -216,13 +216,14 @@ type View with
     ) =
     let bigRadius = screenWidthP 0.6
     let littleRadius = bigRadius * 0.75
+    let margin = Option.defaultValue Thicknesses.zero margin
     let c = Colors.accent
 
-    let circle radius content =
+    let circle radius margin content =
       View.Frame(
         width = radius,
         height = radius,
-        ?margin = margin,
+        margin = margin,
         content = content,
         padding = Thicknesses.zero,
         cornerRadius = radius,
@@ -233,12 +234,12 @@ type View with
 
     View.Image(
       source = source,
-      horizontalOptions = LayoutOptions.Center,
-      verticalOptions = LayoutOptions.Center
+      verticalOptions = LayoutOptions.Center,
+      horizontalOptions = LayoutOptions.Center
     )
     |> widthRequest (littleRadius * 0.65)
-    |> circle littleRadius
-    |> circle bigRadius
+    |> circle littleRadius Thicknesses.zero
+    |> circle bigRadius margin
 
   static member MakeCircle
     (
