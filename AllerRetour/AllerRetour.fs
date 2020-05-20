@@ -42,7 +42,6 @@ module App =
     | PageMsg of PageMsg
     | NavigateTo of PageModel
     | SignOut
-    | SendPasswordResetEmail of PasswordResetEmailRequest
     | ResetPassword of PasswordResetRequest
     | UpdateProfile of UpdateProfileRequest
     | ChangeEmail of ChangeEmailRequest
@@ -83,59 +82,25 @@ module App =
     ( newModel, Cmd.map (SignUpPageMsg >> PageMsg) cmd )
 
   let handleForgotPasswordMsg msg model =
-    let newModel, eMsg = ForgotPasswordPage.update msg model
-    let cmd =
-      match eMsg with
-      | ForgotPasswordPage.NoOp -> Cmd.none
-      | ForgotPasswordPage.Send r -> Cmd.ofMsg (SendPasswordResetEmail r)
-      | ForgotPasswordPage.GoToSignIn -> goToSignInCmd
-    newModel, cmd
+    let
+      ( newModel, cmd ) =
+        ForgotPasswordPage.update msg model
+    in
+    ( newModel, Cmd.map (ForgotPasswordPageMsg >> PageMsg) cmd )
 
   let handleResetPasswordMsg msg model =
-    let newModel, eMsg = ResetPasswordPage.update msg model
-    let cmd =
-      match eMsg with
-      | ResetPasswordPage.NoOp ->
-        Cmd.none
-
-      | ResetPasswordPage.Timer ->
-        async {
-          do! Async.SwitchToThreadPool()
-          do! Async.Sleep 1000
-
-          return
-            if model.Timer > 0 then
-              ResetPasswordPage.TimerTick
-              |> ResetPasswordPageMsg
-              |> PageMsg
-              |> Some
-            else
-              None
-        }
-        |> Cmd.ofAsyncMsgOption
-
-      | ResetPasswordPage.ResetPassword r ->
-        r
-        |> ResetPassword
-        |> Cmd.ofMsg
-
-      | ResetPasswordPage.GoToForgotPassword ->
-        ForgotPasswordPage.initModel
-        |> ForgotPasswordPageModel
-        |> NavigateTo
-        |> Cmd.ofMsg
-
-      | ResetPasswordPage.GoToSignIn ->
-        goToSignInCmd
-
-    newModel, cmd
+    let
+      ( newModel, cmd ) =
+        ResetPasswordPage.update msg model
+    in
+    ( newModel, Cmd.map (ResetPasswordPageMsg >> PageMsg) cmd )
 
   let handleSignUpSuccessMsg msg model =
-    let newModel, eMsg = SignUpSuccessPage.update msg model
-    let cmd =
-      match eMsg with
-      | SignUpSuccessPage.GoToSignIn -> goToSignInCmd
-    newModel, cmd
+    let
+      ( newModel, cmd ) =
+        SignUpSuccessPage.update msg model
+    in
+    ( newModel, Cmd.map (SignUpSuccessPageMsg >> PageMsg) cmd )
 
   let handleResendEmailMsg msg model =
     let newModel, eMsg = ResendEmailPage.update msg model
@@ -192,27 +157,6 @@ module App =
         |> Message.foldErrors
         |> ShowMessage
         |> Cmd.ofMsg)
-
-  let sendPin model request =
-    request
-    |> Http.sendPin
-    |> Async.RunSynchronously
-    |> handleTwoTrackHttp
-      model
-      (fun _ ->
-        model,
-        Cmd.batch [
-          request.Email
-          |> ResetPasswordPage.initModel
-          |> ResetPasswordPageModel
-          |> NavigateTo
-          |> Cmd.ofMsg;
-
-          ResetPasswordPage.TimerTick
-          |> ResetPasswordPageMsg
-          |> PageMsg
-          |> Cmd.ofMsg;
-        ])
 
   let resetPassword model request =
     request
@@ -348,6 +292,107 @@ module App =
       { aModel with PageModel = MainPageModel newModel }, cmd
 
     | _, _ -> aModel, Cmd.none
+
+  let routeChanged model route =
+    match route with
+    | Route.SignIn ->
+      let
+        newModel =
+          {
+            model with
+              PageModel = SignInPageModel SignInPage.initModel
+              Route = route
+          }
+      in
+      ( newModel, Cmd.none )
+
+    | Route.SignUp ->
+      let
+        newModel =
+          {
+            model with
+              PageModel = SignUpPageModel SignUpPage.initModel
+              Route = route
+          }
+      in
+      ( newModel, Cmd.none )
+
+    | Route.ForgotPassword ->
+      let
+        newModel =
+          {
+            model with
+              PageModel = ForgotPasswordPageModel ForgotPasswordPage.initModel
+              Route = route
+          }
+      in
+      ( newModel, Cmd.none )
+
+    | Route.ResetPassword email ->
+      let
+        ( pageModel, pageCmd ) =
+          ResetPasswordPage.init email
+      let
+        newModel =
+          {
+            model with
+              PageModel = ResetPasswordPageModel pageModel
+          }
+      in
+      ( newModel, Cmd.map (ResetPasswordPageMsg >> PageMsg) pageCmd )
+
+    | Route.SignUpSuccess email ->
+      let
+        pageModel =
+          SignUpSuccessPage.initModel email
+      let
+        newModel =
+          {
+            model with
+              PageModel = SignUpSuccessPageModel pageModel
+              Route = route
+          }
+      in
+      ( newModel, Cmd.none )
+
+    | Route.ResendEmail emailString ->
+      let
+        newModel =
+          {
+            model with
+              PageModel = ResendEmailPageModel emailString
+              Route = route
+          }
+      in
+      ( newModel, Cmd.none )
+
+    | Route.Main ( token, profile ) ->
+      match MainPage.create profile with
+      | Ok mainModel ->
+        let
+          newModel =
+            { model with
+                PageModel = MainPageModel mainModel
+                Route = route
+                Token = Some token.Token
+            }
+        let
+          cmd =
+            async {
+              do! Async.SwitchToThreadPool ()
+
+              do!
+                Async.Sleep <|
+                int (token.Expires - DateTime.UtcNow).TotalMilliseconds
+
+              return RefreshToken token.Token
+            }
+            |> Cmd.ofAsyncMsg
+        in
+        ( newModel, cmd )
+
+      | Error errors ->
+        ( model, Message.errors errors )
       
   let update aMsg aModel =
     match aMsg with
@@ -359,9 +404,6 @@ module App =
 
     | SignOut ->
       { aModel with Token = None }, goToSignInCmd
-
-    | SendPasswordResetEmail r ->
-      sendPin aModel r
 
     | ResetPassword r ->
       resetPassword aModel r
@@ -403,89 +445,7 @@ module App =
         ( aModel, Cmd.none )
 
     | RouteChanged route ->
-      match route with
-      | Route.SignIn ->
-        let
-          newModel =
-            {
-              aModel with
-                PageModel = SignInPageModel SignInPage.initModel
-                Route = route
-            }
-        in
-        ( newModel, Cmd.none )
-
-      | Route.SignUp ->
-        let
-          newModel =
-            {
-              aModel with
-                PageModel = SignUpPageModel SignUpPage.initModel
-                Route = route
-            }
-        in
-        ( newModel, Cmd.none )
-
-      | Route.ForgotPassword ->
-        let
-          newModel =
-            {
-              aModel with
-                PageModel = ForgotPasswordPageModel ForgotPasswordPage.initModel
-                Route = route
-            }
-        in
-        ( newModel, Cmd.none )
-
-      | Route.SignUpSuccess emailString ->
-        let
-          newModel =
-            {
-              aModel with
-                PageModel = SignUpSuccessPageModel emailString
-                Route = route
-            }
-        in
-        ( newModel, Cmd.none )
-
-      | Route.ResendEmail emailString ->
-        let
-          newModel =
-            {
-              aModel with
-                PageModel = ResendEmailPageModel emailString
-                Route = route
-            }
-        in
-        ( newModel, Cmd.none )
-
-      | Route.Main ( token, profile ) ->
-        match MainPage.create profile with
-        | Ok mainModel ->
-          let
-            newModel =
-              { aModel with
-                  PageModel = MainPageModel mainModel
-                  Route = route
-                  Token = Some token.Token
-              }
-          let
-            cmd =
-              async {
-                do! Async.SwitchToThreadPool ()
-
-                do!
-                  Async.Sleep <|
-                  int (token.Expires - DateTime.UtcNow).TotalMilliseconds
-
-                return RefreshToken token.Token
-              }
-              |> Cmd.ofAsyncMsg
-          in
-          ( newModel, cmd )
-
-        | Error errors ->
-          ( aModel, Message.showErrors errors )
+      routeChanged aModel route
 
     | LoaderStateChanged isActive ->
       ( { aModel with LoaderIsActive = isActive }, Cmd.none )

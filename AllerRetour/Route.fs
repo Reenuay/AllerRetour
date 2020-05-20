@@ -1,6 +1,7 @@
 namespace AllerRetour
 
 open Fabulous
+open PrimitiveTypes
 open ResponseTypes
 
 [<RequireQualifiedAccess>]
@@ -8,7 +9,8 @@ type Route =
   | SignIn
   | SignUp
   | ForgotPassword
-  | SignUpSuccess of string
+  | ResetPassword of EmailAddress
+  | SignUpSuccess of EmailAddress
   | ResendEmail of string
   | Main of SignInResponse * ProfileResponse
 
@@ -18,6 +20,6 @@ module Route =
 
   let Changed = event.Publish
 
-  let push route =
-    event.Trigger(route)
-    Cmd.none
+  let push route : Cmd<'msg> =
+    [ fun _ ->
+      event.Trigger(route) ]

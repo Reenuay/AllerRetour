@@ -1,162 +1,318 @@
 module AllerRetour.ResetPasswordPage
 
-open System
-open Fabulous.XamarinForms
-open Xamarin.Forms
+open Fabulous
 open PrimitiveTypes
 open RequestTypes
-open Views
 open Resources
+open System
+open Views
+open Xamarin.Forms
 
-type Model = {
-  NewPassword: Validatable<Password, string>
-  RepeatNewPassword: Validatable<string, string>
-  Token: Validatable<Pin, string>
-  Email: string
-  Timer: int
-  TokenEntered: bool
-  NewPasswordHidden: bool
-  RepeatNewPasswordHidden: bool
-}
-with
-  member this.CheckRepeatPassword(r) =
-    match Validatable.value Password.value this.NewPassword with
-    | x when x <> "" && x = r -> Ok r
-    | _ -> Error ["Passwords must be the same"]
+type Model =
+  private
+    {
+      Email: EmailAddress
+      Timer: int
+      Pin: Validatable<Pin, string>
+      PinEntered: bool
+      NewPassword: Validatable<Password, string>
+      NewPasswordHidden: bool
+      NewPasswordRepeat: Validatable<string, string>
+      NewPasswordRepeatHidden: bool
+    }
 
-  member this.ToDto() : PasswordResetRequest option =
-    match this.NewPassword, this.RepeatNewPassword, this.Token with
-    | Ok n, Ok _, Ok p ->
-      Some {
-        Email = this.Email
-        NewPassword = Password.value n
-        Token = Pin.value p
-      }
+type Msg =
+  private
+  | SetPin of string
+  | TimerTick
+  | ConfirmPin
+  | SignIn
+  | SetNewPassword of string
+  | ToggleNewPasswordHidden
+  | SetNewPasswordRepeat of string
+  | ToggleNewPasswordRepeatHidden
+  | ResetPassword
+  | PasswordReset of Http.Result<string>
+
+[<RequireQualifiedAccess>]
+module Model =
+  let checkRepeatPassword model p =
+    match Validatable.value Password.value model.NewPassword with
+    | x when x <> "" && x = p ->
+      Ok p
+
+    | _ ->
+      Error ["Passwords must be the same"]
+
+  let toDto model =
+    let
+      fields =
+        (
+          model.NewPassword,
+          model.NewPasswordRepeat,
+          model.Pin
+        )
+    in
+    match fields with
+    | ( Ok n, Ok _, Ok p ) ->
+      Some
+        {
+          Email = EmailAddress.value model.Email
+          NewPassword = Password.value n
+          Token = Pin.value p
+        }
+
     | _ ->
       None
 
-  member this.IsValid() =
-    match this.NewPassword, this.RepeatNewPassword, this.Token with
-    | Ok _, Ok _, Ok _ -> true
-    | _ -> false
+  let isValid model
+    =  Validatable.isValid model.NewPassword
+    && Validatable.isValid model.NewPasswordRepeat
+    && Validatable.isValid model.Pin
 
-  member this.Revalidate() = {
-    this with
-      NewPassword = Validatable.bindR Password.create (Validatable.value Password.value this.NewPassword)
-      RepeatNewPassword = Validatable.bindR this.CheckRepeatPassword (Validatable.value id this.RepeatNewPassword)
-      Token = Validatable.bindR Pin.create (Validatable.value Pin.value this.Token)
-  }
+  let revalidate model =
+    let
+      newPassword =
+        Validatable.bindR
+          Password.create
+          (Validatable.value Password.value model.NewPassword)
+    let
+      repeatNewPassword =
+        Validatable.bindR
+          (checkRepeatPassword model)
+          (Validatable.value id model.NewPasswordRepeat)
+    let
+      token =
+        Validatable.bindR
+          Pin.create
+          (Validatable.value Pin.value model.Pin)
+    in
+    {
+      model with
+        NewPassword = newPassword
+        NewPasswordRepeat = repeatNewPassword
+        Pin = token
+    }
 
-type Msg =
-  | SetNewPassword of string
-  | SetRepeatNewPassword of string
-  | SetToken of string
-  | TimerTick
-  | ClickReset
-  | SetTokenEntered of bool
-  | SwapNewPasswordHidden
-  | SwapRepeatNewPasswordHidden
-  | ClickConfirm
-  | ClickGoToSignIn
-
-type ExternalMsg =
-  | NoOp
-  | Timer
-  | ResetPassword of PasswordResetRequest
-  | GoToForgotPassword
-  | GoToSignIn
-
-let initModel email =
-  let fifteenMinutes = 15 * 60
-
-  {
-    NewPassword = Validatable.emptyString
-    RepeatNewPassword = Validatable.emptyString
-    Token = Validatable.emptyString
-    Email = email
-    Timer = fifteenMinutes
-    TokenEntered = false
-    NewPasswordHidden = true
-    RepeatNewPasswordHidden = true
-  }
+let init email =
+  let
+    fifteenMinutes =
+      15 * 60
+  let
+    model =
+      {
+        NewPassword = Validatable.emptyString
+        NewPasswordRepeat = Validatable.emptyString
+        Pin = Validatable.emptyString
+        Email = email
+        Timer = fifteenMinutes
+        PinEntered = false
+        NewPasswordHidden = true
+        NewPasswordRepeatHidden = true
+      }
+  in
+  ( model, Cmd.ofMsg TimerTick )
 
 let update msg (model: Model) =
   match msg with
-  | SetNewPassword p ->
-    { model with NewPassword = Validatable.bindR Password.create p }, NoOp
-
-  | SetRepeatNewPassword p ->
-    { model with RepeatNewPassword = Validatable.bindR model.CheckRepeatPassword p }, NoOp
-
-  | SetToken p ->
-    { model with Token = Validatable.bindR Pin.create p }, NoOp
+  | SetPin pinString ->
+    let
+      pin =
+        Validatable.bindR Pin.create pinString
+    in
+    ( { model with Pin = pin }, Cmd.none )
 
   | TimerTick ->
-    if model.TokenEntered then
-      model, NoOp
+    if model.PinEntered then
+      ( model, Cmd.none )
+
     else
-      let time = model.Timer - 1
-      { model with Timer = time },
-      if time > 0 then Timer else GoToForgotPassword
+      let
+        time =
+          model.Timer - 1
+      let
+        cmd =
+          if time > 0 then
+            Cmd.ofAsyncMsg <|
+              async {
+                do! Async.SwitchToThreadPool()
+                do! Async.Sleep 1000
 
-  | ClickReset ->
-    match model.ToDto() with
-    | Some d -> model, ResetPassword d
-    | None -> model.Revalidate(), NoOp
+                return TimerTick
+              }
 
-  | SetTokenEntered e ->
-    { model with TokenEntered = e }, NoOp
+          else
+            Cmd.batch
+              [
+                Route.push Route.ForgotPassword
 
-  | SwapNewPasswordHidden ->
-    { model with NewPasswordHidden = not model.NewPasswordHidden }, NoOp
+                Message.show "Verification timed out!"
+              ]
+      in
+      ( { model with Timer = time }, cmd )
 
-  | SwapRepeatNewPasswordHidden ->
-    { model with RepeatNewPasswordHidden = not model.RepeatNewPasswordHidden }, NoOp
+  | ConfirmPin ->
+    let
+      newModel =
+        if Validatable.isValid model.Pin then
+          { model with PinEntered = true }
 
-  | ClickConfirm ->
-    (
-      if Result.isOk model.Token then
-        { model with TokenEntered = true }
-      else
-        { model with Token = Validatable.bindR Pin.create (Validatable.value Pin.value model.Token) }
-    ), NoOp
+        else
+          let
+            pin =
+              Validatable.bindR
+                Pin.create
+                (Validatable.value Pin.value model.Pin)
+          in
+          { model with Pin = pin }
+    in
+    ( newModel, Cmd.none )
 
-  | ClickGoToSignIn ->
-    model, GoToSignIn
-    
+  | SignIn ->
+    ( model, Route.push Route.SignIn )
+
+  | SetNewPassword newPasswordString ->
+    let
+      newPassword =
+        Validatable.bindR Password.create newPasswordString
+    let
+      newModel =
+        {
+          model with
+            NewPassword = newPassword
+        }
+    in
+    ( newModel, Cmd.none )
+
+  | ToggleNewPasswordHidden ->
+    let
+      newPasswordHidden =
+        not model.NewPasswordHidden
+    let
+      newModel =
+        {
+          model with
+            NewPasswordHidden = newPasswordHidden
+        }
+    in
+    ( newModel, Cmd.none )
+
+  | SetNewPasswordRepeat newPasswordRepeatString ->
+    let
+      newPasswordRepeat =
+        Validatable.bindR
+          (Model.checkRepeatPassword model)
+          newPasswordRepeatString
+    let
+      newModel =
+        {
+          model with
+            NewPasswordRepeat = newPasswordRepeat
+        }
+    in
+    ( newModel, Cmd.none )
+
+  | ToggleNewPasswordRepeatHidden ->
+    let
+      newPasswordRepeatHidden =
+        not model.NewPasswordRepeatHidden
+    let
+      newModel =
+        {
+          model with
+            NewPasswordRepeatHidden = newPasswordRepeatHidden
+        }
+    in
+    ( newModel, Cmd.none )
+
+  | ResetPassword ->
+    match Model.toDto model with
+    | Some request ->
+      let
+        cmd =
+          Cmd.batch
+            [
+              Cmd.ofAsyncMsg <|
+                async {
+                  let! response = Http.resetPassword request
+                  return PasswordReset response
+                }
+
+              Loader.start
+            ]
+      in
+      ( model, cmd )
+
+    | None ->
+      ( Model.revalidate model, Cmd.none )
+
+  | PasswordReset (Ok _) ->
+    let
+      cmd =
+        Cmd.batch
+          [
+            Route.push Route.SignIn
+
+            Loader.stop
+
+            Message.show "Your password has been successfully reset!"
+          ]
+    in
+    ( model, cmd )
+
+  | PasswordReset (Error errors) ->
+    let
+      cmd =
+        Cmd.batch
+          [
+            Loader.stop
+
+            Message.errors errors
+          ]
+    in
+    ( model, cmd )
 
 let view model dispatch =
   View.MakeScrollStack(
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
-      if not model.TokenEntered then
+      if not model.PinEntered then
         yield! [
           View.MakeAvatar(
             source = Images.verificationCode,
             margin = Thicknesses.bigLowerSpace
           )
 
-          View.MakeText("Please enter your verification code")
+          View.MakeText(
+            text = "Please enter your verification code"
+          )
 
-          View.MakeThinText("We sent a verification code\nto your registered email ID")
+          View.MakeThinText(
+            text = "We sent a verification code\nto your registered email ID"
+          )
 
-          View.MakeThinText(TimeSpan.FromSeconds(float model.Timer).ToString("mm\:ss"))
+          View.MakeThinText(
+            text =
+              TimeSpan
+                .FromSeconds(float model.Timer)
+                .ToString("mm\:ss")
+          )
 
           View.MakeEntry(
-            model.Token,
-            "Code",
-            Pin.value,
-            (bindNewText dispatch SetToken),
-            keyboard = Keyboard.Numeric,
+            map = Pin.value,
+            value = model.Pin,
             image = Images.lockIcon,
-            margin = Thicknesses.mediumLowerSpace
+            margin = Thicknesses.mediumLowerSpace,
+            keyboard = Keyboard.Numeric,
+            placeholder = "Code",
+            textChanged = bindNewText dispatch SetPin
           )
 
           View.MakeButton(
             text = "confirm",
-            command = bindClick dispatch ClickConfirm,
-            isEnabled = Result.isOk model.Token,
-            margin = Thicknesses.mediumLowerSpace
+            margin = Thicknesses.mediumLowerSpace,
+            command = bindClick dispatch ConfirmPin,
+            isEnabled = Result.isOk model.Pin
           )
         ]
       else
@@ -171,38 +327,45 @@ let view model dispatch =
             margin = Thicknesses.mediumLowerSpace
           )
 
+          let
+            passwordOptions =
+              (
+                model.NewPasswordHidden,
+                bindClick dispatch ToggleNewPasswordHidden
+              )
+          in
           View.MakeEntry(
-            model.NewPassword,
-            "New password",
-            Password.value,
-            (bindNewText dispatch SetNewPassword),
+            map = Password.value,
+            value = model.NewPassword,
             image = Images.lockIcon,
-            passwordOptions = (model.NewPasswordHidden, bindClick dispatch SwapNewPasswordHidden)
+            placeholder = "New password",
+            textChanged = bindNewText dispatch SetNewPassword,
+            passwordOptions = passwordOptions
           )
 
           View.MakeEntry(
-            model.RepeatNewPassword,
+            model.NewPasswordRepeat,
             "Re-enter password",
             id,
-            (bindNewText dispatch SetRepeatNewPassword),
+            (bindNewText dispatch SetNewPasswordRepeat),
             image = Images.lockIcon,
-            passwordOptions = (model.RepeatNewPasswordHidden, bindClick dispatch SwapRepeatNewPasswordHidden),
-            margin = Thicknesses.mediumLowerSpace
+            margin = Thicknesses.mediumLowerSpace,
+            passwordOptions = (model.NewPasswordRepeatHidden, bindClick dispatch ToggleNewPasswordRepeatHidden)
           )
 
           View.MakeButton(
             text = "change password",
-            command = bindClick dispatch ClickReset,
-            isEnabled = model.IsValid(),
-            margin = Thicknesses.mediumLowerSpace
+            margin = Thicknesses.mediumLowerSpace,
+            command = bindClick dispatch ResetPassword,
+            isEnabled = Model.isValid model
           )
         ]
 
       yield
         View.MakeTextButton(
           text = "log in",
-          command = bindClick dispatch ClickGoToSignIn,
           margin = Thicknesses.mediumLowerSpace,
+          command = bindClick dispatch SignIn,
           fontFamily = Fonts.renogare
         )
     ]

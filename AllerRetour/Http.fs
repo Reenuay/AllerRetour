@@ -26,7 +26,7 @@ let inline private makeRequest (f: unit -> Async<HttpResponse>) =
         if res.StatusCode = 200 then
           match Json.deserialize body with
           | Choice1Of2 t -> Ok t
-          | Choice2Of2 e -> Error [ "Parsing error: server returned invalid data" ]
+          | Choice2Of2 _ -> Error [ "Parsing error: server returned invalid data" ]
         else
           let e =
             match Json.deserialize body with

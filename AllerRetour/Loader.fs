@@ -11,10 +11,10 @@ module Loader =
   
   let StateChanged = event.Publish
 
-  let start () =
-    event.Trigger(LoaderState.Started)
-    Cmd.none
+  let start : Cmd<'msg> =
+    [ fun _ ->
+      event.Trigger(LoaderState.Started) ]
 
-  let stop () =
-    event.Trigger(LoaderState.Stopped)
-    Cmd.none
+  let stop : Cmd<'msg> =
+    [ fun _ ->
+      event.Trigger(LoaderState.Stopped) ]

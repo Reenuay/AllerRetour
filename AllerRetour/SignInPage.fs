@@ -100,7 +100,7 @@ let update msg model : Model * Cmd<Msg> =
       let
         cmd =
           Cmd.batch [
-            Loader.start ()
+            Loader.start
 
             Cmd.ofAsyncMsg <|
               async {
@@ -135,12 +135,12 @@ let update msg model : Model * Cmd<Msg> =
           model.Email
     let
       unconfirmedCmd =
-        Cmd.batch [
-          Route.ResendEmail emailString
-          |> Route.push
+        Cmd.batch
+          [
+            Route.push (Route.ResendEmail emailString)
 
-          Loader.stop ()
-        ]
+            Loader.stop
+          ]
     let
       cmd =
         if token.EmailConfirmed
@@ -152,12 +152,12 @@ let update msg model : Model * Cmd<Msg> =
   | ProfileReceived ( token, Ok profile ) ->
     let
       cmd =
-        Cmd.batch [
-          Route.Main ( token, profile )
-          |> Route.push
+        Cmd.batch
+          [
+            Route.push (Route.Main ( token, profile ))
 
-          Loader.stop ()
-        ]
+            Loader.stop
+          ]
     in
     ( model, cmd )
 
@@ -165,11 +165,12 @@ let update msg model : Model * Cmd<Msg> =
   | ProfileReceived ( _, Error errors ) ->
     let
       cmd =
-        Cmd.batch [
-          Loader.stop ()
+        Cmd.batch
+          [
+            Loader.stop
 
-          Message.showErrors errors
-        ]
+            Message.errors errors
+          ]
     in
     ( model, cmd )
 
@@ -178,8 +179,8 @@ let view model dispatch =
     isDarkTheme = GlobalSettings.IsDarkTheme,
     children = [
       View.Image(
-        source = Images.logo,
-        width = screenWidthP 0.5
+        width = screenWidthP 0.5,
+        source = Images.logo
       )
 
       View.Label(
@@ -197,7 +198,9 @@ let view model dispatch =
         margin = Thicknesses.bigLowerSpace
       )
 
-      View.MakeThinText("login with email")
+      View.MakeThinText(
+        text = "login with email"
+      )
 
       View.MakeEntry(
         map = EmailAddress.value,
@@ -208,6 +211,13 @@ let view model dispatch =
         textChanged = bindNewText dispatch SetEmail
       )
 
+      let
+        passwordOptions =
+          (
+            model.PasswordHidden,
+            bindClick dispatch TogglePasswordHidden
+          )
+      in
       View.MakeEntry(
         map = Password.value,
         value = model.Password,
@@ -215,28 +225,28 @@ let view model dispatch =
         margin = Thicknesses.mediumLowerSpace,
         placeholder = "Password",
         textChanged = bindNewText dispatch SetPassword,
-        passwordOptions = ( model.PasswordHidden, bindClick dispatch TogglePasswordHidden )
+        passwordOptions = passwordOptions
       )
 
       View.MakeButton(
         text = "log in",
+        margin = Thicknesses.mediumLowerSpace,
         command = bindClick dispatch SignIn,
-        isEnabled = Model.isValid model,
-        margin = Thicknesses.mediumLowerSpace
+        isEnabled = Model.isValid model
       )
 
       View.Grid(
+        width = screenWidthP 0.8,
+        margin = Thicknesses.mediumLowerSpace,
         coldefs = [ Star; Star ],
         rowSpacing = 0.,
         columnSpacing = 0.,
-        width = screenWidthP 0.8,
-        margin = Thicknesses.mediumLowerSpace,
         horizontalOptions = LayoutOptions.CenterAndExpand,
         children = [
           View.MakeTextButton(
             text = "forgot password?",
-            command = bindClick dispatch ForgotPassword,
             margin = Thickness ( 0., -8., 0., 0. ),
+            command = bindClick dispatch ForgotPassword,
             horizontalOptions = LayoutOptions.Start
           )
             .Column(0)

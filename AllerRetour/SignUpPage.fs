@@ -15,8 +15,8 @@ type Model =
       LastName: Validatable<NameString, string>
       Email: Validatable<EmailAddress, string>
       Password: Validatable<Password, string>
-      RepeatPassword: Validatable<string, string>
       PasswordHidden: bool
+      RepeatPassword: Validatable<string, string>
       PasswordRepeatHidden: bool
     }
 
@@ -27,11 +27,11 @@ type Msg =
   | SetEmail of string
   | SetPassword of string
   | SetRepeatPassword of string
-  | SwapPasswordHidden
-  | SwapPasswordRepeatHidden
+  | TogglePasswordHidden
+  | TogglePasswordRepeatHidden
   | SignUp
   | SignIn
-  | SignedUp of Http.Result<string>
+  | SignedUp of Http.Result<string> * EmailAddress
 
 [<RequireQualifiedAccess>]
 module Model =
@@ -42,30 +42,6 @@ module Model =
 
     | _ ->
       Error ["Passwords must be the same"]
-
-  let toDto model =
-    let
-      fields =
-        (
-          model.FirstName,
-          model.LastName,
-          model.Email,
-          model.Password,
-          model.RepeatPassword
-        )
-    in
-    match fields with
-    | ( Ok f, Ok l, Ok e, Ok p, Ok _ ) ->
-      Some
-        {
-          FirstName = NameString.value f
-          LastName = NameString.value l
-          Email = EmailAddress.value e
-          Password = Password.value p
-        }
-
-    | _ ->
-      None
 
   let isValid model
     =  Validatable.isValid model.FirstName
@@ -149,23 +125,25 @@ let update msg (model: Model) =
       password =
         Validatable.bindR Password.create passwordString
     in
-    ( { model with Password = password }, Cmd.none)
+    ( { model with Password = password }, Cmd.none )
 
   | SetRepeatPassword repeatPasswordString ->
     let
       repeatPassword =
-        Validatable.bindR (Model.checkRepeatPassword model) repeatPasswordString
+        Validatable.bindR
+          (Model.checkRepeatPassword model)
+          repeatPasswordString
     in
     ( { model with RepeatPassword = repeatPassword }, Cmd.none )
 
-  | SwapPasswordHidden ->
+  | TogglePasswordHidden ->
     let
       passwordHidden =
         not model.PasswordHidden
     in
     ( { model with PasswordHidden = passwordHidden }, Cmd.none )
 
-  | SwapPasswordRepeatHidden ->
+  | TogglePasswordRepeatHidden ->
     let
       repeatPasswordHidden =
         not model.PasswordHidden
@@ -173,50 +151,71 @@ let update msg (model: Model) =
     ( { model with PasswordRepeatHidden = repeatPasswordHidden }, Cmd.none )
 
   | SignUp ->
-    match Model.toDto model with
-    | Some request ->
+    let
+      fields =
+        (
+          model.FirstName,
+          model.LastName,
+          model.Email,
+          model.Password,
+          model.RepeatPassword
+        )
+    in
+    match fields with
+    | (
+        Ok firstName,
+        Ok lastName,
+        Ok email,
+        Ok password,
+        Ok _
+      ) ->
+      let
+        request =
+          {
+            FirstName = NameString.value firstName
+            LastName = NameString.value lastName
+            Email = EmailAddress.value email
+            Password = Password.value password
+          }
       let
         cmd =
-          Cmd.batch [
-            Loader.start ()
+          Cmd.batch
+            [
+              Loader.start
 
-            Cmd.ofAsyncMsg <|
-              async {
-                let! response = Http.signUp request
-                return SignedUp response
-              }
-          ]
+              Cmd.ofAsyncMsg <|
+                async {
+                  let! response = Http.signUp request
+                  return SignedUp ( response, email )
+                }
+            ]
       in
       ( model, cmd )
 
-    | None ->
+    | _ ->
       ( Model.revalidate model, Cmd.none )
 
   | SignIn ->
     ( model, Route.push Route.SignIn )
 
-  | SignedUp (Ok _) ->
-    let
-      emailString =
-        Validatable.value EmailAddress.value model.Email
+  | SignedUp ( Ok _, email ) ->
     let
       cmd =
         Cmd.batch [
-          Route.SignUpSuccess emailString
-          |> Route.push
+          Route.push (Route.SignUpSuccess email)
 
-          Loader.stop ()
+          Loader.stop
         ]
     in
     ( model, cmd )
 
-  | SignedUp (Error errors) ->
+  | SignedUp ( Error errors, _ ) ->
     let
       cmd =
         Cmd.batch [
-          Loader.stop ()
+          Loader.stop
 
-          Message.showErrors errors
+          Message.errors errors
         ]
     in
     ( model, cmd )
@@ -264,7 +263,7 @@ let view model dispatch =
         passwordOptions =
           (
             model.PasswordHidden,
-            bindClick dispatch SwapPasswordHidden
+            bindClick dispatch TogglePasswordHidden
           )
       in
       View.MakeEntry(
@@ -280,7 +279,7 @@ let view model dispatch =
         passwordOptions =
           (
             model.PasswordRepeatHidden,
-            bindClick dispatch SwapPasswordRepeatHidden
+            bindClick dispatch TogglePasswordRepeatHidden
           )
       in
       View.MakeEntry(
