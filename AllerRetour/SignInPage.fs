@@ -25,23 +25,11 @@ type Msg =
   | SignIn
   | SignUp
   | ForgotPassword
-  | SignedIn of Http.Result<SignInResponse>
+  | SignedIn of EmailAddress * Http.Result<SignInResponse>
   | ProfileReceived of SignInResponse * Http.Result<ProfileResponse>
 
 [<RequireQualifiedAccess>]
 module Model =
-  let toDto model =
-    match ( model.Email, model.Password ) with
-    | ( Ok e, Ok p ) ->
-      Some
-        {
-          Email = EmailAddress.value e
-          Password = Password.value p
-        }
-
-    | _ ->
-      None
-
   let isValid model
     =  Validatable.isValid model.Email
     && Validatable.isValid model.Password
@@ -95,8 +83,14 @@ let update msg model : Model * Cmd<Msg> =
     ( { model with PasswordHidden = passwordHidden }, Cmd.none )
 
   | SignIn ->
-    match Model.toDto model with
-    | Some d ->
+    match ( model.Email, model.Password )  with
+    | ( Ok email, Ok password )  ->
+      let
+        req =
+          {
+            Email = EmailAddress.value email
+            Password = Password.value password
+          }
       let
         cmd =
           Cmd.batch [
@@ -104,14 +98,14 @@ let update msg model : Model * Cmd<Msg> =
 
             Cmd.ofAsyncMsg <|
               async {
-                let! tokenR = Http.signIn d
-                return SignedIn tokenR
+                let! res = Http.signIn req
+                return SignedIn ( email, res )
               }
           ]
       in
       ( model, cmd )
 
-    | None ->
+    | _ ->
       ( Model.revalidate model, Cmd.none )
 
   | SignUp ->
@@ -120,7 +114,7 @@ let update msg model : Model * Cmd<Msg> =
   | ForgotPassword ->
     ( model, Route.push Route.ForgotPassword )
 
-  | SignedIn (Ok token) ->
+  | SignedIn ( email, Ok token ) ->
     let
       confirmedCmd =
         Cmd.ofAsyncMsg <|
@@ -129,15 +123,10 @@ let update msg model : Model * Cmd<Msg> =
             return ProfileReceived ( token, profileR )
           }
     let
-      emailString =
-        Validatable.value
-          EmailAddress.value
-          model.Email
-    let
       unconfirmedCmd =
         Cmd.batch
           [
-            Route.push (Route.ResendEmail emailString)
+            Route.push (Route.ResendEmail ( token, email ))
 
             Loader.stop
           ]
@@ -161,7 +150,7 @@ let update msg model : Model * Cmd<Msg> =
     in
     ( model, cmd )
 
-  | SignedIn (Error errors)
+  | SignedIn ( _, Error errors )
   | ProfileReceived ( _, Error errors ) ->
     let
       cmd =

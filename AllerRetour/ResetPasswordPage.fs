@@ -101,13 +101,13 @@ let init email =
   let
     model =
       {
-        NewPassword = Validatable.emptyString
-        NewPasswordRepeat = Validatable.emptyString
-        Pin = Validatable.emptyString
         Email = email
         Timer = fifteenMinutes
+        Pin = Validatable.emptyString
         PinEntered = false
+        NewPassword = Validatable.emptyString
         NewPasswordHidden = true
+        NewPasswordRepeat = Validatable.emptyString
         NewPasswordRepeatHidden = true
       }
   in

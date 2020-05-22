@@ -31,7 +31,7 @@ type Msg =
   | TogglePasswordRepeatHidden
   | SignUp
   | SignIn
-  | SignedUp of Http.Result<string> * EmailAddress
+  | SignedUp of EmailAddress * Http.Result<string>
 
 [<RequireQualifiedAccess>]
 module Model =
@@ -170,7 +170,7 @@ let update msg (model: Model) =
         Ok _
       ) ->
       let
-        request =
+        req =
           {
             FirstName = NameString.value firstName
             LastName = NameString.value lastName
@@ -185,8 +185,8 @@ let update msg (model: Model) =
 
               Cmd.ofAsyncMsg <|
                 async {
-                  let! response = Http.signUp request
-                  return SignedUp ( response, email )
+                  let! res = Http.signUp req
+                  return SignedUp ( email, res )
                 }
             ]
       in
@@ -198,7 +198,7 @@ let update msg (model: Model) =
   | SignIn ->
     ( model, Route.push Route.SignIn )
 
-  | SignedUp ( Ok _, email ) ->
+  | SignedUp ( email, Ok _ ) ->
     let
       cmd =
         Cmd.batch [
@@ -209,7 +209,7 @@ let update msg (model: Model) =
     in
     ( model, cmd )
 
-  | SignedUp ( Error errors, _ ) ->
+  | SignedUp ( _, Error errors ) ->
     let
       cmd =
         Cmd.batch [

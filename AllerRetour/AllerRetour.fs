@@ -42,11 +42,9 @@ module App =
     | PageMsg of PageMsg
     | NavigateTo of PageModel
     | SignOut
-    | ResetPassword of PasswordResetRequest
     | UpdateProfile of UpdateProfileRequest
     | ChangeEmail of ChangeEmailRequest
     | ChangePassword of ChangePasswordRequest
-    | ResendConfirmEmail
     | ShowMessage of string
     | LoadSettings
     | RefreshToken of string
@@ -66,13 +64,6 @@ module App =
     |> SignInPageModel
     |> NavigateTo
     |> Cmd.ofMsg
-
-  let handleSignInMsg msg model =
-    let
-      ( newModel, cmd ) =
-        SignInPage.update msg model
-    in
-    ( newModel, Cmd.map (SignInPageMsg >> PageMsg) cmd )
 
   let handleSignUpMsg msg model =
     let
@@ -102,23 +93,28 @@ module App =
     in
     ( newModel, Cmd.map (SignUpSuccessPageMsg >> PageMsg) cmd )
 
-  let handleResendEmailMsg msg model =
-    let newModel, eMsg = ResendEmailPage.update msg model
-    let cmd =
-      match eMsg with
-      | ResendEmailPage.ResendEmail ->
-        Cmd.ofMsg ResendConfirmEmail
+  let handleResendEmailMsg token pageMsg pageModel =
+    let
+      ( newPageModel, pageCmd, externalMsg ) =
+        ResendEmailPage.update token pageMsg pageModel
+    let
+      cmd =
+        match externalMsg with
+        | ResendEmailPage.NoOp ->
+          Cmd.none
 
-      | ResendEmailPage.GoToChangeEmail ->
-        model
-        |> ChangeEmailPage.create
-        |> ChangeEmailPageModel
-        |> NavigateTo
-        |> Cmd.ofMsg
+        | ResendEmailPage.SignOut ->
+          Cmd.ofMsg SignOut
+    let
+      cmd =
+        Cmd.batch
+          [
+            cmd
 
-      | ResendEmailPage.GoToSignIn ->
-        Cmd.ofMsg SignOut
-    newModel, cmd
+            Cmd.map (ResendEmailPageMsg >> PageMsg) pageCmd
+          ]
+    in
+    ( newPageModel, cmd )
 
   let handleChangeEmailMsg msg model =
     let newModel, eMsg = ChangeEmailPage.update msg model
@@ -157,39 +153,6 @@ module App =
         |> Message.foldErrors
         |> ShowMessage
         |> Cmd.ofMsg)
-
-  let resetPassword model request =
-    request
-    |> Http.resetPassword
-    |> Async.RunSynchronously
-    |> handleTwoTrackHttp
-      model
-      (fun _ ->
-        model,
-        Cmd.batch [
-          goToSignInCmd
-
-          "Your password has been successfully changed!"
-          |> ShowMessage
-          |> Cmd.ofMsg
-        ])
-
-  let resendConfirmEmail model =
-    match model.Token with
-    | Some t ->
-      t
-      |> Http.resendConfirmEmail
-      |> Async.RunSynchronously
-      |> handleTwoTrackHttp
-        model
-        (fun _ ->
-          model,
-          "Email were sent successfully!"
-          |> ShowMessage
-          |> Cmd.ofMsg)
-
-    | None ->
-      model, Cmd.none
 
   let updateProfile model request =
     match model.Token with
@@ -259,9 +222,18 @@ module App =
 
   let handlePageMsg pMsg aModel =
     match pMsg, aModel.PageModel with
-    | SignInPageMsg msg, SignInPageModel model ->
-      let newModel, cmd = handleSignInMsg msg model
-      { aModel with PageModel = SignInPageModel newModel }, cmd
+    | ( SignInPageMsg pageMsg, SignInPageModel pageModel ) ->
+      let
+        ( newPageModel, pageCmd ) =
+          SignInPage.update pageMsg pageModel
+      let
+        newModel =
+          { aModel with
+              PageModel =
+                SignInPageModel newPageModel
+          }
+      in
+      ( newModel, Cmd.map (SignInPageMsg >> PageMsg) pageCmd )
 
     | SignUpPageMsg msg, SignUpPageModel model ->
       let newModel, cmd = handleSignUpMsg msg model
@@ -280,7 +252,7 @@ module App =
       { aModel with PageModel = SignUpSuccessPageModel newModel }, cmd
 
     | ResendEmailPageMsg msg, ResendEmailPageModel model ->
-      let newModel, cmd = handleResendEmailMsg msg model
+      let newModel, cmd = handleResendEmailMsg aModel.Token msg model
       { aModel with PageModel = ResendEmailPageModel newModel }, cmd
 
     | ChangeEmailPageMsg msg, ChangeEmailPageModel model ->
@@ -293,13 +265,24 @@ module App =
 
     | _, _ -> aModel, Cmd.none
 
+  let refreshTokenCmd token =
+    Cmd.ofAsyncMsg <|
+      async {
+        do! Async.SwitchToThreadPool ()
+
+        do!
+          Async.Sleep <|
+          int (token.Expires - DateTime.UtcNow).TotalMilliseconds
+
+        return RefreshToken token.Token
+      }
+
   let routeChanged model route =
     match route with
     | Route.SignIn ->
       let
         newModel =
-          {
-            model with
+          { model with
               PageModel = SignInPageModel SignInPage.initModel
               Route = route
           }
@@ -309,8 +292,7 @@ module App =
     | Route.SignUp ->
       let
         newModel =
-          {
-            model with
+          { model with
               PageModel = SignUpPageModel SignUpPage.initModel
               Route = route
           }
@@ -320,8 +302,7 @@ module App =
     | Route.ForgotPassword ->
       let
         newModel =
-          {
-            model with
+          { model with
               PageModel = ForgotPasswordPageModel ForgotPasswordPage.initModel
               Route = route
           }
@@ -334,8 +315,7 @@ module App =
           ResetPasswordPage.init email
       let
         newModel =
-          {
-            model with
+          { model with
               PageModel = ResetPasswordPageModel pageModel
           }
       in
@@ -347,20 +327,35 @@ module App =
           SignUpSuccessPage.initModel email
       let
         newModel =
-          {
-            model with
+          { model with
               PageModel = SignUpSuccessPageModel pageModel
               Route = route
           }
       in
       ( newModel, Cmd.none )
 
-    | Route.ResendEmail emailString ->
+    | Route.ResendEmail ( token, email ) ->
+      let
+        pageModel =
+          ResendEmailPage.initModel email
       let
         newModel =
-          {
-            model with
-              PageModel = ResendEmailPageModel emailString
+          { model with
+              PageModel = ResendEmailPageModel pageModel
+              Route = route
+              Token = Some token.Token
+          }
+      in
+      ( newModel, refreshTokenCmd token )
+
+    | Route.ChangeEmail email ->
+      let
+        pageModel =
+          ChangeEmailPage.create email
+      let
+        newModel =
+          { model with
+              PageModel = ChangeEmailPageModel pageModel
               Route = route
           }
       in
@@ -368,28 +363,16 @@ module App =
 
     | Route.Main ( token, profile ) ->
       match MainPage.create profile with
-      | Ok mainModel ->
+      | Ok pageModel ->
         let
           newModel =
             { model with
-                PageModel = MainPageModel mainModel
+                PageModel = MainPageModel pageModel
                 Route = route
                 Token = Some token.Token
             }
-        let
-          cmd =
-            async {
-              do! Async.SwitchToThreadPool ()
-
-              do!
-                Async.Sleep <|
-                int (token.Expires - DateTime.UtcNow).TotalMilliseconds
-
-              return RefreshToken token.Token
-            }
-            |> Cmd.ofAsyncMsg
         in
-        ( newModel, cmd )
+        ( newModel, refreshTokenCmd token )
 
       | Error errors ->
         ( model, Message.errors errors )
@@ -403,10 +386,7 @@ module App =
       { aModel with PageModel = pModel }, Cmd.none
 
     | SignOut ->
-      { aModel with Token = None }, goToSignInCmd
-
-    | ResetPassword r ->
-      resetPassword aModel r
+      ( { aModel with Token = None }, Route.push Route.SignIn ) // REPLACE WITH Cmd.none
 
     | UpdateProfile r ->
       updateProfile aModel r
@@ -416,9 +396,6 @@ module App =
 
     | ChangePassword r ->
       changePassword aModel r
-
-    | ResendConfirmEmail ->
-      resendConfirmEmail aModel
 
     | ShowMessage err ->
       Application.Current.MainPage.DisplayAlert(String.Empty, err, "Ok") |> ignore
@@ -524,12 +501,12 @@ module App =
       )
     )
 
-  // let init () = initModel, Cmd.ofMsg (SignIn { Email = "reenuay777@gmail.com"; Password = "testtest4" })
-
-  let init () = initModel, Cmd.ofMsg LoadSettings
+  let init () =
+    ( initModel, Cmd.ofMsg LoadSettings )
 
   // Note, this declaration is needed if you enable LiveUpdate
-  let program = Program.mkProgram init update view
+  let program =
+    Program.mkProgram init update view
 
   let routeSub dispatch =
     Route.Changed.Add(

@@ -6,7 +6,7 @@ open RequestTypes
 open ResponseTypes
 
 type Result<'a> = Result<'a, string list>
-type AsyncT<'a> = Async<Result<'a>>
+type AsyncResult<'a> = Async<Result<'a>>
 
 let baseUrl = "http://46.101.209.128/api/customer"
 let routeTo route = baseUrl + route
@@ -75,29 +75,29 @@ let inline private put route body headers =
 
 let private bearer token = HttpRequestHeaders.Authorization (sprintf "Bearer %s" token)
 
-let signIn (r: SignInRequest) : AsyncT<SignInResponse> =
+let signIn (r: SignInRequest) : AsyncResult<SignInResponse> =
   post "/signin" r []
 
-let signUp (r: SignUpRequest) : AsyncT<string> =
+let signUp (r: SignUpRequest) : AsyncResult<string> =
   post "/signup" r []
 
-let sendPin (r: PasswordResetEmailRequest) : AsyncT<string> =
+let sendPin (r: PasswordResetEmailRequest) : AsyncResult<string> =
   post "/password/pin" r []
 
-let resetPassword (r: PasswordResetRequest) : AsyncT<string> =
+let resetPassword (r: PasswordResetRequest) : AsyncResult<string> =
   post "/password/reset" r []
 
-let getProfile token : AsyncT<ProfileResponse> =
+let getProfile token : AsyncResult<ProfileResponse> =
   get "/profile" [] [ bearer token ]
 
-let resendConfirmEmail token : AsyncT<string> =
+let resendConfirmEmail token : AsyncResult<string> =
   post "/email/resend" () [ bearer token ]
 
-let updateProfile token (r: UpdateProfileRequest) : AsyncT<ProfileResponse> =
+let updateProfile token (r: UpdateProfileRequest) : AsyncResult<ProfileResponse> =
   put "/profile" r [ bearer token ]
 
-let changeEmail token (r: ChangeEmailRequest) : AsyncT<string> =
+let changeEmail token (r: ChangeEmailRequest) : AsyncResult<string> =
   post "/email/change" r [ bearer token ]
 
-let changePassword token (r: ChangePasswordRequest) : AsyncT<string> =
+let changePassword token (r: ChangePasswordRequest) : AsyncResult<string> =
   post "/password/change" r [ bearer token ]

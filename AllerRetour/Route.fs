@@ -11,7 +11,8 @@ type Route =
   | ForgotPassword
   | ResetPassword of EmailAddress
   | SignUpSuccess of EmailAddress
-  | ResendEmail of string
+  | ResendEmail of SignInResponse * EmailAddress
+  | ChangeEmail of string
   | Main of SignInResponse * ProfileResponse
 
 [<RequireQualifiedAccess>]
@@ -20,6 +21,6 @@ module Route =
 
   let Changed = event.Publish
 
-  let push route : Cmd<'msg> =
+  let push route =
     [ fun _ ->
-      event.Trigger(route) ]
+        event.Trigger(route) ]
