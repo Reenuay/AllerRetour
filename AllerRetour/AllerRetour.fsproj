@@ -23,6 +23,7 @@
     <Compile Include="Route.fs" />
     <Compile Include="Loader.fs" />
     <Compile Include="Message.fs" />
+    <Compile Include="Security.fs" />
     <Compile Include="SignInPage.fs" />
     <Compile Include="SignUpPage.fs" />
     <Compile Include="ForgotPasswordPage.fs" />

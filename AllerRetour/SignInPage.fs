@@ -28,30 +28,6 @@ type Msg =
   | SignedIn of EmailAddress * Http.Result<SignInResponse>
   | ProfileReceived of SignInResponse * Http.Result<ProfileResponse>
 
-[<RequireQualifiedAccess>]
-module Model =
-  let isValid model
-    =  Validatable.isValid model.Email
-    && Validatable.isValid model.Password
-
-  let revalidate (model: Model) =
-    let
-      email =
-        Validatable.bindR
-          EmailAddress.create
-          (Validatable.value EmailAddress.value model.Email)
-    let
-      password =
-        Validatable.bindR
-          Password.create
-          (Validatable.value Password.value model.Password)
-    in
-    {
-      model with
-        Email = email
-        Password = password
-    }
-
 let initModel =
   {
     Email = Validatable.emptyString
@@ -64,14 +40,18 @@ let update msg model : Model * Cmd<Msg> =
   | SetEmail emailString ->
     let
       email =
-        Validatable.bindR EmailAddress.create emailString
+        Validatable.bindR
+          EmailAddress.create
+          emailString
     in
     ( { model with Email = email }, Cmd.none )
 
   | SetPassword passwordString ->
     let
       password =
-        Validatable.bindR Password.create passwordString
+        Validatable.bindR
+          Password.create
+          passwordString
     in
     ( { model with Password = password }, Cmd.none )
 
@@ -106,7 +86,25 @@ let update msg model : Model * Cmd<Msg> =
       ( model, cmd )
 
     | _ ->
-      ( Model.revalidate model, Cmd.none )
+      let
+        email =
+          Validatable.bindR
+            EmailAddress.create
+            (Validatable.value EmailAddress.value model.Email)
+      let
+        password =
+          Validatable.bindR
+            Password.create
+            (Validatable.value Password.value model.Password)
+      let
+        newModel =
+          {
+            model with
+              Email = email
+              Password = password
+          }
+      in
+      ( newModel, Cmd.none )
 
   | SignUp ->
     ( model, Route.push Route.SignUp )
@@ -119,8 +117,8 @@ let update msg model : Model * Cmd<Msg> =
       confirmedCmd =
         Cmd.ofAsyncMsg <|
           async {
-            let! profileR = Http.getProfile token.Token
-            return ProfileReceived ( token, profileR )
+            let! res = Http.getProfile token.Token
+            return ProfileReceived ( token, res )
           }
     let
       unconfirmedCmd =
@@ -217,11 +215,16 @@ let view model dispatch =
         passwordOptions = passwordOptions
       )
 
+      let
+        isEnabled =
+          Validatable.isValid model.Email
+          && Validatable.isValid model.Password
+      in
       View.MakeButton(
         text = "log in",
         margin = Thicknesses.mediumLowerSpace,
         command = bindClick dispatch SignIn,
-        isEnabled = Model.isValid model
+        isEnabled = isEnabled
       )
 
       View.Grid(

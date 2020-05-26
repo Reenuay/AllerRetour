@@ -86,44 +86,26 @@ module App =
     in
     ( newModel, Cmd.map (ResetPasswordPageMsg >> PageMsg) cmd )
 
-  let handleSignUpSuccessMsg msg model =
+  let handleSignUpSuccessMsg pageMsg pageModel =
     let
-      ( newModel, cmd ) =
-        SignUpSuccessPage.update msg model
+      ( newPageModel, pageCmd ) =
+        SignUpSuccessPage.update pageMsg pageModel
     in
-    ( newModel, Cmd.map (SignUpSuccessPageMsg >> PageMsg) cmd )
+    ( newPageModel, Cmd.map (SignUpSuccessPageMsg >> PageMsg) pageCmd )
 
-  let handleResendEmailMsg token pageMsg pageModel =
+  let handleResendEmailMsg tokenMaybe pageMsg pageModel =
     let
-      ( newPageModel, pageCmd, externalMsg ) =
-        ResendEmailPage.update token pageMsg pageModel
-    let
-      cmd =
-        match externalMsg with
-        | ResendEmailPage.NoOp ->
-          Cmd.none
-
-        | ResendEmailPage.SignOut ->
-          Cmd.ofMsg SignOut
-    let
-      cmd =
-        Cmd.batch
-          [
-            cmd
-
-            Cmd.map (ResendEmailPageMsg >> PageMsg) pageCmd
-          ]
+      ( newPageModel, pageCmd ) =
+        ResendEmailPage.update tokenMaybe pageMsg pageModel
     in
-    ( newPageModel, cmd )
+    ( newPageModel, Cmd.map (ResendEmailPageMsg >> PageMsg) pageCmd )
 
-  let handleChangeEmailMsg msg model =
-    let newModel, eMsg = ChangeEmailPage.update msg model
-    let cmd =
-      match eMsg with
-      | ChangeEmailPage.ExternalMsg.NoOp -> Cmd.none
-      | ChangeEmailPage.ChangeEmail r -> Cmd.ofMsg (ChangeEmail r)
-      | ChangeEmailPage.GoToSignIn -> Cmd.ofMsg SignOut
-    newModel, cmd
+  let handleChangeEmailMsg tokenMaybe pageMsg pageModel =
+    let
+      ( newPageModel, pageCmd ) =
+        ChangeEmailPage.update tokenMaybe pageMsg pageModel
+    in
+    ( newPageModel, Cmd.map (ChangeEmailPageMsg >> PageMsg) pageCmd )
 
   let handleMainMsg msg model =
     let newModel, eMsg = MainPage.update msg model
@@ -256,7 +238,7 @@ module App =
       { aModel with PageModel = ResendEmailPageModel newModel }, cmd
 
     | ChangeEmailPageMsg msg, ChangeEmailPageModel model ->
-      let newModel, cmd = handleChangeEmailMsg msg model
+      let newModel, cmd = handleChangeEmailMsg aModel.Token msg model
       { aModel with PageModel = ChangeEmailPageModel newModel }, cmd
 
     | MainPageMsg msg, MainPageModel model ->
@@ -351,7 +333,7 @@ module App =
     | Route.ChangeEmail email ->
       let
         pageModel =
-          ChangeEmailPage.create email
+          ChangeEmailPage.initModel email
       let
         newModel =
           { model with
@@ -529,6 +511,12 @@ module App =
         dispatch <| LoaderStateChanged isActive
     )
 
+  let securitySub dispatch =
+    Security.DropToken.Add(
+      fun () ->
+        dispatch SignOut
+    )
+
 type App () as app =
   inherit Application ()
 
@@ -539,6 +527,7 @@ type App () as app =
 #endif
       |> Program.withSubscription(fun _ ->  Cmd.ofSub App.routeSub)
       |> Program.withSubscription(fun _ ->  Cmd.ofSub App.loaderSub)
+      |> Program.withSubscription(fun _ ->  Cmd.ofSub App.securitySub)
       |> XamarinFormsProgram.run app
 
 #if DEBUG

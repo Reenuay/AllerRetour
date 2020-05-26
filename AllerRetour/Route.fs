@@ -12,7 +12,7 @@ type Route =
   | ResetPassword of EmailAddress
   | SignUpSuccess of EmailAddress
   | ResendEmail of SignInResponse * EmailAddress
-  | ChangeEmail of string
+  | ChangeEmail of EmailAddress
   | Main of SignInResponse * ProfileResponse
 
 [<RequireQualifiedAccess>]

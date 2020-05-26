@@ -20,19 +20,17 @@ type Msg =
   | SignIn
   | EmailResent of Http.Result<string>
 
-type ExternalMsg =
-  | NoOp
-  | SignOut
-
 let initModel email =
-  { Email = email }
+  {
+    Email = email
+  }
 
-let update token msg (model: Model) =
+let update tokenMaybe msg (model: Model) =
   match msg with
   | ResendEmail ->
     let
       cmd =
-        match token with
+        match tokenMaybe with
         | Some token ->
           Cmd.ofAsyncMsg <|
             async {
@@ -48,25 +46,34 @@ let update token msg (model: Model) =
               Message.show "You are not signed in."
             ]
     in
-    ( model, cmd, NoOp )
+    ( model, cmd )
 
   | ChangeEmail ->
     let
       cmd =
-        EmailAddress.value model.Email
+        model.Email
         |> Route.ChangeEmail 
         |> Route.push
     in
-    ( model, cmd, NoOp )
+    ( model, cmd )
 
   | SignIn ->
-    ( model, Route.push Route.SignIn, SignOut )
+    let
+      cmd =
+        Cmd.batch
+          [
+            Security.dropToken
+
+            Route.push Route.SignIn
+          ]
+    in
+    ( model, cmd )
 
   | EmailResent (Ok _) ->
-    ( model, Message.show "Email were sent successfully!", NoOp )
+    ( model, Message.show "Email were sent successfully!" )
 
   | EmailResent (Error errors) ->
-    ( model, Message.errors errors, NoOp )
+    ( model, Message.errors errors )
 
 let view model dispatch =
   View.MakeScrollStack(

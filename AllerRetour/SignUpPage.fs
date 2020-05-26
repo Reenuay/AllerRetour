@@ -26,8 +26,8 @@ type Msg =
   | SetLastName of string
   | SetEmail of string
   | SetPassword of string
-  | SetRepeatPassword of string
   | TogglePasswordHidden
+  | SetRepeatPassword of string
   | TogglePasswordRepeatHidden
   | SignUp
   | SignIn
@@ -35,20 +35,19 @@ type Msg =
 
 [<RequireQualifiedAccess>]
 module Model =
-  let checkRepeatPassword model p =
-    match Validatable.value Password.value model.Password with
-    | x when x <> "" && x = p ->
-      Ok p
+  let checkRepeatPassword model newPasswordString =
+    let
+      passwordString =
+        Validatable.value
+          Password.value
+          model.Password
+    in
+    match passwordString with
+    | x when x <> "" && x = newPasswordString ->
+      Ok newPasswordString
 
     | _ ->
       Error ["Passwords must be the same"]
-
-  let isValid model
-    =  Validatable.isValid model.FirstName
-    && Validatable.isValid model.LastName
-    && Validatable.isValid model.Email
-    && Validatable.isValid model.Password
-    && Validatable.isValid model.RepeatPassword
 
   let revalidate model =
     let
@@ -102,30 +101,45 @@ let update msg (model: Model) =
   | SetFirstName firstNameString ->
     let
       firstName =
-        Validatable.bindR NameString.create firstNameString
+        Validatable.bindR
+          NameString.create
+          firstNameString
     in
     ( { model with FirstName = firstName }, Cmd.none )
 
   | SetLastName lastNameString ->
     let
       lastName =
-        Validatable.bindR NameString.create lastNameString
+        Validatable.bindR
+          NameString.create
+          lastNameString
     in
     ( { model with LastName = lastName }, Cmd.none )
 
   | SetEmail emailString ->
     let
       email =
-        Validatable.bindR EmailAddress.create emailString
+        Validatable.bindR
+          EmailAddress.create
+          emailString
     in
     { model with Email = email }, Cmd.none
 
   | SetPassword passwordString ->
     let
       password =
-        Validatable.bindR Password.create passwordString
+        Validatable.bindR
+          Password.create
+          passwordString
     in
     ( { model with Password = password }, Cmd.none )
+  
+  | TogglePasswordHidden ->
+    let
+      passwordHidden =
+        not model.PasswordHidden
+    in
+    ( { model with PasswordHidden = passwordHidden }, Cmd.none )
 
   | SetRepeatPassword repeatPasswordString ->
     let
@@ -135,13 +149,6 @@ let update msg (model: Model) =
           repeatPasswordString
     in
     ( { model with RepeatPassword = repeatPassword }, Cmd.none )
-
-  | TogglePasswordHidden ->
-    let
-      passwordHidden =
-        not model.PasswordHidden
-    in
-    ( { model with PasswordHidden = passwordHidden }, Cmd.none )
 
   | TogglePasswordRepeatHidden ->
     let
@@ -292,11 +299,19 @@ let view model dispatch =
         passwordOptions = passwordOptions
       )
 
+      let
+        isEnabled =
+          Validatable.isValid model.FirstName
+          && Validatable.isValid model.LastName
+          && Validatable.isValid model.Email
+          && Validatable.isValid model.Password
+          && Validatable.isValid model.RepeatPassword
+      in
       View.MakeButton(
         text = "sign up",
         margin = Thicknesses.mediumLowerSpace,
         command = bindClick dispatch SignUp,
-        isEnabled = Model.isValid model
+        isEnabled = isEnabled
       )
 
       View.MakeTextButton(
