@@ -11,39 +11,11 @@ open Views
 type Model =
   private
     {
-      Email: Validatable<EmailAddress, string>
-      PreviousEmail: EmailAddress
-      Password: Validatable<Password, string>
+      Email: Validatable<EmailAddress>
+      OldEmail: EmailAddress
+      Password: Validatable<Password>
       PasswordHidden: bool
     }
-    with
-      member this.CreateEmail(emailString) =
-        match EmailAddress.create emailString with
-        | Error x ->
-          Error x
-
-        | Ok e ->
-          if e = this.PreviousEmail then
-            Error ["This is the old value"]
-
-          else
-            Ok e
-
-[<RequireQualifiedAccess>]
-module Model =
-  let checkRepeatPassword model newPasswordString =
-    let
-      passwordString =
-        Validatable.value
-          Password.value
-          model.Password
-    in
-    match passwordString with
-    | x when x <> "" && x = newPasswordString ->
-      Ok newPasswordString
-
-    | _ ->
-      Error ["Passwords must be the same"]
 
 type Msg =
   private
@@ -54,31 +26,27 @@ type Msg =
   | SignIn
   | EmailChanged of Http.Result<string>
 
-let initModel email =
+let initModel oldEmail =
   {
     Email = Validatable.emptyString
-    PreviousEmail = email
+    OldEmail = oldEmail
     Password = Validatable.emptyString
     PasswordHidden = true
   }
 
-let update tokenMaybe msg (model: Model) =
+let update tokenMaybe msg model =
   match msg with
   | SetEmail emailString ->
     let
       email =
-        Validatable.bindR
-          model.CreateEmail
-          emailString
+        EmailAddress.validateWithOld model.OldEmail emailString
     in
     ( { model with Email = email }, Cmd.none )
 
   | SetPassword passwordString ->
     let
       password =
-        Validatable.bindR
-          Password.create
-          passwordString
+        Password.validate passwordString
     in
     ( { model with Password = password }, Cmd.none )
 
@@ -92,8 +60,15 @@ let update tokenMaybe msg (model: Model) =
   | ChangeEmail ->
     match tokenMaybe with
     | Some token ->
-      match ( model.Email, model.Password ) with
-      | ( Ok email, Ok password ) ->
+      let
+        fields =
+          (
+            Validatable.tryValue model.Email,
+            Validatable.tryValue model.Password
+          )
+      in
+      match fields with
+      | ( Some email, Some password ) ->
         let
           req =
             {
@@ -117,14 +92,10 @@ let update tokenMaybe msg (model: Model) =
       | _ ->
         let
           email =
-            Validatable.bindR
-              EmailAddress.create
-              (Validatable.value EmailAddress.value model.Email)
+            EmailAddress.revalidateWithOld model.OldEmail model.Email
         let
           password =
-            Validatable.bindR
-              Password.create
-              (Validatable.value Password.value model.Password)
+            Password.revalidate model.Password
         let
           newModel =
             {
@@ -153,7 +124,7 @@ let update tokenMaybe msg (model: Model) =
     let
       message =
         "Your email has been successfully changed!"
-        +  " Check your inbox to confirm your new email ID."
+        + " Check your inbox to confirm your new email ID."
     let
       cmd =
         Cmd.batch
@@ -195,22 +166,27 @@ let view (model: Model) dispatch =
       )
 
       View.MakeEntry(
-        model.Email,
-        "New email",
-        EmailAddress.value,
-        (bindNewText dispatch SetEmail),
+        value = model.Email,
+        image = Images.envelopeIcon,
         keyboard = Keyboard.Email,
-        image = Images.envelopeIcon
+        placeholder = "New email",
+        textChanged = bindNewText dispatch SetEmail
       )
 
+      let
+        passwordOptions =
+          (
+            model.PasswordHidden,
+            bindClick dispatch TogglePasswordHidden
+          )
+      in
       View.MakeEntry(
-        model.Password,
-        "Password",
-        Password.value,
-        (bindNewText dispatch SetPassword),
+        value = model.Password,
         image = Images.lockIcon,
-        passwordOptions = (model.PasswordHidden, bindClick dispatch TogglePasswordHidden),
-        margin = Thicknesses.mediumLowerSpace
+        margin = Thicknesses.mediumLowerSpace,
+        placeholder = "Password",
+        textChanged = bindNewText dispatch SetPassword,
+        passwordOptions = passwordOptions
       )
 
       let

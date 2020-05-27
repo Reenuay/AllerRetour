@@ -7,40 +7,15 @@ open PrimitiveTypes
 open RequestTypes
 open Views
 open Resources
-
-type Model = {
-  Email: Validatable<EmailAddress, string>
-  PreviousEmail: EmailAddress
-  Password: Validatable<Password, string>
-  PasswordHidden: bool
-}
-with
-  member this.ToDto() : EmailAndPassword option =
-    match this.Email, this.Password with
-    | Ok e, Ok p ->
-      Some { Email = e; Password = p }
-    | _ ->
-      None
-
-  member this.IsValid() =
-    match this.Email, this.Password with
-    | Ok _, Ok _ -> true
-    | _ -> false
-
-  member this.CreateEmail(email) =
-    match EmailAddress.create email with
-    | Error x -> Error x
-    | Ok e ->
-      if e = this.PreviousEmail then
-        Error ["This is the old value"]
-      else
-        Ok e
-
-  member this.Revalidate() = {
-    this with
-      Email = Validatable.bindR this.CreateEmail (Validatable.value EmailAddress.value this.Email)
-      Password = Validatable.bindR Password.create (Validatable.value Password.value this.Password)
-  }
+      
+type Model =
+  private
+    {
+      Email: Validatable<EmailAddress>
+      OldEmail: EmailAddress
+      Password: Validatable<Password>
+      PasswordHidden: bool
+    }
 
 type Msg =
   | SetEmail of string
@@ -56,23 +31,61 @@ type ExternalMsg =
 
 let create email = {
   Email = Validatable.emptyString
-  PreviousEmail = email
+  OldEmail = email
   Password = Validatable.emptyString
   PasswordHidden = true
 }
 
 let update msg (model: Model) =
   match msg with
-  | SetEmail e ->
-    { model with Email = Validatable.bindR model.CreateEmail e }, NoOp
+  | SetEmail emailString ->
+    let
+      email =
+        EmailAddress.validateWithOld model.OldEmail emailString
+    in
+    ( { model with Email = email }, NoOp )
 
-  | SetPassword p ->
-    { model with Password = Validatable.bindR Password.create p }, NoOp
+  | SetPassword passwordString ->
+    let
+      password =
+        Password.validate passwordString
+    in
+    ( { model with Password = password }, NoOp )
 
   | ClickChange ->
-    match model.ToDto() with
-    | Some d -> model, ChangeEmail d
-    | None -> model.Revalidate(), NoOp
+    let
+      fields =
+        (
+          Validatable.tryValue model.Email,
+          Validatable.tryValue model.Password
+        )
+    in
+    match fields with
+    | ( Some email, Some password ) ->
+      let
+        data : EmailAndPassword =
+          {
+            Email = email
+            Password = password
+          }
+      in
+      ( model, ChangeEmail data )
+        
+    | _ ->
+      let
+        email =
+          EmailAddress.revalidateWithOld model.OldEmail model.Email
+      let
+        password =
+          Password.revalidate model.Password
+      let
+        newModel =
+          { model with
+              Email = email
+              Password = password
+          }
+      in
+      ( newModel, NoOp )
 
   | SwapPasswordHidden ->
     { model with PasswordHidden = not model.PasswordHidden }, NoOp
@@ -94,7 +107,6 @@ let view (model: Model) dispatch =
       View.MakeEntry(
         model.Email,
         "New email",
-        EmailAddress.value,
         (bindNewText dispatch SetEmail),
         keyboard = Keyboard.Email,
         image = Images.envelopeIcon
@@ -103,18 +115,22 @@ let view (model: Model) dispatch =
       View.MakeEntry(
         model.Password,
         "Password",
-        Password.value,
         (bindNewText dispatch SetPassword),
         image = Images.lockIcon,
         passwordOptions = (model.PasswordHidden, bindClick dispatch SwapPasswordHidden),
         margin = Thicknesses.mediumLowerSpace
       )
 
+      let
+        isEnabled =
+          Validatable.isValid model.Email
+          && Validatable.isValid model.Password
+      in
       View.MakeButton(
         text = "change",
+        margin = Thicknesses.mediumLowerSpace,
         command = bindClick dispatch ClickChange,
-        isEnabled = model.IsValid(),
-        margin = Thicknesses.mediumLowerSpace
+        isEnabled = isEnabled
       )
     ]
   )

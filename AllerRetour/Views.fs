@@ -116,7 +116,6 @@ type View with
     (
       value,
       placeholder,
-      map,
       textChanged,
       ?passwordOptions,
       ?keyboard,
@@ -124,23 +123,17 @@ type View with
       ?margin
     ) =
       let isPassword = function
-      | Some (isSet, _) ->
+      | Some ( isSet, _ ) ->
         isSet
 
       | None ->
         false
 
-      let text, error =
-        match value with
-        | Ok x ->
-          ( map x, "" )
+      let text =
+        Validatable.getInput value
 
-        | Error (v, l) ->
-          let
-            errorString =
-              List.fold (fun s v -> s + "\n" + v) "" l
-          in
-          ( v, errorString )
+      let state =
+        Validatable.getState value
 
       View.Grid(
         coldefs = [Auto; Star],
@@ -197,15 +190,23 @@ type View with
               )
                 .Column(1)
 
-          if error <> String.Empty then
+          match state with
+          | Invalid errors ->
+            let
+              errorString =
+                List.fold (fun acc error -> acc + "\n" + error) "" errors
+            in
             yield
               View.MakeThinText(
-                text = error,
+                text = errorString,
                 margin = Thickness (4., -15., 4., 0.),
                 horizontalTextAlignment = TextAlignment.Start
               )
                 .Row(1)
                 .Column(1)
+
+          | _ ->
+            ()
         ]
       )
 

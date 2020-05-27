@@ -9,44 +9,19 @@ open AllerRetour.Controls
 open Resources
 open Views
 
-type Model = {
-  FirstName: Validatable<NameString, string>
-  LastName: Validatable<NameString, string>
-  Birthday: DateTime option
-  Gender: Gender option
-  PreviousProfile: Profile
-  SelectedGenderIndex: int
-}
-with
-  member this.IsValid() =
-    match this.FirstName, this.LastName with
-    | Ok f, Ok l ->
-      f <> this.PreviousProfile.FirstName
-      || l <> this.PreviousProfile.LastName
-      || this.Gender <> this.PreviousProfile.Gender
-      || this.Birthday <> this.PreviousProfile.Birthday
-
-    | _ -> false
-
-  member this.ToDto() : Profile option =
-    match this.IsValid() with
-    | true ->
-      Some {
-        FirstName = Result.getOk this.FirstName
-        LastName = Result.getOk this.LastName
-        Birthday = this.Birthday
-        Gender = this.Gender
-      }
-    | false ->
-      None
-
-  member this.Revalidate() = {
-    this with
-      FirstName = Validatable.bindR NameString.create (Validatable.value NameString.value this.FirstName)
-      LastName = Validatable.bindR (NameString.create) (Validatable.value NameString.value this.LastName)
-  }
+type Model =
+  private
+    {
+      FirstName: Validatable<Name>
+      LastName: Validatable<Name>
+      Birthday: DateTime option
+      Gender: Gender option
+      OldProfile: Profile
+      SelectedGenderIndex: int
+    }
 
 type Msg =
+  private
   | SetFirstName of string
   | SetLastName of string
   | SetBirthday of DateTime option
@@ -59,31 +34,60 @@ type ExternalMsg =
   | GoBack
   | UpdateProfile of Profile
 
-let genderList = ["Male"; "Female"]
+let private tryGetProfile model =
+  let
+    fields =
+      (
+        Validatable.tryValue model.FirstName,
+        Validatable.tryValue model.LastName
+      )
+  in
+  match fields with
+  | ( Some firstName, Some lastName )
+    when firstName <> model.OldProfile.FirstName
+    || lastName <> model.OldProfile.LastName
+    || model.Gender <> model.OldProfile.Gender
+    || model.Birthday <> model.OldProfile.Birthday ->
 
-let fromGenderOption = function
-| Some x ->
-  match x with
-  | Male -> List.findIndex (fun x -> x = "Male") genderList
-  | Female -> List.findIndex (fun x -> x = "Female") genderList
-| None -> -1
+    Some
+      {
+        FirstName = firstName
+        LastName = lastName
+        Birthday = model.Birthday
+        Gender = model.Gender
+      }
 
-let create (profile: Profile) = {
-  FirstName = Ok profile.FirstName
-  LastName = Ok profile.LastName
-  Birthday = profile.Birthday
-  Gender = profile.Gender
-  PreviousProfile = profile
-  SelectedGenderIndex = fromGenderOption profile.Gender
-}
+  | _ ->
+    None
+
+let private genderList = [ "Male"; "Female" ]
+
+let private fromGenderOption = function
+| Some gender ->
+  List.findIndex
+    ((=) (Gender.toString gender))
+    genderList
+
+| None ->
+  -1
+
+let create (profile: Profile) =
+  {
+    FirstName = Validatable.empty <| Name.value profile.FirstName
+    LastName = Validatable.empty <| Name.value profile.LastName
+    Birthday = profile.Birthday
+    Gender = profile.Gender
+    OldProfile = profile
+    SelectedGenderIndex = fromGenderOption profile.Gender
+  }
 
 let update msg (model: Model) =
   match msg with
   | SetFirstName f ->
-    { model with FirstName = Validatable.bindR NameString.create f }, NoOp
+    { model with FirstName = Name.validate f }, NoOp
 
   | SetLastName l ->
-    { model with LastName = Validatable.bindR NameString.create l }, NoOp
+    { model with LastName = Name.validate l }, NoOp
 
   | SetBirthday b ->
     { model with Birthday = b }, NoOp
@@ -96,12 +100,29 @@ let update msg (model: Model) =
     }, NoOp
 
   | ClickSave ->
-    match model.ToDto() with
-    | Some p -> model, UpdateProfile p
-    | None -> model.Revalidate(), NoOp
+    match tryGetProfile model with
+    | Some profile ->
+      ( model, UpdateProfile profile )
+
+    | _ ->
+      let
+        firstName =
+          Name.revalidate model.FirstName
+      let
+        lastName =
+          Name.revalidate model.LastName
+      let
+        newModel =
+          {
+            model with
+              FirstName = firstName
+              LastName = lastName
+          }
+      in
+      ( newModel, NoOp )
 
   | ClickGoBack ->
-    model, GoBack
+    ( model, GoBack )
 
 let view model dispatch =
   View.MakeScrollStack(
@@ -117,7 +138,6 @@ let view model dispatch =
       View.MakeEntry(
         model.FirstName,
         "First name",
-        NameString.value,
         (bindNewText dispatch SetFirstName),
         image = Images.userIcon
       )
@@ -125,7 +145,6 @@ let view model dispatch =
       View.MakeEntry(
         model.LastName,
         "Last name",
-        NameString.value,
         (bindNewText dispatch SetLastName),
         image = Images.userIcon
       )
@@ -154,11 +173,16 @@ let view model dispatch =
       )
       |> margin Thicknesses.mediumLowerSpace
 
+      let
+        isEnabled =
+          tryGetProfile model
+          |> Option.isSome
+      in
       View.MakeButton(
         text = "save",
+        margin = Thicknesses.mediumLowerSpace,
         command = bindClick dispatch ClickSave,
-        isEnabled = model.IsValid(),
-        margin = Thicknesses.mediumLowerSpace
+        isEnabled = isEnabled
       )
     ]
   )

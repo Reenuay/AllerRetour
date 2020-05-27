@@ -41,6 +41,29 @@ module EmailAddress =
 
   let value (EmailAddress s) = s
 
+  let validate =
+    Validatable.bindR create
+
+  let revalidate email =
+    Validatable.getInput email
+    |> validate
+
+  let validateWithOld email =
+    let
+      checkEquals emailString =
+        match create emailString with
+        | Ok newEmail when newEmail = email ->
+          Error ["This is the old value"]
+
+        | x ->
+          x
+    in
+    Validatable.bindR checkEquals
+
+  let revalidateWithOld email (newEmail: Validatable<EmailAddress>) =
+    Validatable.getInput newEmail
+    |> validateWithOld email
+
 // -------------- PASSWORD
 type Password = private Password of string
 
@@ -68,11 +91,39 @@ module Password =
 
   let value (Password s) = s
 
-// -------------- NAME STRING
-type NameString = private NameString of string
+  let validate =
+    Validatable.bindR create
+
+  let revalidate password =
+    Validatable.getInput password
+    |> validate
+
+  let validateRepeat (password: Validatable<Password>) =
+    let
+      error =
+        Error ["Passwords must be the same"]
+    let
+      checkEquals passwordString =
+        if Validatable.getInput password = passwordString
+        then Ok passwordString
+        else error
+    in
+    match Validatable.getState password with
+    | Initial ->
+      Validatable.bindR (always error)
+
+    | _ ->
+      Validatable.bindR checkEquals
+
+  let revalidateRepeat password (repeatPassword: Validatable<string>) =
+    Validatable.getInput repeatPassword
+    |> validateRepeat password
+
+// -------------- NAME
+type Name = private Name of string
 
 [<RequireQualifiedAccess>]
-module NameString =
+module Name =
   let minLength = 1
   let maxLength = 100
   
@@ -82,9 +133,16 @@ module NameString =
     else if String.length n > maxLength then
       Error [sprintf "Maximum length is %i" maxLength]
     else
-      Ok <| NameString n
+      Ok <| Name n
   
-  let value (NameString s) = s
+  let value (Name s) = s
+
+  let validate =
+    Validatable.bindR create
+
+  let revalidate name =
+    Validatable.getInput name
+    |> validate
 
 // -------------- PIN
 type Pin = private Pin of string
@@ -102,14 +160,21 @@ module Pin =
 
   let value (Pin s) = s
 
+  let validate =
+    Validatable.bindR create
+
+  let revalidate pin =
+    Validatable.getInput pin
+    |> validate
+
 type EmailAndPassword = {
   Email: EmailAddress
   Password: Password
 }
 
 type Profile = {
-  FirstName: NameString
-  LastName: NameString
+  FirstName: Name
+  LastName: Name
   Birthday: DateTime option
   Gender: Gender option
 }

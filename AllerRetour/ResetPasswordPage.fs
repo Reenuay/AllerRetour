@@ -13,11 +13,11 @@ type Model =
     {
       Email: EmailAddress
       Timer: int
-      Pin: Validatable<Pin, string>
+      Pin: Validatable<Pin>
       PinEntered: bool
-      NewPassword: Validatable<Password, string>
+      NewPassword: Validatable<Password>
       NewPasswordHidden: bool
-      NewPasswordRepeat: Validatable<string, string>
+      NewPasswordRepeat: Validatable<string>
       NewPasswordRepeatHidden: bool
     }
 
@@ -33,66 +33,6 @@ type Msg =
   | ToggleNewPasswordRepeatHidden
   | ResetPassword
   | PasswordReset of Http.Result<string>
-
-[<RequireQualifiedAccess>]
-module Model =
-  let checkRepeatPassword model p =
-    match Validatable.value Password.value model.NewPassword with
-    | x when x <> "" && x = p ->
-      Ok p
-
-    | _ ->
-      Error ["Passwords must be the same"]
-
-  let toDto model =
-    let
-      fields =
-        (
-          model.NewPassword,
-          model.NewPasswordRepeat,
-          model.Pin
-        )
-    in
-    match fields with
-    | ( Ok n, Ok _, Ok p ) ->
-      Some
-        {
-          Email = EmailAddress.value model.Email
-          NewPassword = Password.value n
-          Token = Pin.value p
-        }
-
-    | _ ->
-      None
-
-  let isValid model
-    =  Validatable.isValid model.NewPassword
-    && Validatable.isValid model.NewPasswordRepeat
-    && Validatable.isValid model.Pin
-
-  let revalidate model =
-    let
-      newPassword =
-        Validatable.bindR
-          Password.create
-          (Validatable.value Password.value model.NewPassword)
-    let
-      repeatNewPassword =
-        Validatable.bindR
-          (checkRepeatPassword model)
-          (Validatable.value id model.NewPasswordRepeat)
-    let
-      token =
-        Validatable.bindR
-          Pin.create
-          (Validatable.value Pin.value model.Pin)
-    in
-    {
-      model with
-        NewPassword = newPassword
-        NewPasswordRepeat = repeatNewPassword
-        Pin = token
-    }
 
 let init email =
   let
@@ -160,9 +100,7 @@ let update msg (model: Model) =
         else
           let
             pin =
-              Validatable.bindR
-                Pin.create
-                (Validatable.value Pin.value model.Pin)
+              Pin.revalidate model.Pin
           in
           { model with Pin = pin }
     in
@@ -174,7 +112,7 @@ let update msg (model: Model) =
   | SetNewPassword newPasswordString ->
     let
       newPassword =
-        Validatable.bindR Password.create newPasswordString
+        Password.validate newPasswordString
     let
       newModel =
         {
@@ -200,9 +138,7 @@ let update msg (model: Model) =
   | SetNewPasswordRepeat newPasswordRepeatString ->
     let
       newPasswordRepeat =
-        Validatable.bindR
-          (Model.checkRepeatPassword model)
-          newPasswordRepeatString
+        Password.validateRepeat model.NewPassword newPasswordRepeatString
     let
       newModel =
         {
@@ -226,16 +162,31 @@ let update msg (model: Model) =
     ( newModel, Cmd.none )
 
   | ResetPassword ->
-    match Model.toDto model with
-    | Some request ->
+    let
+      fields =
+        (
+          Validatable.tryValue model.NewPassword,
+          Validatable.tryValue model.Pin,
+          Validatable.tryValue model.NewPasswordRepeat
+        )
+    in
+    match fields with
+    | ( Some n, Some p, Some _ ) ->
+      let
+        req =
+          {
+            Email = EmailAddress.value model.Email
+            NewPassword = Password.value n
+            Token = Pin.value p
+          }
       let
         cmd =
           Cmd.batch
             [
               Cmd.ofAsyncMsg <|
                 async {
-                  let! response = Http.resetPassword request
-                  return PasswordReset response
+                  let! res = Http.resetPassword req
+                  return PasswordReset res
                 }
 
               Loader.start
@@ -243,8 +194,26 @@ let update msg (model: Model) =
       in
       ( model, cmd )
 
-    | None ->
-      ( Model.revalidate model, Cmd.none )
+    | _ ->
+      let
+        newPassword =
+          Password.revalidate model.NewPassword
+      let
+        repeatNewPassword =
+          Password.revalidateRepeat model.NewPassword model.NewPasswordRepeat
+      let
+        pin =
+          Pin.revalidate model.Pin
+      let
+        newModel =
+          {
+            model with
+              NewPassword = newPassword
+              NewPasswordRepeat = repeatNewPassword
+              Pin = pin
+          }
+      in
+      ( newModel, Cmd.none )
 
   | PasswordReset (Ok _) ->
     let
@@ -299,7 +268,6 @@ let view model dispatch =
           )
 
           View.MakeEntry(
-            map = Pin.value,
             value = model.Pin,
             image = Images.lockIcon,
             margin = Thicknesses.mediumLowerSpace,
@@ -308,11 +276,15 @@ let view model dispatch =
             textChanged = bindNewText dispatch SetPin
           )
 
+          let
+            isEnabled =
+              Validatable.isValid model.Pin
+          in
           View.MakeButton(
             text = "confirm",
             margin = Thicknesses.mediumLowerSpace,
             command = bindClick dispatch ConfirmPin,
-            isEnabled = Result.isOk model.Pin
+            isEnabled = isEnabled
           )
         ]
       else
@@ -335,7 +307,6 @@ let view model dispatch =
               )
           in
           View.MakeEntry(
-            map = Password.value,
             value = model.NewPassword,
             image = Images.lockIcon,
             placeholder = "New password",
@@ -346,18 +317,23 @@ let view model dispatch =
           View.MakeEntry(
             model.NewPasswordRepeat,
             "Re-enter password",
-            id,
             (bindNewText dispatch SetNewPasswordRepeat),
             image = Images.lockIcon,
             margin = Thicknesses.mediumLowerSpace,
             passwordOptions = (model.NewPasswordRepeatHidden, bindClick dispatch ToggleNewPasswordRepeatHidden)
           )
 
+          let
+            isEnabled =
+              Validatable.isValid model.NewPassword
+              && Validatable.isValid model.NewPasswordRepeat
+              && Validatable.isValid model.Pin
+          in
           View.MakeButton(
             text = "change password",
             margin = Thicknesses.mediumLowerSpace,
             command = bindClick dispatch ResetPassword,
-            isEnabled = Model.isValid model
+            isEnabled = isEnabled
           )
         ]
 

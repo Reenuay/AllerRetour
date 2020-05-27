@@ -11,12 +11,12 @@ open Views
 type Model =
   private
     {
-      FirstName: Validatable<NameString, string>
-      LastName: Validatable<NameString, string>
-      Email: Validatable<EmailAddress, string>
-      Password: Validatable<Password, string>
+      FirstName: Validatable<Name>
+      LastName: Validatable<Name>
+      Email: Validatable<EmailAddress>
+      Password: Validatable<Password>
       PasswordHidden: bool
-      RepeatPassword: Validatable<string, string>
+      RepeatPassword: Validatable<string>
       PasswordRepeatHidden: bool
     }
 
@@ -33,66 +33,14 @@ type Msg =
   | SignIn
   | SignedUp of EmailAddress * Http.Result<string>
 
-[<RequireQualifiedAccess>]
-module Model =
-  let checkRepeatPassword model newPasswordString =
-    let
-      passwordString =
-        Validatable.value
-          Password.value
-          model.Password
-    in
-    match passwordString with
-    | x when x <> "" && x = newPasswordString ->
-      Ok newPasswordString
-
-    | _ ->
-      Error ["Passwords must be the same"]
-
-  let revalidate model =
-    let
-      firstName =
-        Validatable.bindR
-          NameString.create
-          (Validatable.value NameString.value model.FirstName)
-    let
-      lastName =
-        Validatable.bindR
-          NameString.create
-          (Validatable.value NameString.value model.LastName)
-    let
-      email =
-        Validatable.bindR
-          EmailAddress.create
-          (Validatable.value EmailAddress.value model.Email)
-    let
-      password =
-        Validatable.bindR
-          Password.create
-          (Validatable.value Password.value model.Password)
-    let
-      repeatPassword =
-        Validatable.bindR
-          (checkRepeatPassword model)
-          (Validatable.value id model.RepeatPassword)
-    in
-    {
-      model with
-        Email = email
-        LastName = lastName
-        Password = password
-        FirstName = firstName
-        RepeatPassword = repeatPassword
-    }
-
 let initModel =
   {
     FirstName = Validatable.emptyString
     LastName = Validatable.emptyString
     Email = Validatable.emptyString
     Password = Validatable.emptyString
-    RepeatPassword = Validatable.emptyString
     PasswordHidden = true
+    RepeatPassword = Validatable.emptyString
     PasswordRepeatHidden = true
   }
 
@@ -101,36 +49,28 @@ let update msg (model: Model) =
   | SetFirstName firstNameString ->
     let
       firstName =
-        Validatable.bindR
-          NameString.create
-          firstNameString
+        Name.validate firstNameString
     in
     ( { model with FirstName = firstName }, Cmd.none )
 
   | SetLastName lastNameString ->
     let
       lastName =
-        Validatable.bindR
-          NameString.create
-          lastNameString
+        Name.validate lastNameString
     in
     ( { model with LastName = lastName }, Cmd.none )
 
   | SetEmail emailString ->
     let
       email =
-        Validatable.bindR
-          EmailAddress.create
-          emailString
+        EmailAddress.validate emailString
     in
     { model with Email = email }, Cmd.none
 
   | SetPassword passwordString ->
     let
       password =
-        Validatable.bindR
-          Password.create
-          passwordString
+        Password.validate passwordString
     in
     ( { model with Password = password }, Cmd.none )
   
@@ -144,9 +84,7 @@ let update msg (model: Model) =
   | SetRepeatPassword repeatPasswordString ->
     let
       repeatPassword =
-        Validatable.bindR
-          (Model.checkRepeatPassword model)
-          repeatPasswordString
+        Password.validateRepeat model.Password repeatPasswordString
     in
     ( { model with RepeatPassword = repeatPassword }, Cmd.none )
 
@@ -161,26 +99,26 @@ let update msg (model: Model) =
     let
       fields =
         (
-          model.FirstName,
-          model.LastName,
-          model.Email,
-          model.Password,
-          model.RepeatPassword
+          Validatable.tryValue model.FirstName,
+          Validatable.tryValue model.LastName,
+          Validatable.tryValue model.Email,
+          Validatable.tryValue model.Password,
+          Validatable.tryValue model.RepeatPassword
         )
     in
     match fields with
     | (
-        Ok firstName,
-        Ok lastName,
-        Ok email,
-        Ok password,
-        Ok _
+        Some firstName,
+        Some lastName,
+        Some email,
+        Some password,
+        Some _
       ) ->
       let
         req =
           {
-            FirstName = NameString.value firstName
-            LastName = NameString.value lastName
+            FirstName = Name.value firstName
+            LastName = Name.value lastName
             Email = EmailAddress.value email
             Password = Password.value password
           }
@@ -200,7 +138,33 @@ let update msg (model: Model) =
       ( model, cmd )
 
     | _ ->
-      ( Model.revalidate model, Cmd.none )
+      let
+        firstName =
+          Name.revalidate model.FirstName
+      let
+        lastName =
+          Name.revalidate model.LastName
+      let
+        email =
+          EmailAddress.revalidate model.Email
+      let
+        password =
+          Password.revalidate model.Password
+      let
+        repeatPassword =
+          Password.revalidateRepeat model.Password model.RepeatPassword
+      let
+        newModel =
+          {
+            model with
+              Email = email
+              LastName = lastName
+              Password = password
+              FirstName = firstName
+              RepeatPassword = repeatPassword
+          }
+      in
+      ( newModel, Cmd.none )
 
   | SignIn ->
     ( model, Route.push Route.SignIn )
@@ -242,7 +206,6 @@ let view model dispatch =
       )
 
       View.MakeEntry(
-        map = NameString.value,
         value = model.FirstName,
         image = Images.userIcon,
         placeholder = "First name",
@@ -250,7 +213,6 @@ let view model dispatch =
       )
 
       View.MakeEntry(
-        map = NameString.value,
         value = model.LastName,
         image = Images.userIcon,
         placeholder = "Last name",
@@ -258,7 +220,6 @@ let view model dispatch =
       )
 
       View.MakeEntry(
-        map = EmailAddress.value,
         value = model.Email,
         image = Images.envelopeIcon,
         keyboard = Keyboard.Email,
@@ -274,7 +235,6 @@ let view model dispatch =
           )
       in
       View.MakeEntry(
-        map = Password.value,
         value = model.Password,
         image = Images.lockIcon,
         placeholder = "Password",
@@ -290,7 +250,6 @@ let view model dispatch =
           )
       in
       View.MakeEntry(
-        map = id,
         value = model.RepeatPassword,
         image = Images.lockIcon,
         margin = Thicknesses.mediumLowerSpace,

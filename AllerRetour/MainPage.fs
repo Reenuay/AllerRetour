@@ -19,8 +19,8 @@ type Page =
 type Model = {
   CardId: string
   Email: EmailAddress
-  FirstName: NameString
-  LastName: NameString
+  FirstName: Name
+  LastName: Name
   Birtday: DateTime option
   Gender: Gender option
   ActiveTabId: int
@@ -59,8 +59,8 @@ let create (r: ProfileResponse) =
   result {
     let cardId = r.CardId
     let! email = EmailAddress.create r.Email
-    let! firstName = NameString.create r.FirstName
-    let! lastName = NameString.create r.LastName
+    let! firstName = Name.create r.FirstName
+    let! lastName = Name.create r.LastName
     let gender = Gender.fromString r.Gender
 
     return {
@@ -126,8 +126,8 @@ let update msg model =
         | EditProfileSubPage.UpdateProfile p ->
           None,
           UpdateProfile {
-            FirstName = NameString.value p.FirstName
-            LastName = NameString.value p.LastName
+            FirstName = Name.value p.FirstName
+            LastName = Name.value p.LastName
             Birthday = p.Birthday
             Gender = Gender.optionToString p.Gender
           }
@@ -529,7 +529,7 @@ let view model (dispatch: Msg -> unit) =
                 View.StackLayout(
                   children = [
                     View.Label(
-                      text = NameString.value firstName + " " + NameString.value lastName,
+                      text = Name.value firstName + " " + Name.value lastName,
                       margin = Thickness 4.,
                       fontSize = FontSizes.medium,
                       textColor = Colors.accent,

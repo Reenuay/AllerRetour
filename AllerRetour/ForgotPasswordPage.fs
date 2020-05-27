@@ -10,7 +10,7 @@ open Xamarin.Forms
 type Model =
   private
     {
-      Email: Validatable<EmailAddress, string>
+      Email: Validatable<EmailAddress>
     }
 
 type Msg =
@@ -18,7 +18,7 @@ type Msg =
   | SetEmail of string
   | Send
   | SignIn
-  | PinSent of Http.Result<string>
+  | PinSent of EmailAddress * Http.Result<string>
 
 let initModel =
   {
@@ -37,8 +37,8 @@ let update msg (model: Model) =
     ( { model with Email = email }, Cmd.none )
 
   | Send ->
-    match model.Email with
-    | Ok email ->
+    match Validatable.tryValue model.Email with
+    | Some email ->
       let
         req : PasswordResetEmailRequest =
           {
@@ -52,46 +52,35 @@ let update msg (model: Model) =
             Cmd.ofAsyncMsg <|
               async {
                 let! res = Http.sendPin req
-                return PinSent res
+                return PinSent ( email, res )
               }
             ]
       in
       ( model, cmd )
 
-    | Error ( emailString, _ ) ->
+    | None ->
       let
         email =
-          Validatable.bindR
-            EmailAddress.create
-            emailString
+          EmailAddress.revalidate model.Email
       in
       ( { model with Email = email }, Cmd.none )
 
   | SignIn ->
     ( model, Route.push Route.SignIn )
 
-  | PinSent (Ok _) ->
-    match model.Email with
-    | Ok email ->
-      let
-        cmd =
-          Cmd.batch
-            [
-              Route.push (Route.ResetPassword email)
+  | PinSent ( email, Ok _ ) ->
+    let
+      cmd =
+        Cmd.batch
+          [
+            Route.push (Route.ResetPassword email)
 
-              Loader.stop
-            ]
-      in
-      ( model, cmd )
+            Loader.stop
+          ]
+    in
+    ( model, cmd )
 
-    | Error ( emailString, _ ) ->
-      let
-        newEmail =
-          Validatable.bindR EmailAddress.create emailString
-      in
-      ( { model with Email = newEmail }, Cmd.none )
-
-  | PinSent (Error errors) ->
+  | PinSent ( _, Error errors ) ->
     let
       cmd =
         Cmd.batch
@@ -121,7 +110,6 @@ let view (model: Model) dispatch =
       )
 
       View.MakeEntry(
-        map = EmailAddress.value,
         value = model.Email,
         image = Images.envelopeIcon,
         margin = Thicknesses.mediumLowerSpace,

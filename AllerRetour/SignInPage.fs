@@ -12,8 +12,8 @@ open Views
 type Model =
   private
     {
-      Email: Validatable<EmailAddress, string>
-      Password: Validatable<Password, string>
+      Email: Validatable<EmailAddress>
+      Password: Validatable<Password>
       PasswordHidden: bool
     }
 
@@ -40,18 +40,14 @@ let update msg model : Model * Cmd<Msg> =
   | SetEmail emailString ->
     let
       email =
-        Validatable.bindR
-          EmailAddress.create
-          emailString
+        EmailAddress.validate emailString
     in
     ( { model with Email = email }, Cmd.none )
 
   | SetPassword passwordString ->
     let
       password =
-        Validatable.bindR
-          Password.create
-          passwordString
+        Password.validate passwordString
     in
     ( { model with Password = password }, Cmd.none )
 
@@ -63,8 +59,15 @@ let update msg model : Model * Cmd<Msg> =
     ( { model with PasswordHidden = passwordHidden }, Cmd.none )
 
   | SignIn ->
-    match ( model.Email, model.Password )  with
-    | ( Ok email, Ok password )  ->
+    let
+      fields =
+        (
+          Validatable.tryValue model.Email,
+          Validatable.tryValue model.Password
+        )
+    in
+    match fields with
+    | ( Some email, Some password )  ->
       let
         req =
           {
@@ -88,14 +91,10 @@ let update msg model : Model * Cmd<Msg> =
     | _ ->
       let
         email =
-          Validatable.bindR
-            EmailAddress.create
-            (Validatable.value EmailAddress.value model.Email)
+          EmailAddress.revalidate model.Email
       let
         password =
-          Validatable.bindR
-            Password.create
-            (Validatable.value Password.value model.Password)
+          Password.revalidate model.Password
       let
         newModel =
           {
@@ -190,7 +189,6 @@ let view model dispatch =
       )
 
       View.MakeEntry(
-        map = EmailAddress.value,
         value = model.Email,
         image = Images.envelopeIcon,
         keyboard = Keyboard.Email,
@@ -206,7 +204,6 @@ let view model dispatch =
           )
       in
       View.MakeEntry(
-        map = Password.value,
         value = model.Password,
         image = Images.lockIcon,
         margin = Thicknesses.mediumLowerSpace,

@@ -11,7 +11,7 @@
     <Compile Include="Json.fs" />
     <Compile Include="PrimitiveFunctions.fs" />
     <Compile Include="Result.fs" />
-    <Compile Include="ValidationHelpers.fs" />
+    <Compile Include="Validatable.fs" />
     <Compile Include="PrimitiveTypes.fs" />
     <Compile Include="RequestTypes.fs" />
     <Compile Include="ResponseTypes.fs" />

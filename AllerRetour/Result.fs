@@ -19,17 +19,3 @@ module Result =
 
   | Error r ->
     fError r
-
-  let isOk = function
-  | Ok _ ->
-    true
-
-  | Error _ ->
-    false
-
-  let getOk = function
-  | Ok r ->
-    r
-
-  | Error _ ->
-    failwith "Expecting ok value"
